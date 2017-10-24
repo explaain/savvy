@@ -22,6 +22,22 @@ module.exports = {
     // allow async-await
     'generator-star-spacing': 0,
     // allow debugger during development
-    'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
+    'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
+    // allow dangling commas in arrays and objects
+    "comma-dangle": ["error", {
+        "arrays": "ignore",
+        "objects": "ignore",
+        "imports": "never",
+        "exports": "never",
+        "functions": "ignore"
+    }],
+    // allow no spaces before function parentheses
+    "space-before-function-paren": ["error", {
+        "anonymous": "ignore",
+        "named": "ignore",
+        "asyncArrow": "ignore"
+    }],
+    // allow js Strings to be extended
+    "no-extend-native": ["error", { "exceptions": ["String"] }]
   }
 }
