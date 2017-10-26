@@ -1,0 +1,61 @@
+{
+  "name": "Savvy",
+  "short_name": "Savvy",
+  "description": "Remember anything",
+  "version": "0.3.0",
+  "manifest_version": 2,
+  "icons": {
+    "16": "chrome/images/icon16.png",
+    "48": "chrome/images/icon48.png"
+  },
+  "content_scripts" : [{
+    "matches" : [
+      "*://*/*"
+    ],
+    "js" : [
+      "chrome/scripts/content-script.js"
+    ]
+  }],
+  "background": {
+    "scripts": [
+      "chrome/scripts/event-page.js"
+    ],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_icon": {
+      "48": "chrome/images/icon48.png"
+    },
+    "default_title": "__MSG_browserActionTitle__"
+  },
+  "chrome_url_overrides" : {
+    "newtab": "index.html"
+  },
+  "content_security_policy": "script-src 'self' https://apis.google.com/; object-src 'self'",
+  "web_accessible_resources": [
+    "index.html"
+  ],
+  "permissions": [
+    "bookmarks",
+    "clipboardRead",
+    "clipboardWrite",
+    "commands",
+    "contentSettings",
+    "contextMenus",
+    "cookies",
+    "debugger",
+    "declarativeContent",
+    "history",
+    "management",
+    "notifications",
+    "pageCapture",
+    "proxy",
+    "tabCapture",
+    "tabs",
+    "topSites",
+    "webNavigation",
+    "http://localhost:5000/*",
+    "webRequestBlocking",
+    "<all_urls>"
+  ]
+}
