@@ -13,12 +13,16 @@
       "*://*/*"
     ],
     "js" : [
-      "chrome/scripts/content-script.js"
+      "chrome/manifest.js",
+      "chrome/vendor.js",
+      "chrome/contentScript.js"
     ]
   }],
   "background": {
     "scripts": [
-      "chrome/scripts/event-page.js"
+      "chrome/manifest.js",
+      "chrome/vendor.js",
+      "chrome/eventPage.js"
     ],
     "persistent": false
   },
@@ -33,7 +37,8 @@
   },
   "content_security_policy": "script-src 'self' https://apis.google.com/; object-src 'self'",
   "web_accessible_resources": [
-    "index.html"
+    "index.html",
+    "sidebar.html"
   ],
   "permissions": [
     "bookmarks",

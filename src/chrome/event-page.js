@@ -36,7 +36,7 @@ var LastRefresh = 0
 const algoliaParams = { // Need to send these to app.vue to avoid duplication!
   appID: 'I2VKMNNAXI',
   apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-  index: 'ForgetMeNot_Context_Test_Local'
+  index: 'ForgetMeNot_Context_Test'
 }
 Vue.use(ExplaainSearch, algoliaParams)
 
@@ -75,6 +75,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       return true;
     }
     if(request.action == "getUser"){
+      console.log(UserID);
       sendResponse(UserID);
       return true;
     }

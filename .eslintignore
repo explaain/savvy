@@ -1,2 +1,4 @@
 build/*.js
 config/*.js
+src/scripts/*.js
+src/chrome/*.js
