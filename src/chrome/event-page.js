@@ -1,8 +1,9 @@
+/* global chrome */
 import Vue from 'vue'
 import log from 'loglevel'
 import Q from 'q'
 
-import ExplaainSearch from '../plugins/explaain-search.js';
+import ExplaainSearch from '../plugins/explaain-search.js'
 
 log.setLevel('debug')
 
@@ -41,62 +42,62 @@ const algoliaParams = { // Need to send these to app.vue to avoid duplication!
 Vue.use(ExplaainSearch, algoliaParams)
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     chrome.tabs.sendMessage(tabs[0].id, {action: 'toggleDrawer'}, function(res) {
       log.info(res)
     })
   })
-});
+})
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
-    log.debug((sender.tab ? "From a content script: " + sender.tab.url : "From the extension"), request)
+    log.debug((sender.tab ? 'From a content script: ' + sender.tab.url : 'From the extension'), request)
 
-    if(request.action == "getPageResults"){
+    if (request.action === 'getPageResults') {
       getCurrentPageResults(request.data)
       .then(function(res) {
         log.debug(res)
         sendResponse(res)
       })
-      return true;
+      return true
     }
-    if (request.action == "checkPage") {
-      log.trace(request.data);
+    if (request.action === 'checkPage') {
+      log.trace(request.data)
       checkRefresh()
       .then(function() {
         return ExplaainSearch.getPageResults(UserID, request.data, UserCards)
       }).then(function(res) {
         addToPageResults(sender.tab.id, res)
-        PageResults = res;
-        sendResponse(res);
+        PageResults = res
+        sendResponse(res)
       }).catch(function(e) {
         log.error(e)
       })
-      return true;
+      return true
     }
-    if(request.action == "getUser"){
-      console.log(UserID);
-      sendResponse(UserID);
-      return true;
+    if (request.action === 'getUser') {
+      console.log(UserID)
+      sendResponse(UserID)
+      return true
     }
-    if(request.action == "refreshCards"){
+    if (request.action === 'refreshCards') {
       getAllUserCards()
-      return true;
+      return true
     }
-    if(request.event == "popupOpened"){
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-        chrome.tabs.sendMessage(tabs[0].id, {event: 'popupOpened'}, function(response) {});
-      });
-      return true;
+    if (request.event === 'popupOpened') {
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {event: 'popupOpened'}, function(response) {})
+      })
+      return true
     }
-  } catch(e) {
+  } catch (e) {
     log.error(e)
   }
 })
 
 const getCurrentPageResults = function(data) {
   const d = Q.defer()
-  var tabID;
+  var tabID
   log.debug(1)
   checkRefresh()
   .then(getCurrentTab)
@@ -130,7 +131,7 @@ const getCurrentPageResults = function(data) {
 const getCurrentTab = function() {
   // Need error catching here
   const d = Q.defer()
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     d.resolve(tabs[0])
   })
   return d.promise
@@ -141,7 +142,7 @@ const getPageData = function(data) {
   if (data.pageData) {
     d.resolve(data.pageData)
   } else if (data.tabID) {
-    sendMessageToTab(tabID, {action: 'getPageData'})
+    sendMessageToTab(data.tabID, {action: 'getPageData'}) // Just fixed bug here, so maybe this shouldn't actually be working now..!
     .then(function(res) {
       d.resolve(res)
     })
@@ -163,10 +164,9 @@ const sendMessageToTab = function(tabID, data) {
 
 const addToPageResults = function(tabID, data) {
   PageResults[tabID] = data
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
     Object.keys(PageResults).forEach(function(pageTabID) {
-      if ( tabs.filter(function(tab) {return tab.id == pageTabID}).length == 0 )
-        delete PageResults[pageTabID]
+      if (tabs.filter(function(tab) { return tab.id === pageTabID }).length === 0) delete PageResults[pageTabID]
     })
     log.debug(PageResults)
   })
@@ -194,8 +194,8 @@ const getAllUserCards = function() {
   LastRefresh = new Date()
   ExplaainSearch.searchCards(UserID, '', 1000)
   .then(function(results) {
-    UserCards = results;
-    log.debug(UserCards);
+    UserCards = results
+    log.debug(UserCards)
     d.resolve()
   }).catch(function(e) {
     log.error(e)
