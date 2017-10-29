@@ -2,3 +2,5 @@ build/*.js
 config/*.js
 src/scripts/*.js
 functions/*.js
+api/*
+/test/unit/apiTest.js
