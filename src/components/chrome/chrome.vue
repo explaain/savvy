@@ -1,5 +1,6 @@
 <template lang="html">
   <div class="app">
+    <img src="/images/logo.png" class="savvy-logo" alt="">
     <explorer :sidebar="sidebar" :userID="userID" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local">
       <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="plugin"></ibutton>
     </explorer>

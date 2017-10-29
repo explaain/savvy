@@ -12,7 +12,7 @@ module.exports = {
   entry: {
     app: './src/main.js',
     chromeNewtab: './src/chrome-newtab.js',
-    chromeSidebar: './src/chrome-sidebar.js',    
+    chromeSidebar: './src/chrome-sidebar.js',
   },
   output: {
     path: config.build.assetsRoot,

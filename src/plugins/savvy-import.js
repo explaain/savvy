@@ -53,9 +53,9 @@ const Import = {
       gapi.auth2.getAuthInstance().isSignedIn.listen(this.updateSigninStatus)
 
       self.user.authProvider = 'google'
-      self.user.id = gapi.auth2.getAuthInstance().currentUser.Ab.El // 104380110279658920175
-      console.log('self.getUser().id')
-      console.log(self.getUser().id)
+      self.user.uid = gapi.auth2.getAuthInstance().currentUser.Ab.El // 104380110279658920175
+      console.log('self.getUser().uid')
+      console.log(self.getUser().uid)
 
       // Handle the initial sign-in state.
       this.updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get())
@@ -91,7 +91,7 @@ const Import = {
     gapi.auth2.getAuthInstance().signIn()
     .then(function(res) {
       self.user.authProvider = 'google'
-      self.user.id = res.El
+      self.user.uid = res.El
       console.log(res)
     }).catch(function(e) {
       console.log(e)
@@ -120,7 +120,7 @@ const Import = {
 
   resetDb: function () {
     const d = Q.defer()
-    if (self.getUser().id === '101118387301286232222') {
+    if (self.getUser().uid === '101118387301286232222') {
       self.deleteAllCards()
       .then(function () {
         const initialCards = [
@@ -203,7 +203,7 @@ const Import = {
               // appendPre(card.text)
             })
             const savePromises = cards.map(function(card) {
-              card.sender = self.user.id
+              card.sender = self.user.uid
               card.callback = self.modalCallback
               console.log(card)
               return ExplaainAuthor.saveCard(card)

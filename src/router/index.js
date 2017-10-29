@@ -28,7 +28,7 @@ var authorParams = {
   url: '//localhost:5000/api/memories',
   importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
 }
-var userID = '101118387301286232222'
+// var userID = '101118387301286232222'
 var logo = '../../assets/logo.png'
 
 export default new Router({
@@ -47,13 +47,9 @@ export default new Router({
       component: Notifications
     },
     {
-      path: '/notifications',
-      component: Notifications
-    },
-    {
       path: '/card-manager',
       component: Explorer,
-      props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, userID: userID, logo: logo })
+      props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, logo: logo })
     }
   ]
 })

@@ -89,7 +89,6 @@ const Search = {
     }
 
     const correctCard = function(card) {
-      console.log(JSON.stringify(card.content))
       if (!card.content) {
         card.content = {
           description: card.description || card.sentence || card.text,

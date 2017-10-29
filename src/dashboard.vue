@@ -6,6 +6,7 @@
       <img class="logo" src="./assets/logo.png"/>
     </div>
     <h1>This is the top navigation</h1>
+    <button :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
     <div>
 
     </div>
@@ -46,14 +47,47 @@
       </ul>
     </div>
     <div class="router-view">
-      <router-view></router-view>
+      <router-view :user="user"></router-view>
     </div>
   </section>
 </section>
 </template>
 
 <script>
+import Vue from 'vue'
+import Auth from './plugins/auth.js'
+
 export default {
-  name: 'dashboard'
+  name: 'dashboard',
+  data () {
+    return {
+      user: {},
+      signInButton: {
+        text: 'Sign in with Google',
+        disabled: true
+      }
+    }
+  },
+  created: function () {
+    const self = this
+    Vue.use(Auth)
+    Auth.initApp(self.onAuthStateChanged)
+  },
+  methods: {
+    toggleSignIn: function() {
+      Auth.toggleSignIn()
+      this.signInButton.disabled = true
+    },
+    onAuthStateChanged: function(user) {
+      if (user) {
+        console.log('🖌👤  Setting user')
+        this.user = user
+        this.signInButton.text = 'Sign out'
+      } else {
+        this.signInButton.text = 'Sign in with Google'
+      }
+      this.signInButton.disabled = false
+    }
+  }
 }
 </script>

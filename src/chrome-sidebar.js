@@ -8,13 +8,15 @@ require('./styles/index.css')
 
 Vue.config.productionTip = false
 
-/* eslint-disable no-new */
-new Vue({
-  el: '#chrome',
-  router,
-  render: h => h(Chrome, {
-    props: {
-      sidebar: true
-    }
+if (document.getElementById('chrome')) {
+  /* eslint-disable no-new */
+  new Vue({
+    el: '#chrome',
+    router,
+    render: h => h(Chrome, {
+      props: {
+        sidebar: true
+      }
+    })
   })
-})
+}

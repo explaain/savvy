@@ -1,10 +1,9 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
-    <div id="main" class="main">
+    <div uid="main" class="main">
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header">
-        <img src="/images/logo.png" class="savvy-logo" alt="">
         <input autofocus type="text" placeholder="Search for cards..." v-model="query" @keyup.enter="search"><br>
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
@@ -47,11 +46,12 @@
   import Alert from './alert.vue'
   import ExplaainSearch from '../../plugins/explaain-search.js'
   import ExplaainAuthor from '../../plugins/explaain-author.js'
-  import SavvyImport from '../../plugins/savvy-import.js'
+  // import SavvyImport from '../../plugins/savvy-import.js'
 
   export default {
     props: [
-      'userID',
+      'userID', // Remove soon if poss
+      'user',
       'logo',
       'firebaseConfig',
       'algoliaParams',
@@ -61,7 +61,7 @@
     ],
     data () {
       return {
-        user: {},
+        // user: {}, // Change to prop
         pageCards: [],
         allCards: {},
         mainCardList: [],
@@ -99,14 +99,13 @@
     created: function () {
       Vue.use(ExplaainSearch, this.algoliaParams)
       Vue.use(ExplaainAuthor, this.authorParams)
-      Vue.use(SavvyImport)
-      console.log(this.getUser().id)
-      this.modal.sender = this.getUser().id
+
+      // Vue.use(SavvyImport)
+      this.modal.sender = this.getUser().uid
       this.modal.callback = this.modalCallback
       this.$parent.$on('updateCards', this.updateCards)
       this.$parent.$on('setLoading', this.setLoading)
-
-      SavvyImport.beginImport()
+      // SavvyImport.beginImport()
     },
     components: {
       card: Card,
@@ -114,7 +113,7 @@
       ibutton: IconButton,
       modal: Modal,
       alert: Alert,
-      draggable: Draggable,
+      draggable: Draggable
     },
     methods: {
       convertFileToCards: function(body, file) {
@@ -134,7 +133,7 @@
         return cards
       },
       getUser: function () {
-        return (this.user && this.user.id) ? this.user : {id: this.userID}
+        return (this.user && this.user.uid) ? this.user : {uid: this.userID}
       },
       getCard: function(objectID) {
         return this.allCards[objectID]
@@ -215,7 +214,7 @@
         const self = this
         self.setLoading()
         self.lastQuery = self.query
-        ExplaainSearch.searchCards(self.getUser().id, self.query, 12)
+        ExplaainSearch.searchCards(self.getUser().uid, self.query, 12)
         .then(function(hits) {
           self.loading = false
           self.pingCards = []
@@ -232,7 +231,7 @@
       searchRecent: function () {
         const self = this
         self.setLoading()
-        ExplaainSearch.searchCards(self.getUser().id, '', 24)
+        ExplaainSearch.searchCards(self.getUser().uid, '', 24)
         .then(function(hits) {
           self.loading = false
           console.log('hits')
@@ -259,7 +258,7 @@
         })
       },
       beginCreate: function () {
-        this.modal.sender = this.getUser().id
+        this.modal.sender = this.getUser().uid
         this.modal.show = true
         console.log(222)
         this.modal.submit = ExplaainAuthor.saveCard
@@ -289,7 +288,7 @@
       deleteCard: function(objectID) {
         const d = Q.defer()
         const data = {
-          sender: this.getUser().id,
+          sender: this.getUser().uid,
           objectID: objectID
         }
         ExplaainAuthor.deleteCard(data)
@@ -305,7 +304,7 @@
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.getUser().id, '', 50)
+        ExplaainSearch.searchCards(self.getUser().uid, '', 50)
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -333,7 +332,7 @@
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
               listCard.intent = 'storeMemory'
-              listCard.sender = self.getUser().id
+              listCard.sender = self.getUser().uid
             }
             console.log('hi')
             self.saveCard(listCard)
