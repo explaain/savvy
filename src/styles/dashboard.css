@@ -1,5 +1,5 @@
 #dashboard {
-  background-color: blue;
+  border-style: solid;
 }
 
 .top-banner {
@@ -49,6 +49,15 @@
 }
 
 .router-view {
-  background-color: green;
+  border-style: dashed;
   margin-left: 10%;
+}
+
+.graph-card {
+  text-align: center;
+  background-color: yellow;
+  border-radius: 5px;
+  margin: 10px;
+  width: auto;
+  height: auto;
 }

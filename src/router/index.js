@@ -6,6 +6,9 @@ import Home from '@/components/home'
 import Analytics from '@/components/analytics'
 import Notifications from '@/components/notifications'
 import Explorer from '@/components/explorer/explorer'
+import Team from '@/components/team'
+import Help from '@/components/help'
+import Billing from '@/components/billing'
 
 Vue.use(Router)
 
@@ -29,7 +32,7 @@ var authorParams = {
   importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
 }
 var userID = '101118387301286232222'
-var logo = '../../assets/logo.png'
+const logo = '../../assets/logo.png'
 
 export default new Router({
   routes: [
@@ -47,13 +50,21 @@ export default new Router({
       component: Notifications
     },
     {
-      path: '/notifications',
-      component: Notifications
-    },
-    {
       path: '/card-manager',
       component: Explorer,
       props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, userID: userID, logo: logo })
+    },
+    {
+      path: '/team',
+      component: Team
+    },
+    {
+      path: '/help',
+      component: Help
+    },
+    {
+      path: '/billing',
+      component: Billing
     }
   ]
 })
