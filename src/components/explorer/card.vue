@@ -70,7 +70,7 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: '../../assets/clipboard.svg',
+      copyIcon: '../../static/images/clipboard.svg',
       showListSearch: false,
       showPending: false,
     }

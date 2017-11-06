@@ -373,6 +373,7 @@
         const d = Q.defer()
         const self = this
         if (data.content && data.content.listCards) delete data.content.listCards
+        if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.getUser())
         data.user = { uid: self.getUser().uid, idToken: self.getUser().stsTokenManager.accessToken }
