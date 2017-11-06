@@ -3,16 +3,17 @@
 </template>
 
 <script>
-import BarChart from '../../charts/bar-chart.js'
+import {Bar} from 'vue-chartjs'
 
 export default {
-  data () {
-    return {
-      BarChart
-    }
-  },
+  extends: Bar,
   components: {
-    BarChart: BarChart
+    BarChart: Bar
+  },
+  props: ['data', 'options'],
+  mounted() {
+    const self = this
+    this.renderChart(self.data, self.options)
   }
 }
 </script>
