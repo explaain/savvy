@@ -527,13 +527,10 @@ const smartObj = function (smartVar) {
 }
 
 const smartIdObj = function (smartVar) {
-  console.log('smartIdObj')
-  console.log(3, smartVar)
-  console.log(4, JSON.stringify(smartVar))
   var newVar = JSON.parse(JSON.stringify(smartVar))
-  if (newVar && newVar._referencePath) {
-    console.log(4.5, newVar._referencePath); newVar = getID(newVar) // console.log(getID(newVar))
-  } else if (typeof newVar === 'object')
+  if (newVar && newVar._referencePath)
+    newVar = getID(newVar)
+  else if (typeof newVar === 'object')
     Object.keys(newVar).forEach(key => {
       if (newVar[key] === null)
         delete newVar[key]
