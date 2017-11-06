@@ -1,5 +1,5 @@
 <template>
-  <div id="Home">
+  <div class="Home">
     <h1>{{msg}}</h1>
   </div>
 </template>

@@ -6,9 +6,6 @@ import Home from '@/components/home'
 import Analytics from '@/components/analytics'
 import Notifications from '@/components/notifications'
 import Explorer from '@/components/explorer/explorer'
-import Team from '@/components/team'
-import Help from '@/components/help'
-import Billing from '@/components/billing'
 
 Vue.use(Router)
 
@@ -53,18 +50,6 @@ export default new Router({
       path: '/card-manager',
       component: Explorer,
       props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, logo: logo })
-    },
-    {
-      path: '/team',
-      component: Team
-    },
-    {
-      path: '/help',
-      component: Help
-    },
-    {
-      path: '/billing',
-      component: Billing
     }
   ]
 })
