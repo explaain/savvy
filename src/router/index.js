@@ -6,6 +6,9 @@ import Home from '@/components/home'
 import Analytics from '@/components/analytics'
 import Notifications from '@/components/notifications'
 import Explorer from '@/components/explorer/explorer'
+import Team from '@/components/team'
+import Help from '@/components/help'
+import Billing from '@/components/billing'
 
 Vue.use(Router)
 
