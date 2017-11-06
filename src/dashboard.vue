@@ -47,7 +47,7 @@
       </ul>
     </div>
     <div class="router-view">
-      <router-view :organisation="organisation" :user="user"></router-view>
+      <router-view :organisation="organisation" :getUser="getUser"></router-view>
     </div>
   </section>
 </section>
@@ -62,7 +62,11 @@ export default {
   data () {
     return {
       organisation: {},
-      user: {},
+      user: {
+        uid: '',
+        auth: {},
+        data: {}
+      },
       signInButton: {
         text: 'Sign in with Google',
         disabled: true
@@ -71,19 +75,35 @@ export default {
   },
   created: function () {
     const self = this
-    Vue.use(Auth)
+    Vue.use(Auth, {
+      // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
+      getUserDataUrl: '//localhost:5000/api/user',
+    })
     Auth.initApp(self.onAuthStateChanged)
     self.organisation = { name: 'explaain' } // Should get this from subdomain
   },
   methods: {
+    getUser: function () {
+      return JSON.parse(JSON.stringify(this.user))
+    },
     toggleSignIn: function() {
       Auth.toggleSignIn()
       this.signInButton.disabled = true
     },
-    onAuthStateChanged: function(user) {
-      if (user) {
-        console.log('🖌👤  Setting user')
-        this.user = user
+    onAuthStateChanged: function(userAuth) {
+      const self = this
+      if (userAuth) {
+        console.log('🖌👤  Setting user', userAuth)
+        self.user.uid = userAuth.uid
+        self.user.auth = userAuth
+        Auth.getUserData(self.organisation.name, self.getUser().auth)
+        .then(data => {
+          console.log('👤  User data!', data)
+          self.user.data = data
+        }).catch(e => {
+          console.log(e)
+        })
+
         this.signInButton.text = 'Sign out'
       } else {
         this.signInButton.text = 'Sign in with Google'

@@ -1,4 +1,9 @@
+import Vue from 'vue'
 import * as firebase from 'firebase'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+
+Vue.use(VueAxios, axios)
 
 const Auth = {
   install(Vue, options) {
@@ -69,8 +74,25 @@ const Auth = {
       // [END authstatelistener]
     }
 
+    const getUserData = function (organisationID, userAuth) {
+      return new Promise(function(resolve, reject) {
+        Vue.axios.post(options.getUserDataUrl, {
+          organisationID: organisationID,
+          user: { uid: userAuth.uid, idToken: userAuth.stsTokenManager.accessToken }
+        }).then((response) => {
+          console.log('📪  The response data!', response.data)
+          resolve(response.data)
+        }).catch(function(e) {
+          console.log(e)
+          console.log('📛  Error!', e)
+          reject(e)
+        })
+      })
+    }
+
     this.toggleSignIn = toggleSignIn
     this.initApp = initApp
+    this.getUserData = getUserData
   },
 
 }

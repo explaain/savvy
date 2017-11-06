@@ -131,6 +131,24 @@ exports.onCardDeleted = functions.firestore
 /* ---------- EXPORTS ---------- */
 /* ----------------------------- */
 
+exports.getUserData = functions.https.onRequest((req, res) => {
+  try {
+    console.log('📬 Data just arrived:', smartObj(req.body))
+    requireProps(req.body, ['organisationID', 'userID'])
+    const data = req.body
+
+    getUser(data.organisationID, data.userID)
+    .then(snapshot => {
+      console.log(snapshot.data)
+      console.log(smartIdObj(snapshot.data))
+      res.status(200).json(smartIdObj(snapshot.data))
+    }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
+  } catch (e) {
+    console.log('📛 Error!', e)
+    res.status(e.status || 500).send(e.message || e || '📛 Unknown Server Error')
+  }
+})
+
 exports.changeUserTeamRole = functions.https.onRequest((req, res) => {
   try {
     console.log('📬 Data just arrived:', smartObj(req.body))
@@ -274,6 +292,8 @@ const getDoc = function(organisationID, collectionID, docID) {
         reject(new Error(404))
       } else {
         console.log('🔍  Object from ' + collectionID + ' found:', /* ref, */ smartObj(doc.data()))
+        console.log('a', doc.data().teams)
+        console.log('b', JSON.stringify(doc.data().teams))
         resolve({ data: doc.data().data || doc.data(), ref: ref, objectID: docID })
       }
     })
@@ -316,6 +336,8 @@ const getCardsRef = function(organisationID) {
 }
 
 const getID = function(snapshot) {
+  console.log(5, snapshot)
+  console.log(6, snapshot._referencePath)
   return snapshot._referencePath.segments[snapshot._referencePath.segments.length - 1]
 }
 const setDoc = function(organisationID, collectionID, docID, data) {
@@ -422,20 +444,20 @@ const getPermissionLevel = function(organisationID, user, card) {
     return null
 }
 
-const algoliaGet = function(index, objectID) {
-  return new Promise((resolve, reject) => {
-    index.getObject(objectID, function(err, content) {
-      if (err) {
-        const e = { code: 500, message: '📛 🔁  Failed to sync with Algolia! (Delete)' }
-        console.log('📛 Error!', e.status, ':', e.message)
-        reject(new Error(e.message))
-      } else {
-        console.log('🔁  Synced with Algolia (Delete)')
-        resolve(content)
-      }
-    })
-  })
-}
+// const algoliaGet = function(index, objectID) {
+//   return new Promise((resolve, reject) => {
+//     index.getObject(objectID, function(err, content) {
+//       if (err) {
+//         const e = { code: 500, message: '📛 🔁  Failed to sync with Algolia! (Delete)' }
+//         console.log('📛 Error!', e.status, ':', e.message)
+//         reject(new Error(e.message))
+//       } else {
+//         console.log('🔁  Synced with Algolia (Delete)')
+//         resolve(content)
+//       }
+//     })
+//   })
+// }
 
 /*                               */
 /*                               */
@@ -496,6 +518,31 @@ const smartObj = function (smartVar) {
         delete newVar[key]
       else
         newVar[key] = smartObj(newVar[key])
+    })
+  else if (newVar.constructor === Array)
+    newVar.map(el => {
+      return smartObj(el)
+    })
+  return newVar
+}
+
+const smartIdObj = function (smartVar) {
+  console.log('smartIdObj')
+  console.log(3, smartVar)
+  console.log(4, JSON.stringify(smartVar))
+  var newVar = JSON.parse(JSON.stringify(smartVar))
+  if (newVar && newVar._referencePath) {
+    console.log(4.5, newVar._referencePath); newVar = getID(newVar) // console.log(getID(newVar))
+  } else if (typeof newVar === 'object')
+    Object.keys(newVar).forEach(key => {
+      if (newVar[key] === null)
+        delete newVar[key]
+      else
+        newVar[key] = smartIdObj(newVar[key])
+    })
+  else if (newVar.constructor === Array)
+    newVar.map(el => {
+      return smartIdObj(el)
     })
   return newVar
 }

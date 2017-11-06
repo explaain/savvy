@@ -33,11 +33,11 @@ const Search = {
       return d.promise
     }
 
-    const searchCards = function(userID, searchText, hitsPerPage) {
+    const searchCards = function(user, searchText, hitsPerPage) {
       const d = Q.defer()
       const params = {
         query: searchText,
-        filters: userID.length ? 'userID: ' + userID : '',
+        filters: 'teams: "' + user.data.teams.map(team => { return team.team }).join('" OR teams: "') + '"',
         hitsPerPage: hitsPerPage || null
       }
       log.trace(params)

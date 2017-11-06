@@ -51,8 +51,7 @@
   export default {
     props: [
       'organisation',
-      'userID', // Remove soon if poss
-      'user',
+      'getUser',
       'logo',
       'firebaseConfig',
       'algoliaParams',
@@ -62,7 +61,6 @@
     ],
     data () {
       return {
-        // user: {}, // Change to prop
         pageCards: [],
         allCards: {},
         mainCardList: [],
@@ -132,10 +130,6 @@
           }
         })
         return cards
-      },
-      getUser: function () {
-        return JSON.parse(JSON.stringify(this.user))
-        // return (this.user && this.user.uid) ? this.user : {uid: this.userID}
       },
       getCard: function(objectID) {
         return this.allCards[objectID]
@@ -216,7 +210,7 @@
         const self = this
         self.setLoading()
         self.lastQuery = self.query
-        ExplaainSearch.searchCards(self.getUser().uid, self.query, 12)
+        ExplaainSearch.searchCards(self.getUser(), self.query, 12)
         .then(function(hits) {
           self.loading = false
           self.pingCards = []
@@ -233,7 +227,7 @@
       searchRecent: function () {
         const self = this
         self.setLoading()
-        ExplaainSearch.searchCards(self.getUser().uid, '', 24)
+        ExplaainSearch.searchCards(self.getUser(), '', 24)
         .then(function(hits) {
           self.loading = false
           console.log('hits')
@@ -318,7 +312,7 @@
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.getUser().uid, '', 50)
+        ExplaainSearch.searchCards(self.getUser(), '', 50)
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -376,7 +370,7 @@
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.getUser())
-        data.user = { uid: self.getUser().uid, idToken: self.getUser().stsTokenManager.accessToken }
+        data.user = { uid: self.getUser().uid, idToken: self.getUser().auth.stsTokenManager.accessToken }
         data.organisationID = self.organisation.name
         ExplaainAuthor.saveCard(data)
         .then(function(res) {

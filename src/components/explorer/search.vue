@@ -49,7 +49,7 @@ export default {
     search: function() {
       const self = this
       self.loading = true
-      ExplaainSearch.searchCards(self.getUser().id, self.query, 6)
+      ExplaainSearch.searchCards(self.getUser().uid, self.query, 6)
       .then(function(hits) {
         self.loading = false
         self.resultList = hits.map(function(card) { return card.objectID })
