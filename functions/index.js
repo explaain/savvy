@@ -194,9 +194,9 @@ exports.saveCard = functions.https.onRequest((req, res) => {
       if (card)
         return data.card.ref.set(updatedCard.data)
       else if (data.cardID)
-        return getCardRef(data.organisationID, data.cardID).set(updatedCard)
+        return getCardRef(data.organisationID, data.cardID).set(updatedCard.data)
       else
-        return getCardsRef(data.organisationID).add(updatedCard)
+        return getCardsRef(data.organisationID).add(updatedCard.data)
     }).then(snapshot => {
       console.log('snapshot', snapshot)
       if (!data.cardID) data.cardID = getID(snapshot)
@@ -487,7 +487,6 @@ const requireProps = function(data, props, orProps) {
 }
 
 const smartObj = function (smartVar) {
-  console.log(smartVar)
   var newVar = JSON.parse(JSON.stringify(smartVar))
   if (newVar && newVar._referencePath)
     newVar = newVar._referencePath.segments.join('/')
