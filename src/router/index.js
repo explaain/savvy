@@ -53,6 +53,18 @@ export default new Router({
       path: '/card-manager',
       component: Explorer,
       props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, logo: logo })
+    },
+    {
+      path: '/team',
+      component: Team
+    },
+    {
+      path: '/help',
+      component: Help
+    },
+    {
+      path: '/billing',
+      component: Billing
     }
   ]
 })
