@@ -49,24 +49,22 @@ const Auth = {
         // // The firebase.auth.AuthCredential type that was used.
         // var credential = error.credential
         // [START_EXCLUDE]
-        if (errorCode === 'auth/account-exists-with-different-credential') {
+        if (errorCode === 'auth/account-exists-with-different-credential')
           alert('You have already signed up with a different auth provider for that email.')
           // If you are using multiple auth providers on your app you should handle linking
           // the user's accounts here.
-        } else {
+        else
           console.error(error)
-        }
       })
       // [END getidptoken]
 
       // Listening for auth state changes.
       // [START authstatelistener]
       firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
+        if (user)
           stateChangeCallback(user)
-        } else {
+        else
           stateChangeCallback()
-        }
       })
       // [END authstatelistener]
     }

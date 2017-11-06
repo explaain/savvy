@@ -58,6 +58,10 @@ module.exports = {
     // Force operators to be at the beginning of line breaks (e.g. '+ "more string"')
     "operator-linebreak": ["error", "before"],
     // allow js Strings to be extended
-    "no-extend-native": ["error", { "exceptions": ["String"] }]
+    "no-extend-native": ["error", { "exceptions": ["String"] }],
+    // Allow if/else without {}
+    "curly": "off",
+    // Allow "return" on its own
+    "no-useless-return": "off"
   }
 }

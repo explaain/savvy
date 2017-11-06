@@ -120,7 +120,7 @@ const Import = {
 
   resetDb: function () {
     const d = Q.defer()
-    if (self.getUser().uid === '101118387301286232222') {
+    if (self.getUser().uid === '101118387301286232222')
       self.deleteAllCards()
       .then(function () {
         const initialCards = [
@@ -165,9 +165,8 @@ const Import = {
       }).catch(function(e) {
         d.reject(e)
       })
-    } else {
+    else
       d.resolve()
-    }
     return d.promise
   },
 

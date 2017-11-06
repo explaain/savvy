@@ -52,9 +52,8 @@
     created: function(a) {
       const self = this
       self.getUser()
-      if (self.plugin) {
+      if (self.plugin)
         self.fromPage()
-      }
 
       window.addEventListener('message', function(event) {
         // log.info(event.data.action)

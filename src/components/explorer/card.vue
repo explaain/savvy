@@ -125,15 +125,16 @@ export default {
     },
     editing: function(val) {
       const self = this
-      if (val) {
+      if (val)
         self.listCards.forEach(function(listCard) {
           self.tempListCards[listCard.objectID] = JSON.parse(JSON.stringify(listCard))
         })
-      }
     }
   },
   created: function() {
     this.syncData()
+    if (this.data.newlyCreated)
+      this.editing = true
   },
   methods: {
     syncData: function() {
@@ -184,7 +185,7 @@ export default {
     addListItem: function(card) {
       console.log(card)
       const self = this
-      if (!card) {
+      if (!card)
         card = {
           objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'storeMemory',
@@ -192,7 +193,6 @@ export default {
             description: '',
           }
         }
-      }
       self.tempListCards[card.objectID] = card
       if (!self.card.content.listItems) Vue.set(self.card.content, 'listItems', [])
       self.card.content.listItems.push(card.objectID)
@@ -215,7 +215,7 @@ export default {
 }
 
 String.prototype.trunc = function(n, useWordBoundary) {
-  if (this.length <= n) { return this }
+  if (this.length <= n) return this
   var subString = this.substr(0, n - 1)
   return (useWordBoundary
     ? subString.substr(0, subString.lastIndexOf(' '))
@@ -274,7 +274,7 @@ String.prototype.trunc = function(n, useWordBoundary) {
     box-shadow: 0px 0px 30px rgba(255,211,35,1);
   }
 
-  .editing:not(.non-editable) :not(.non-editable) .editable:not(.non-editable) {
+  .editing:not(.non-editable) :not(.non-editable) .editable:not(.non-editable), .editing:not(.non-editable) > .editable:not(.non-editable) {
     border: 2px dashed lightgrey;
     border-radius: 4px;
     color: black;

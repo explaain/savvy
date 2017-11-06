@@ -47,7 +47,7 @@
       </ul>
     </div>
     <div class="router-view">
-      <router-view :user="user"></router-view>
+      <router-view :organisation="organisation" :user="user"></router-view>
     </div>
   </section>
 </section>
@@ -61,6 +61,7 @@ export default {
   name: 'dashboard',
   data () {
     return {
+      organisation: {},
       user: {},
       signInButton: {
         text: 'Sign in with Google',
@@ -72,6 +73,7 @@ export default {
     const self = this
     Vue.use(Auth)
     Auth.initApp(self.onAuthStateChanged)
+    self.organisation = { name: 'explaain' } // Should get this from subdomain
   },
   methods: {
     toggleSignIn: function() {

@@ -8,7 +8,7 @@ require('./styles/index.css')
 
 Vue.config.productionTip = false
 
-if (document.getElementById('chrome')) {
+if (document.getElementById('chrome'))
   /* eslint-disable no-new */
   new Vue({
     el: '#chrome',
@@ -19,4 +19,3 @@ if (document.getElementById('chrome')) {
       }
     })
   })
-}

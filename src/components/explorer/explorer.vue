@@ -50,6 +50,7 @@
 
   export default {
     props: [
+      'organisation',
       'userID', // Remove soon if poss
       'user',
       'logo',
@@ -133,7 +134,8 @@
         return cards
       },
       getUser: function () {
-        return (this.user && this.user.uid) ? this.user : {uid: this.userID}
+        return JSON.parse(JSON.stringify(this.user))
+        // return (this.user && this.user.uid) ? this.user : {uid: this.userID}
       },
       getCard: function(objectID) {
         return this.allCards[objectID]
@@ -257,16 +259,28 @@
           self.setCard(hit.objectID, hit)
         })
       },
+      // beginCreate: function () {
+      //   this.modal.sender = this.getUser().uid
+      //   this.modal.show = true
+      //   console.log(222)
+      //   this.modal.submit = this.saveCard
+      //   // .then(function () {
+      //   //   console.log(333)
+      //   // })
+      //   delete this.modal.objectID
+      //   this.modal.text = ''
+      // },
       beginCreate: function () {
-        this.modal.sender = this.getUser().uid
-        this.modal.show = true
-        console.log(222)
-        this.modal.submit = ExplaainAuthor.saveCard
-        // .then(function () {
-        //   console.log(333)
-        // })
-        delete this.modal.objectID
-        this.modal.text = ''
+        const card = {
+          // objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
+          intent: 'storeMemory',
+          content: {
+            description: '',
+          },
+          newlyCreated: true
+        }
+        // this.allCards[card.objectID] = card
+        this.popupCards = [card]
       },
       beginDelete: function(objectID) {
         const self = this
@@ -355,22 +369,23 @@
           errorCallback(e)
         })
       },
-      saveCard: function(card) {
+      saveCard: function(data) {
         const d = Q.defer()
         const self = this
-        if (card.content && card.content.listCards) delete card.content.listCards
-        if (self.getCard(card.objectID)) self.setCardProperty(card.objectID, 'updating', true)
-        console.log('yo')
-        ExplaainAuthor.saveCard(card)
+        if (data.content && data.content.listCards) delete data.content.listCards
+        if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
+        console.log(self.getUser())
+        data.user = { uid: self.getUser().uid, idToken: self.getUser().stsTokenManager.accessToken }
+        data.organisationID = self.organisation.name
+        ExplaainAuthor.saveCard(data)
         .then(function(res) {
-          // card.objectID = res.data.memories[0].objectID // In case it was a new card
           const returnedCard = res.data.memories[0]
-          card.objectID = returnedCard.objectID
-          card.updating = false
-          self.setCard(returnedCard.objectID, card)
-          // self.setCardProperty(returnedCard.objectID, 'objectID', returnedCard.objectID) // In case it was a new card
+          data.objectID = returnedCard.objectID
+          data.updating = false
+          self.setCard(returnedCard.objectID, data)
+          // self.setCardProperty(returnedCard.objectID, 'objectID', returnedCard.objectID) // In case it was a new data
           // self.setCardProperty(returnedCard.objectID, 'updating', false)
-          d.resolve(card)
+          d.resolve(data)
         }).catch(function(e) {
           console.error(e)
           d.reject(e)

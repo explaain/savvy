@@ -89,12 +89,11 @@ const Search = {
     }
 
     const correctCard = function(card) {
-      if (!card.content) {
+      if (!card.content)
         card.content = {
           description: card.description || card.sentence || card.text,
           listItems: card.listItems || [],
         }
-      }
       console.log(JSON.stringify(card.content))
       if (card.sentence) delete card.sentence
       if (card.text) delete card.text
@@ -107,9 +106,8 @@ const Search = {
       const maxLength = 400
       const searchTextArray = []
       const hitsPerPage = Math.min(Math.max(Math.ceil(10 / (searchText.length / maxLength)), 3), 12)
-      for (var i = 0; i < searchText.length; i += maxLength) {
+      for (var i = 0; i < searchText.length; i += maxLength)
         searchTextArray.push(searchText.substring(i, i + maxLength))
-      }
       const promises = searchTextArray.map(function(t, j) {
         return searchCards(userID, t, hitsPerPage)
       })
@@ -285,16 +283,13 @@ const Search = {
               const reg = new RegExp(escapeRegExp(val), 'gi')
               const points = (pageData.pageText.match(reg) || []).length * val.length
               score += points
-              if (points) {
-                if (allWords.indexOf(val) === -1) allWords.push(val)
-              }
+              if (points && allWords.indexOf(val) === -1) allWords.push(val)
             }
           })
-          if (score > 100) {
+          if (score > 100)
             pageResults.hits.push(card)
-          } else if (score > 0) {
+          else if (score > 0)
             pageResults.memories.push(card)
-          }
         })
         log.debug(allWords)
 
