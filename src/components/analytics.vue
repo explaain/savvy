@@ -6,7 +6,6 @@
 </template>
 
 <script>
-import BarChart from './analytics/bar.js'
 
 export default {
   name: 'Analytics',
