@@ -370,7 +370,7 @@
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.getUser())
-        data.user = { uid: self.getUser().uid, idToken: self.getUser().auth.stsTokenManager.accessToken }
+        data.user = { uid: self.getUser().uid, idToken: self.getUser().getAccessToken() }
         data.organisationID = self.organisation.name
         ExplaainAuthor.saveCard(data)
         .then(function(res) {

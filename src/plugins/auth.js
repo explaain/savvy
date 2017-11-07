@@ -74,6 +74,18 @@ const Auth = {
       // [END authstatelistener]
     }
 
+    const refreshUserToken = () => {
+      return new Promise(function(resolve, reject) {
+        firebase.auth().currentUser.getToken(/* forceRefresh */ true).then((idToken) => {
+          console.log('New User Token!', idToken)
+          resolve(idToken)
+        }).catch((error) => {
+          console.log(error)
+          reject(error)
+        })
+      })
+    }
+
     const getUserData = function (organisationID, userAuth) {
       return new Promise(function(resolve, reject) {
         Vue.axios.post(options.getUserDataUrl, {
@@ -92,6 +104,7 @@ const Auth = {
 
     this.toggleSignIn = toggleSignIn
     this.initApp = initApp
+    this.refreshUserToken = refreshUserToken
     this.getUserData = getUserData
   },
 

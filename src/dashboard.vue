@@ -84,7 +84,21 @@ export default {
   },
   methods: {
     getUser: function () {
-      return JSON.parse(JSON.stringify(this.user))
+      const self = this
+      const user = JSON.parse(JSON.stringify(this.user))
+      if (this.user.lastRefreshed && new Date() - this.user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
+        console.log('♻️  Refreshing User Token!')
+        Auth.refreshUserToken()
+        .then(token => {
+          user.auth.stsTokenManager.accessToken = token
+          user.lastRefreshed = new Date()
+          console.log('self.user', self.user)
+        }).catch(e => {
+          console.log(e)
+        })
+      }
+      user.getAccessToken = () => user.auth.stsTokenManager.accessToken
+      return user
     },
     toggleSignIn: function() {
       Auth.toggleSignIn()
@@ -95,6 +109,7 @@ export default {
       if (userAuth) {
         console.log('🖌👤  Setting user', userAuth)
         self.user.uid = userAuth.uid
+        self.user.lastRefreshed = new Date()
         self.user.auth = userAuth
         Auth.getUserData(self.organisation.name, self.getUser().auth)
         .then(data => {

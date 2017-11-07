@@ -190,7 +190,7 @@ exports.checkPermissions = functions.https.onRequest((req, res) => {
 exports.saveCard = functions.https.onRequest((req, res) => {
   try {
     console.log('📬 Data just arrived:', smartObj(req.body))
-    requireProps(req.body, ['organisationID', 'userID', 'content'], [['objectID', 'teamID']])
+    requireProps(req.body, ['organisationID', 'userID', 'content'])
     const data = req.body
     if (data.objectID) data.cardID = data.objectID; delete data.objectID
 
@@ -205,9 +205,10 @@ exports.saveCard = functions.https.onRequest((req, res) => {
       data.card = card || {
         data: {
           content: data.content,
-          teams: [ data.teamID ? getTeamRef(data.organisationID, data.teamID) : data.user.teams[0].team ],
+          teams: data.teamIDs ? data.teamIDs.map(teamID => getTeamRef(data.organisationID, teamID)) : data.user.data.teams.map(team => team.team),
         }
       }
+      console.log('data.card.data.teams', data.card.data.teams)
       const updatedCard = updateCard(data.organisationID, data.user, data.card, data.content, data.meta)
       if (card)
         return data.card.ref.set(updatedCard.data)
@@ -300,40 +301,20 @@ const getDoc = function(organisationID, collectionID, docID) {
   })
 }
 
-const getDocRef = function(organisationID, collectionID, docID) {
-  return getCollectionRef(organisationID, collectionID).doc(docID)
-}
-const getCollectionRef = function(organisationID, collectionID) {
-  return db.collection('organisations').doc(organisationID).collection(collectionID)
-}
+const getDocRef = (organisationID, collectionID, docID) => getCollectionRef(organisationID, collectionID).doc(docID)
+const getCollectionRef = (organisationID, collectionID) => db.collection('organisations').doc(organisationID).collection(collectionID)
 
-const getUser = function(organisationID, userID) {
-  return getDoc(organisationID, 'users', userID)
-}
-const getTeam = function(organisationID, teamID) {
-  return getDoc(organisationID, 'teams', teamID)
-}
-const getCard = function(organisationID, cardID) {
-  return getDoc(organisationID, 'cards', cardID)
-}
-const getUserRef = function(organisationID, userID) { // eslint-disable-line
-  return getDocRef(organisationID, 'users', userID)
-}
-const getTeamRef = function(organisationID, teamID) {
-  return getDocRef(organisationID, 'teams', teamID)
-}
-const getCardRef = function(organisationID, cardID) {
-  return getDocRef(organisationID, 'cards', cardID)
-}
-const getUsersRef = function(organisationID) { // eslint-disable-line
-  return getCollectionRef(organisationID, 'users')
-}
-const getTeamsRef = function(organisationID) { // eslint-disable-line
-  return getCollectionRef(organisationID, 'teams')
-}
-const getCardsRef = function(organisationID) {
-  return getCollectionRef(organisationID, 'cards')
-}
+const getUser = (organisationID, userID) => getDoc(organisationID, 'users', userID)
+const getTeam = (organisationID, teamID) => getDoc(organisationID, 'teams', teamID)
+const getCard = (organisationID, cardID) => getDoc(organisationID, 'cards', cardID)
+
+const getUserRef = (organisationID, userID) => getDocRef(organisationID, 'users', userID) // eslint-disable-line
+const getTeamRef = (organisationID, teamID) => getDocRef(organisationID, 'teams', teamID)
+const getCardRef = (organisationID, cardID) => getDocRef(organisationID, 'cards', cardID)
+
+const getUsersRef = organisationID => getCollectionRef(organisationID, 'users') // eslint-disable-line
+const getTeamsRef = organisationID => getCollectionRef(organisationID, 'teams') // eslint-disable-line
+const getCardsRef = organisationID => getCollectionRef(organisationID, 'cards')
 
 const getID = function(snapshot) {
   console.log(5, snapshot)
@@ -359,15 +340,9 @@ const setDoc = function(organisationID, collectionID, docID, data) {
   })
 }
 
-const setUser = function(organisationID, userID, data) {
-  return setDoc(organisationID, 'users', userID, data)
-}
-const setTeam = function(organisationID, teamID, data) { // eslint-disable-line
-  return setDoc(organisationID, 'teams', teamID, data)
-}
-const setCard = function(organisationID, cardID, data) { // eslint-disable-line
-  return setDoc(organisationID, 'cards', cardID, data)
-}
+const setUser = (organisationID, userID, data) => setDoc(organisationID, 'users', userID, data)
+const setTeam = (organisationID, teamID, data) => setDoc(organisationID, 'teams', teamID, data) // eslint-disable-line
+const setCard = (organisationID, cardID, data) => setDoc(organisationID, 'cards', cardID, data) // eslint-disable-line
 
 const getConfig = function(docID, varID) {
   return new Promise(function(resolve, reject) {
@@ -381,10 +356,7 @@ const getConfig = function(docID, varID) {
   })
 }
 
-const updateCard = function(organisationID, user, card, content, meta) {
-  const updatedCard = updateCardMeta(updateCardContent(organisationID, user, card, content), meta)
-  return updatedCard
-}
+const updateCard = (organisationID, user, card, content, meta) => updateCardMeta(updateCardContent(organisationID, user, card, content), meta)
 
 const updateCardContent = function(organisationID, user, card, content) {
   const permission = getPermissionLevel(organisationID, user, card)
@@ -403,7 +375,7 @@ const updateCardContent = function(organisationID, user, card, content) {
   return card
 }
 
-const updateCardMeta = function(card, meta) {
+const updateCardMeta = (card, meta) => {
   if (meta)
     card.data.meta = meta
   console.log('🗂 Final card: ', card)
@@ -469,21 +441,14 @@ const firebaseToAlgolia = function(data) {
   const card = {
     objectID: getID(data._ref),
     description: data.data().content.description,
-    pending: data.data().pending.map(submission => {
-      return submission.content.description
-    }),
-    teams: data.data().teams.map(team => {
-      return getID(team)
-    })
+    teams: data.data().teams.map(team => getID(team))
   }
-  // Put other reference properties here
+  if (data.data().pending) card.pending = data.data().pending.map(submission => submission.content.description)
   console.log('🔎 Algolia card:', card)
   return card
 }
 
-const compareReferences = function(ref1, ref2) {
-  return ref1._referencePath.segments.join('/') === ref2._referencePath.segments.join('/') // Should check _firestore as well?
-}
+const compareReferences = (ref1, ref2) => ref1._referencePath.segments.join('/') === ref2._referencePath.segments.join('/') // Should check _firestore as well?
 
 const requireProps = function(data, props, orProps) {
   // Eventually this should check for types too - or could just start using Flow: https://devhints.io/flow
