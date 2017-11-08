@@ -19,6 +19,7 @@
 
   log.setLevel('debug')
 
+
   export default {
     props: [
       'sidebar',
@@ -42,7 +43,7 @@
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
           // url: '//forget-me-not--staging.herokuapp.com/api/memories',
-          url: '//localhost:5000/api/memories',
+          url: (process.env.NODE_ENV == 'production' || process.env.NODE_ENV == 'testing') ? '//forget-me-not--staging.herokuapp.com/api/memories' : '//localhost:3000/api/memories',
           importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
         },
         userID: '', // This will be replaced by user: {authProvider: '', id: ''}

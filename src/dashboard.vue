@@ -75,54 +75,26 @@ export default {
   },
   created: function () {
     const self = this
+    self.organisation = { name: 'explaain' } // Should get this from subdomain
+    console.log('NODE_ENV:', process.env.NODE_ENV)
+    console.log('BACKEND_URL:', process.env.BACKEND_URL)
     Vue.use(Auth, {
+      organisation: self.organisation,
       // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-      getUserDataUrl: '//localhost:5000/api/user',
+      getUserDataUrl: '//' + (process.env.BACKEND_URL || '//forget-me-not--staging.herokuapp.com') + '/api/user'
+      // getUserDataUrl: '//localhost:3000/api/user',
     })
     Auth.initApp(self.onAuthStateChanged)
-    self.organisation = { name: 'explaain' } // Should get this from subdomain
   },
   methods: {
-    getUser: function () {
-      const self = this
-      const user = JSON.parse(JSON.stringify(this.user))
-      if (this.user.lastRefreshed && new Date() - this.user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
-        console.log('♻️  Refreshing User Token!')
-        Auth.refreshUserToken()
-        .then(token => {
-          user.auth.stsTokenManager.accessToken = token
-          user.lastRefreshed = new Date()
-          console.log('self.user', self.user)
-        }).catch(e => {
-          console.log(e)
-        })
-      }
-      user.getAccessToken = () => user.auth.stsTokenManager.accessToken
-      return user
-    },
-    toggleSignIn: function() {
+    getUser: () => Auth.getUser(),
+    toggleSignIn: () => {
       Auth.toggleSignIn()
       this.signInButton.disabled = true
     },
-    onAuthStateChanged: function(userAuth) {
-      const self = this
-      if (userAuth) {
-        console.log('🖌👤  Setting user', userAuth)
-        self.user.uid = userAuth.uid
-        self.user.lastRefreshed = new Date()
-        self.user.auth = userAuth
-        Auth.getUserData(self.organisation.name, self.getUser().auth)
-        .then(data => {
-          console.log('👤  User data!', data)
-          self.user.data = data
-        }).catch(e => {
-          console.log(e)
-        })
-
-        this.signInButton.text = 'Sign out'
-      } else {
-        this.signInButton.text = 'Sign in with Google'
-      }
+    onAuthStateChanged: function(user) {
+      this.user = user
+      this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
       this.signInButton.disabled = false
     }
   }

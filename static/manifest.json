@@ -2,7 +2,7 @@
   "name": "Savvy",
   "short_name": "Savvy",
   "description": "Remember anything",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "manifest_version": 2,
   "icons": {
     "16": "chrome/images/icon16.png",
@@ -35,7 +35,7 @@
   "chrome_url_overrides" : {
     "newtab": "index.html"
   },
-  "content_security_policy": "script-src 'self' https://apis.google.com/; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/; object-src 'self'",
   "web_accessible_resources": [
     "index.html",
     "sidebar.html"
@@ -51,6 +51,7 @@
     "debugger",
     "declarativeContent",
     "history",
+    "identity",
     "management",
     "notifications",
     "pageCapture",
@@ -60,7 +61,16 @@
     "topSites",
     "webNavigation",
     "http://localhost:5000/*",
+    "http://localhost:3000/*",
     "webRequestBlocking",
     "<all_urls>"
-  ]
+  ],
+  "oauth2": {
+    "client_id": "gbjmlelijbjldbpmdnilhbnmcnfmpmjc",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqj3YMrDVC6Pvk3qgNjbjRylKJJDRAuC9e0e6citgtYqZUslEKRyVYZTd/fE5u+ATzaSMzzPq2C0J396H7xh+TBibL2SwhRpDRvWtAK39Qzq196Zm2YfWtd4kYYd17Jlo2pnatenKCqlq0zHN9d6AX7Gaf958kvnhnzyuOLtX5Losr5e7l9zkXHJaOdOMWPTFR3OtxTuvVMtJKlihd+bh9mOe1qEyGuoP4YmC7Sy4xW6BgKY19kPlWL3gN0Kq1NYosvUsiTBZKfyHsKSdjwPfxYGjjTsZ7FsPjnN5jbOKS9SeATr0A48UmMtlvoVl4STmfWsf2a22m0pGn4oLdKwVAwIDAQAB"
 }

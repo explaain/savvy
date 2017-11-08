@@ -7,6 +7,8 @@ Vue.use(VueAxios, axios)
 
 const Auth = {
   install(Vue, options) {
+    this.organisation = options.organisation
+    this.user = {}
     console.log('🖌  Auth running!')
     /**
      * Function called when clicking the Login/Logout button.
@@ -33,6 +35,7 @@ const Auth = {
      */
     const initApp = function(stateChangeCallback) {
       console.log('🔏⛏  Initialising Auth')
+      const self = this
       var config = {
         apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
         authDomain: 'savvy-96d8b.firebaseapp.com',
@@ -65,11 +68,27 @@ const Auth = {
 
       // Listening for auth state changes.
       // [START authstatelistener]
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (user)
-          stateChangeCallback(user)
-        else
+      firebase.auth().onAuthStateChanged(function(userAuth) {
+        if (userAuth) {
+          userAuth = JSON.parse(JSON.stringify(userAuth))
+          console.log('🖌👤  Setting user', userAuth)
+          getUserData(self.organisation.name, userAuth)
+          .then(userData => {
+            console.log('👤  User data!', userData)
+            self.user = {
+              uid: userAuth.uid,
+              lastRefreshed: new Date(),
+              auth: userAuth,
+              data: userData
+            }
+            stateChangeCallback(self.user)
+          }).catch(e => {
+            console.log(e)
+          })
+        } else {
+          console.log('Calling back but with no user')
           stateChangeCallback()
+        }
       })
       // [END authstatelistener]
     }
@@ -102,10 +121,28 @@ const Auth = {
       })
     }
 
+    const getUser = () => {
+      const self = this
+      const user = JSON.parse(JSON.stringify(self.user))
+      if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
+        console.log('♻️  Refreshing User Token!')
+        Auth.refreshUserToken()
+        .then(token => {
+          user.auth.stsTokenManager.accessToken = token
+          user.lastRefreshed = new Date()
+          console.log('self.user', self.user)
+        }).catch(e => {
+          console.log(e)
+        })
+      }
+      user.getAccessToken = () => user.auth.stsTokenManager.accessToken
+      return user
+    }
+
     this.toggleSignIn = toggleSignIn
     this.initApp = initApp
     this.refreshUserToken = refreshUserToken
-    this.getUserData = getUserData
+    this.getUser = getUser
   },
 
 }

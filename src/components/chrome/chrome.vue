@@ -1,15 +1,18 @@
 <template lang="html">
   <div class="app">
+    <button :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
     <img src="/images/logo.png" class="savvy-logo" alt="">
-    <explorer :sidebar="sidebar" :userID="userID" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local">
+    <explorer :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :getUser="getUser">
       <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="plugin"></ibutton>
     </explorer>
   </div>
 </template>
 
 <script>
-  /* global chrome */
+  // /* global chrome */
   import log from 'loglevel'
+  import Vue from 'vue'
+  import Auth from '../../plugins/auth.js'
   import Explorer from '../explorer/explorer.vue'
   import IconButton from '../explorer/ibutton.vue'
 
@@ -22,10 +25,20 @@
     ],
     data() {
       return {
+        organisation: {},
+        user: {
+          uid: '',
+          auth: {},
+          data: {}
+        },
+        signInButton: {
+          text: 'Sign in with Google',
+          disabled: true
+        },
         firebaseConfig: {
           apiKey: 'AIzaSyBU0SEu3orHAoJ5eqxIJXS2VfyqXm1HoMU',
           authDomain: 'forgetmenot-1491065404838.firebaseapp.com',
-          databaseURL: 'https:// forgetmenot-1491065404838.firebaseio.com',
+          databaseURL: 'https://forgetmenot-1491065404838.firebaseio.com',
           projectId: 'forgetmenot-1491065404838',
           storageBucket: '',
           messagingSenderId: '400087312665'
@@ -33,15 +46,14 @@
         algoliaParams: { // Need to fetch these from app.vue to avoid duplication!
           appID: 'I2VKMNNAXI',
           apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-          index: 'ForgetMeNot_Context_Demo'
+          index: 'Savvy'
         },
         authorParams: {
-          // url: 'https:// forget-me-not--app.herokuapp.com/api/memories',
-          url: '// forget-me-not--demo.herokuapp.com/api/memories',
-          // url: '// localhost:5000/api/memories',
-          importUrl: '// forget-me-not--demo.herokuapp.com/api/import'
+          // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
+          // url: '//forget-me-not--staging.herokuapp.com/api/memories',
+          url: '//localhost:3000/api/memories',
+          importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
         },
-        userID: '101118387301286232222', // This will be replaced by user: {authProvider: '', id: ''}
         plugin: true,
         logo: '../images/logo.png',
         pageCards: [], // ???
@@ -51,9 +63,18 @@
     },
     created: function(a) {
       const self = this
-      self.getUser()
+      // self.getUser()
       if (self.plugin)
         self.fromPage()
+
+      self.organisation = { name: 'explaain' } // Should get this from subdomain
+
+      Vue.use(Auth, {
+        organisation: self.organisation,
+        // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
+        getUserDataUrl: '//localhost:3000/api/user',
+      })
+      Auth.initApp(self.onAuthStateChanged)
 
       window.addEventListener('message', function(event) {
         // log.info(event.data.action)
@@ -74,19 +95,30 @@
       ibutton: IconButton
     },
     methods: {
-      getUser: function() {
-        const self = this
-        try {
-          chrome.runtime.sendMessage({action: 'getUser'}, function(userID) {
-            self.userID = userID || self.userID
-            console.log('userID', self.userID)
-          })
-        } catch (e) {
-          this.plugin = false
-          self.userID = '1627888800569309'
-          console.log('userID', self.userID)
-        }
+      getUser: () => Auth.getUser(),
+      toggleSignIn: () => {
+        Auth.toggleSignIn()
+        this.signInButton.disabled = true
       },
+      onAuthStateChanged: function(user) {
+        console.log('user', user)
+        this.user = user
+        this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
+        this.signInButton.disabled = false
+      },
+      // getUser: function() {
+      //   const self = this
+      //   try {
+      //     chrome.runtime.sendMessage({action: 'getUser'}, function(userID) {
+      //       self.userID = userID || self.userID
+      //       console.log('userID', self.userID)
+      //     })
+      //   } catch (e) {
+      //     this.plugin = false
+      //     self.userID = '1627888800569309'
+      //     console.log('userID', self.userID)
+      //   }
+      // },
       fromPage: function() {
         console.log('fromPage')
         const message = {action: 'getPageResults'}
@@ -114,7 +146,12 @@
 
   body > div.app {
     margin: auto;
-    text-align: center;
+    /*text-align: center;*/
+  }
+
+  .savvy-logo {
+    max-width: 240px;
+    margin: 40px 0 -10px;
   }
 
 </style>
