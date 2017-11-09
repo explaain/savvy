@@ -6,6 +6,6 @@ export default {
   props: ['data', 'options'],
   mounted() {
     const self = this
-    this.renderChart(self.data, self.options)
+    this.renderChart(self.chartData, self.options)
   }
 }
