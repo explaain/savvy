@@ -27,9 +27,9 @@
 </template>
 
 <script>
-const fetchData = require('../scripts/fetch-data-mixpanel');
 import LineChart from './charts/line-chart'
 import BarChart from './charts/bar-chart'
+const fetchData = require('../scripts/fetch-data-mixpanel')
 
 export default {
   name: 'Analytics',
