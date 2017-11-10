@@ -5,7 +5,6 @@ import router from './router'
 import Dashboard from './dashboard'
 
 require('./styles/index.css')
-require('./styles/dashboard.css')
 
 Vue.config.productionTip = false
 

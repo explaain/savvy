@@ -6,7 +6,9 @@ import Home from '@/components/home'
 import Analytics from '@/components/analytics'
 import Notifications from '@/components/notifications'
 import Explorer from '@/components/explorer/explorer'
-import Team from '@/components/team'
+import Teams from '@/components/teams'
+import Files from '@/components/files'
+import Settings from '@/components/settings'
 
 Vue.use(Router)
 
@@ -34,6 +36,9 @@ var authorParams = {
 var logo = '../../assets/logo.png'
 
 export default new Router({
+  scrollBehavior (to, from, savedPosition) {
+    return { x: 0, y: 0 }
+  },
   routes: [
     {
       path: '/',
@@ -54,8 +59,16 @@ export default new Router({
       props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, logo: logo })
     },
     {
-      path: '/team',
-      component: Team
+      path: '/teams',
+      component: Teams
+    },
+    {
+      path: '/files',
+      component: Files
+    },
+    {
+      path: '/settings',
+      component: Settings
     }
   ]
 })

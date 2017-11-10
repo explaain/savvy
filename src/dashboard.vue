@@ -5,7 +5,6 @@
     <div class="logo-container">
       <img class="logo" src="./assets/logo.png"/>
     </div>
-    <h1>This is the top navigation</h1>
     <button :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
     <div>
 
@@ -51,9 +50,13 @@
           <i></i>
           <router-link class="option-text" to="/card-manager">Card Manager</router-link>
         </li>
-        <li id="team" class="option">
+        <li id="teams" class="option">
           <i></i>
-          <router-link class="option-text" to="/team">Team</router-link>
+          <router-link class="option-text" to="/teams">Team</router-link>
+        </li>
+        <li id="files" class="option">
+          <i></i>
+          <router-link class="option-text" to="/files">Files</router-link>
         </li>
         <li id="help" class="option">
           <i></i>
@@ -62,6 +65,10 @@
         <li id="billing" class="option">
           <i></i>
           <router-link class="option-text" to="/billing">Billing</router-link>
+        </li>
+        <li id="settings" class="option">
+          <i></i>
+          <router-link class="option-text" to="/settings">Settings</router-link>
         </li>
       </ul>
     </div>
@@ -119,3 +126,70 @@ export default {
   }
 }
 </script>
+
+<style media="screen">
+  body {
+    margin: 0;
+  }
+  #dashboard {
+    background-color: #eee;
+    min-height: 500px;
+    overflow: auto;
+  }
+
+  .top-banner {
+    padding: 20px;
+  }
+
+  .logo-container {
+    float: left;
+    width: 150px;
+  }
+
+  .logo {
+    width: 100%;
+    height: auto;
+  }
+
+  .container {
+    height: auto;
+    clear: both; /* drops down rest of page below top banner */
+  }
+
+  .sidebar {
+    float: left;
+    background-color: white;
+    width: 10%;
+  }
+
+  .nav-options {
+    list-style-type: none;
+    padding-left: 0px;
+    text-align: center;
+    margin: 0;
+  }
+
+  .option {
+    padding: 20px 0px;
+    /*background-color: orange;*/
+    border-style: solid;
+  }
+
+  .option-text {
+    text-decoration: none;
+    font-size: 20px;
+    width: auto;
+    /*background-color: purple;*/
+    display: block;
+  }
+
+  .router-view {
+    /*background-color: green;*/
+    margin-left: 10%;
+    padding: 20px;
+  }
+
+  button#quickstart-sign-in {
+    float: right;
+  }
+</style>
