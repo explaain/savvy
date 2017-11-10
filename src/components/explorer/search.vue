@@ -2,7 +2,7 @@
   <div class="search-container">
     <input autofocus type="text" placeholder="Search for cards..." v-model="query" @keyup.enter="search"><br>
     <div class="results" v-on-clickaway="clearResults">
-      <cardlet class="non-editable" v-for="result in results" :card="result" :key="result.objectID" :editing="false" @cardletClick="selectResult"></cardlet>
+      <cardlet :editable="false" v-for="result in results" :card="result" :key="result.objectID" :editing="false" @cardletClick="selectResult"></cardlet>
     </div>
   </div>
 </template>
@@ -49,7 +49,7 @@ export default {
     search: function() {
       const self = this
       self.loading = true
-      ExplaainSearch.searchCards(self.getUser().uid, self.query, 6)
+      ExplaainSearch.searchCards(self.getUser(), self.query, 6)
       .then(function(hits) {
         self.loading = false
         self.resultList = hits.map(function(card) { return card.objectID })
