@@ -20,7 +20,7 @@
           <h4>This graph shows even more other stuff</h4>
           <!--<examplebar class="wrapper" :chartData="dataBar" :options="optionsBar"></examplebar> -->
           <component v-bind:is="chartType" :chartData="dataLine" :options="optionsLine"></component>
-          <button onclick="fetchMixpanelData()">Get data!</button>
+          <button v-on:click="fetchData('2017-11-05', '2017-11-11', 'Card Saved')">Get data!</button>
         </div>
       </div>
     </div>
@@ -47,7 +47,7 @@ export default {
         datasets: [{
           label: 'GitHub Commits',
           backgroundColor: '#f87979',
-          data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 20, 12, 11]
+          data: []
         }]
       },
       optionsLine: {},
@@ -67,20 +67,23 @@ export default {
     linechart: LineChart,
     barchart: BarChart
   },
-  created: function() {
-    const url = 'http://localhost:3000/analytics/fetch'
-    const data = {
-      start: '',
-      end: '',
-      event: ''
+  methods: {
+    fetchData: function(start, end, event) {
+      const url = 'http://localhost:3000/analytics/fetch'
+      const data = {
+        start: start,
+        end: end,
+        event: event
+      }
+      Vue.axios.post(url, data)
+      .then((response) => {
+        console.log(response)
+        console.log(this.$data.dataLine.datasets.data)
+        this.$data.dataLine.datasets.data = response.data.data.value
+      }).catch(function(error) {
+        console.log(error)
+      })
     }
-    Vue.axios.post(url, data)
-    .then((response) => {
-      console.log(response)
-      d.resolve(response)
-    }).catch(function(e) {
-      d.reject(e)
-    })
   }
 }
 </script>
