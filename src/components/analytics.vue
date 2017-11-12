@@ -29,8 +29,13 @@
 </template>
 
 <script>
+import Vue from 'vue'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
 import LineChart from './charts/line-chart'
 import BarChart from './charts/bar-chart'
+
+Vue.use(VueAxios, axios)
 
 export default {
   name: 'Analytics',
@@ -62,6 +67,21 @@ export default {
     linechart: LineChart,
     barchart: BarChart
   },
+  created: function() {
+    const url = 'http://localhost:3000/analytics/fetch'
+    const data = {
+      start: '',
+      end: '',
+      event: ''
+    }
+    Vue.axios.post(url, data)
+    .then((response) => {
+      console.log(response)
+      d.resolve(response)
+    }).catch(function(e) {
+      d.reject(e)
+    })
+  }
 }
 </script>
 
