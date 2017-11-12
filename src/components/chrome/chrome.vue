@@ -1,8 +1,10 @@
 <template lang="html">
-  <div class="app">
-    <button :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
-    <img src="/images/logo.png" class="savvy-logo" alt="">
+  <div class="app" :class="{'sidebar-true': sidebar}">
     <explorer :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :getUser="getUser">
+      <div class="chrome-header" slot="header">
+        <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
+        <img src="/images/logo.png" class="savvy-logo" alt="">
+      </div>
       <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="plugin"></ibutton>
     </explorer>
   </div>
@@ -146,12 +148,17 @@
 
   body > div.app {
     margin: auto;
-    /*text-align: center;*/
+    text-align: center;
   }
 
   .savvy-logo {
     max-width: 240px;
     margin: 40px 0 -10px;
+  }
+
+  .chrome-login {
+    display: block;
+    margin: 30px auto -10px;
   }
 
 </style>

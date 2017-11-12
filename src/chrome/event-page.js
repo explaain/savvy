@@ -204,3 +204,87 @@ const getAllUserCards = function() {
   return d.promise
 }
 getAllUserCards()
+
+
+
+
+
+
+var config = {
+  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
+  authDomain: 'savvy-96d8b.firebaseapp.com',
+  databaseURL: 'https://chrometest-5cd53.firebaseio.com',
+  storageBucket: ''
+}
+firebase.initializeApp(config)
+
+
+
+/**
+ * initApp handles setting up the Firebase context and registering
+ * callbacks for the auth status.
+ *
+ * The core initialization is in firebase.App - this is the glue class
+ * which stores configuration. We provide an app name here to allow
+ * distinguishing multiple app instances.
+ *
+ * This method also registers a listener with firebase.auth().onAuthStateChanged.
+ * This listener is called when the user is signed in or out, and that
+ * is where we update the UI.
+ *
+ * When signed in, we also authenticate to the Firebase Realtime Database.
+ */
+function initApp() {
+  firebase.auth().onAuthStateChanged(function(user) {
+    console.log(user);
+  });
+}
+
+/**
+ * Start the auth flow and authorizes to Firebase.
+ * @param{boolean} interactive True if the OAuth flow should request with an interactive mode.
+ */
+function startAuth(interactive) {
+  // Request an OAuth token from the Chrome Identity API.
+  chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
+    if (chrome.runtime.lastError && !interactive) {
+      console.log('It was not possible to get a token programmatically.');
+    } else if(chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError);
+    } else if (token) {
+      // Authrorize Firebase with the OAuth Access Token.
+      var credential = firebase.auth.GoogleAuthProvider.credential(null, token);
+      firebase.auth().signInWithCredential(credential).catch(function(error) {
+        // The OAuth token might have been invalidated. Lets' remove it from cache.
+        if (error.code === 'auth/invalid-credential') {
+          chrome.identity.removeCachedAuthToken({token: token}, function() {
+            startAuth(interactive);
+          });
+        }
+      });
+    } else {
+      console.error('The OAuth Token was null');
+    }
+  });
+}
+
+/**
+ * Starts the sign-in process.
+ */
+function startSignIn() {
+  // document.getElementById('quickstart-button').disabled = true;
+  if (firebase.auth().currentUser) {
+    firebase.auth().signOut();
+  } else {
+    startAuth(true);
+  }
+}
+
+window.onload = function() {
+  console.log('onload');
+  initApp();
+  setTimeout(function() {
+    console.log('starting auth');
+    startAuth(true);
+  },3000)
+};

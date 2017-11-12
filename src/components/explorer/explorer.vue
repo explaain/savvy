@@ -4,6 +4,7 @@
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header">
+        <slot name="header"></slot>
         <input autofocus type="text" placeholder="Search for cards..." v-model="query" @keyup.enter="search"><br>
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
@@ -47,7 +48,7 @@
   import ExplaainSearch from '../../plugins/explaain-search.js'
   import ExplaainAuthor from '../../plugins/explaain-author.js'
   // import SavvyImport from '../../plugins/savvy-import.js'
-  
+
   export default {
     props: [
       'organisation',

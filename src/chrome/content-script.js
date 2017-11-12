@@ -210,6 +210,7 @@ const openDrawer = function(e) {
     drawer.style.boxShadow = 'rgba(0, 0, 0, 0.4) -1px 3px 50px 0px'
     iframe.style.pointerEvents = 'all'
     drawer.setAttribute('data-opened', 'true')
+    iframe.style.display = 'block'
     log.info(drawer.getAttribute('data-opened'))
   }
   if (e) e.dealtWith = true
@@ -221,6 +222,11 @@ const closeDrawer = function(e) {
     drawer.style.boxShadow = 'none'
     iframe.style.pointerEvents = 'none'
     drawer.setAttribute('data-opened', 'false')
+    setTimeout(function () {
+      if (drawer.getAttribute('data-opened') !== 'true') {
+        iframe.style.display = 'none'
+      }
+    }, 1000)
   }
   // log.info(drawer.getAttribute('data-opened'))
   if (e) e.dealtWith = true
