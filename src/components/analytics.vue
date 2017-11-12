@@ -6,19 +6,21 @@
       <div class="column">
         <div class="graph-card">
           <h4>This graph shows stuff</h4>
-          <exampleline class="wrapper" :chartData="data" :options="options"></exampleline>
+          <barchart class="wrapper" :chartData="dataBar" :options="optionsBar"></barchart>
         </div>
       </div>
       <div class="column">
         <div class="graph-card">
           <h4>This graph shows other stuff</h4>
-          <exampleline class="wrapper" :chartData="data" :options="options"></exampleline>
+          <barchart class="wrapper" :chartData="dataBar" :options="optionsBar"></barchart>
         </div>
       </div>
       <div class="column">
         <div class="graph-card">
           <h4>This graph shows even more other stuff</h4>
-          <examplebar class="wrapper" :chartData="dataBar" :options="optionsBar"></examplebar>
+          <!--<examplebar class="wrapper" :chartData="dataBar" :options="optionsBar"></examplebar> -->
+          <component v-bind:is="chartType" :chartData="dataLine" :options="optionsLine"></component>
+          <button onclick="fetchMixpanelData()">Get data!</button>
         </div>
       </div>
     </div>
@@ -27,17 +29,15 @@
 </template>
 
 <script>
-// const fetchData = require('../scripts/fetch-data-mixpanel')
 import LineChart from './charts/line-chart'
 import BarChart from './charts/bar-chart'
-// const fetchData = require('../scripts/fetch-data-mixpanel')
 
 export default {
   name: 'Analytics',
   data() {
     return {
       msg: 'Welcome analytics',
-      data: {
+      dataLine: {
         labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         datasets: [{
           label: 'GitHub Commits',
@@ -45,7 +45,7 @@ export default {
           data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 20, 12, 11]
         }]
       },
-      options: {},
+      optionsLine: {},
       dataBar: {
         labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         datasets: [{
@@ -54,12 +54,13 @@ export default {
           data: [40, 20, 12, 39, 10, 40, 39, 80, 40, 20, 12, 11]
         }]
       },
-      optionsBar: {}
+      optionsBar: {},
+      chartType: 'linechart'
     }
   },
   components: {
-    exampleline: LineChart,
-    examplebar: BarChart
+    linechart: LineChart,
+    barchart: BarChart
   },
 }
 </script>
