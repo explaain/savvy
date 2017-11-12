@@ -2,8 +2,9 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import router from './router'
-// import Dashboard from './dashboard'
-import Chrome from './components/chrome/chrome'
+import Dashboard from './dashboard'
+// import Auth from './plugins/auth.js'
+// import Chrome from './components/chrome/chrome'
 
 require('./styles/index.css')
 
@@ -13,9 +14,12 @@ Vue.config.productionTip = false
 new Vue({
   el: '#dashboard',
   router,
-  render: h => h(Chrome, {
+  render: h => h(Dashboard, {
     props: {
       sidebar: true
     }
-  })
+  }),
+  data: {
+    globalvar: 'global hello world'
+  }
 })

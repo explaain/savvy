@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 // Components for dashboard
+import Login from '@/components/login'
 import Home from '@/components/home'
 import Analytics from '@/components/analytics'
 import Notifications from '@/components/notifications'
@@ -35,40 +36,78 @@ var authorParams = {
 // var userID = '101118387301286232222'
 var logo = '../../assets/logo.png'
 
-export default new Router({
+const router = new Router({
   scrollBehavior (to, from, savedPosition) {
     return { x: 0, y: 0 }
   },
   routes: [
     {
+      path: '/login',
+      name: 'Login',
+      component: Login
+    },
+    {
       path: '/',
       name: 'Home',
-      component: Home
+      component: Home,
+      meta: { requiresAuth: true }
     },
     {
       path: '/analytics',
-      component: Analytics
+      component: Analytics,
+      meta: { requiresAuth: true }
     },
     {
       path: '/notifications',
-      component: Notifications
+      component: Notifications,
+      meta: { requiresAuth: true }
     },
     {
       path: '/card-manager',
       component: Explorer,
-      props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, logo: logo })
+      props: (route) => ({ firebaseConfig: firebaseConfig, algoliaParams: algoliaParams, authorParams: authorParams, logo: logo }),
+      meta: { requiresAuth: true }
     },
     {
       path: '/teams',
-      component: Teams
+      component: Teams,
+      meta: { requiresAuth: true }
     },
     {
       path: '/files',
-      component: Files
+      component: Files,
+      meta: { requiresAuth: true }
     },
     {
       path: '/settings',
-      component: Settings
+      component: Settings,
+      meta: { requiresAuth: true }
     }
   ]
 })
+
+console.log(router.currentRoute.path)
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    var user
+    try {
+      user = Vue.globalGetUser()
+    } catch (e) {
+      user = null
+    }
+    if (!user || !user.auth) { // Needs to actually check auth.loggedIn() or something
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next() // make sure to always call next()!
+  }
+})
+
+export default router

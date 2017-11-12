@@ -9,7 +9,16 @@ const Auth = {
   install(Vue, options) {
     this.organisation = options.organisation
     this.user = {}
+    const self = this
     console.log('🖌  Auth running!')
+    console.log('globalvar:', Vue.globalvar)
+    console.log('Vue.prototype.$appName:', Vue.prototype.$appName)
+    Vue.globalGetUser = () => {
+      return self.user
+    }
+    Vue.globalSetUser = (user) => {
+      self.user = user
+    }
     /**
      * Function called when clicking the Login/Logout button.
      */

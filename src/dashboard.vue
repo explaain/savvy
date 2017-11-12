@@ -52,7 +52,7 @@
         </li>
         <li id="teams" class="option">
           <i></i>
-          <router-link class="option-text" to="/teams">Team</router-link>
+          <router-link class="option-text" to="/teams">Teams</router-link>
         </li>
         <li id="files" class="option">
           <i></i>
@@ -100,6 +100,7 @@ export default {
     }
   },
   created: function () {
+    console.log(globalvar)
     const self = this
     self.organisation = { name: 'explaain' } // Should get this from subdomain
     console.log('NODE_ENV:', process.env.NODE_ENV)
