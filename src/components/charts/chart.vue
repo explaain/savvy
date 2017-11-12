@@ -1,5 +1,8 @@
 <template>
-  <component v-bind:is="type" :chartData="data" :options="options"></component>
+  <div class="">
+    <button type="button" name="button" @click="fetchData">Refresh</button>
+    <component v-bind:is="type" :chartData="data" :options="options"></component>
+  </div>
 </template>
 
 <script>
@@ -34,8 +37,6 @@ export default {
     fetchData: function() {
       const self = this
       const url = 'http://localhost:3000/analytics/fetch'
-      console.log(url)
-      console.log(self.query)
       Vue.axios.post(url, self.query)
       .then((response) => {
         const data = response.data[self.query.event]
@@ -48,6 +49,7 @@ export default {
             data: Object.keys(data).map(key => data[key])
           }]
         }
+        console.log(self.data)
       }).catch(function(error) {
         console.log(error)
       })
