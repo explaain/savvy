@@ -1,7 +1,10 @@
 /* global chrome */
+/* global firebase */
 import Vue from 'vue'
 import log from 'loglevel'
 import Q from 'q'
+// import firebase from 'firebase'
+// import * as firebase from 'firebase'
 
 import ExplaainSearch from '../plugins/explaain-search.js'
 
@@ -53,6 +56,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   try {
     log.debug((sender.tab ? 'From a content script: ' + sender.tab.url : 'From the extension'), request)
 
+    if (request.action === 'signIn') {
+      console.log('Signing in!')
+      startSignIn()
+      sendResponse('hello')
+      return true
+    }
     if (request.action === 'getPageResults') {
       getCurrentPageResults(request.data)
       .then(function(res) {
@@ -203,7 +212,7 @@ const getAllUserCards = function() {
   })
   return d.promise
 }
-getAllUserCards()
+// getAllUserCards()
 
 
 
@@ -236,7 +245,7 @@ firebase.initializeApp(config)
  */
 function initApp() {
   firebase.auth().onAuthStateChanged(function(user) {
-    console.log(user);
+    console.log(user)
   });
 }
 

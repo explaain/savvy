@@ -124,7 +124,7 @@ const createDrawer = function() {
       + 'z-index: 1000000000000000;'
       + 'background: white;'
       + 'box-shadow: rgba(0, 0, 0, 0.4) -1px 3px 50px 0px;'
-      + 'transition: all 0.6s ease 0s;'
+      + 'transition: right 0.6s ease 0s;'
     drawer.setAttribute('data-opened', 'false')
 
     iframe.src = chrome.runtime.getURL('./sidebar.html')
@@ -207,6 +207,7 @@ const openDrawer = function(e) {
   if (drawer.getAttribute('data-opened') !== 'true' && (!e || !e.dealtWith)) {
     displayPageResults()
     drawer.style.right = '0px'
+    // drawer.style.marginRight = '0px'
     drawer.style.boxShadow = 'rgba(0, 0, 0, 0.4) -1px 3px 50px 0px'
     iframe.style.pointerEvents = 'all'
     drawer.setAttribute('data-opened', 'true')
@@ -219,6 +220,7 @@ const closeDrawer = function(e) {
   // log.info(drawer.getAttribute('data-opened'))
   if (drawer.getAttribute('data-opened') === 'true' && (!e || !e.dealtWith)) {
     drawer.style.right = '-' + drawer.style.width
+    // drawer.style.marginRight = '-' + drawer.style.width
     drawer.style.boxShadow = 'none'
     iframe.style.pointerEvents = 'none'
     drawer.setAttribute('data-opened', 'false')
