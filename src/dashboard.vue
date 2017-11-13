@@ -107,10 +107,12 @@ export default {
     Vue.use(Auth, {
       organisation: self.organisation,
       // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-      getUserDataUrl: '//' + (process.env.BACKEND_URL || '//forget-me-not--staging.herokuapp.com') + '/api/user'
+      getUserDataUrl: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/user'
       // getUserDataUrl: '//localhost:3000/api/user',
     })
-    Auth.initApp(self.onAuthStateChanged)
+    Auth.initApp(true, self.onAuthStateChanged)
+    Vue.globalGetUser = () => Auth.getUser()
+    // Vue.globalSetUser = (user) => Auth.setUser()
   },
   methods: {
     getUser: () => Auth.getUser(),

@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import log from 'loglevel'
 import Q from 'q'
+import Auth from '../plugins/auth2'
 // import firebase from 'firebase'
 // import * as firebase from 'firebase'
 
@@ -64,8 +65,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         console.log('Signing in!')
         signingIn = true
         startSignIn()
+        .then(res => {
+          sendResponse(res)
+        }).catch(e => {
+          console.log(e)
+          sendResponse({ error: e })
+        })
       }
-      sendResponse('hello')
       return true
     }
     if (request.action === 'getPageResults') {
@@ -91,8 +97,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       return true
     }
     if (request.action === 'getUser') {
-      console.log(UserID)
-      sendResponse(UserID)
+      console.log('getUser')
+      const user = Auth.getUser()
+      console.log(user)
+      sendResponse(user)
       return true
     }
     if (request.action === 'refreshCards') {
@@ -258,35 +266,43 @@ function initApp() { // eslint-disable-line
  * @param{boolean} interactive True if the OAuth flow should request with an interactive mode.
  */
 function startAuth(interactive) {
-  // Request an OAuth token from the Chrome Identity API.
-  chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
-    console.log(token)
-    if (chrome.runtime.lastError && !interactive) {
-      console.log('It was not possible to get a token programmatically.')
-    } else if (chrome.runtime.lastError) {
-      console.error(chrome.runtime.lastError)
-    } else if (token) {
-      console.log(1)
+  return new Promise(function(resolve, reject) {
+    // Request an OAuth token from the Chrome Identity API.
+    chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
       console.log(token)
-      console.log(firebase.auth())
-      console.log(JSON.parse(JSON.stringify(firebase.auth())))
-      setTimeout(function () {
+      if (chrome.runtime.lastError && !interactive) {
+        console.log('It was not possible to get a token programmatically.')
+      } else if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError)
+      } else if (token) {
+        console.log(1)
+        console.log(token)
+        console.log(firebase.auth())
         console.log(JSON.parse(JSON.stringify(firebase.auth())))
-      }, 2000)
-      // Authrorize Firebase with the OAuth Access Token.
-      var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
-      firebase.auth().signInWithCredential(credential).catch(function(error) {
-        console.log('catch catch')
-        // The OAuth token might have been invalidated. Lets' remove it from cache.
-        if (error.code === 'auth/invalid-credential') {
-          chrome.identity.removeCachedAuthToken({token: token}, function() {
-            startAuth(interactive)
-          })
-        }
-      })
-    } else {
-      console.error('The OAuth Token was null')
-    }
+        setTimeout(function () {
+          console.log(JSON.parse(JSON.stringify(firebase.auth())))
+        }, 3000)
+        // Authrorize Firebase with the OAuth Access Token.
+        var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
+        firebase.auth().signInWithCredential(credential)
+        .then(res => {
+          console.log('Auth starting')
+          Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: { name: 'explaain' }, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
+          console.log('Auth done')
+          resolve(res)
+        }).catch(function(error) {
+          console.log('catch catch')
+          // The OAuth token might have been invalidated. Lets' remove it from cache.
+          if (error.code === 'auth/invalid-credential') {
+            chrome.identity.removeCachedAuthToken({token: token}, function() {
+              startAuth(interactive)
+            })
+          }
+        })
+      } else {
+        console.error('The OAuth Token was null')
+      }
+    })
   })
 }
 
@@ -294,21 +310,33 @@ function startAuth(interactive) {
  * Starts the sign-in process.
  */
 function startSignIn() {
-  // document.getElementById('quickstart-button').disabled = true;
-  var signedInCatch
-  try {
-    signedInCatch = signedIn  // eslint-disable-line
-  } catch (e) {
-    signedInCatch = false
-  }
-  if (!signedInCatch /* || !firebase.auth().currentUser */) {
-    console.log('yo')
-    var signedIn = true
-    startAuth(true)
-  } else {
-    console.log('hi')
-    // firebase.auth().signOut()
-  }
+  return new Promise(function(resolve, reject) {
+    // document.getElementById('quickstart-button').disabled = true;
+    var signedInCatch
+    try {
+      signedInCatch = signedIn  // eslint-disable-line
+    } catch (e) {
+      signedInCatch = false
+    }
+    if (!signedInCatch /* || !firebase.auth().currentUser */) {
+      console.log('yo')
+      var signedIn = true
+      startAuth(true)
+      .then(res => {
+        resolve(res)
+      }).catch(e => {
+        console.log(e)
+        reject(e)
+      })
+    } else {
+      console.log('hi')
+      // firebase.auth().signOut()
+    }
+  })
+}
+
+const onAuthStateChanged = (user) => {
+  console.log('user', user)
 }
 
 try {

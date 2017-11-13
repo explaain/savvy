@@ -36,7 +36,7 @@
   "chrome_url_overrides" : {
     "newtab": "index.html"
   },
-  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com; object-src 'self'",
   "web_accessible_resources": [
     "index.html",
     "sidebar.html"

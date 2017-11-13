@@ -13,8 +13,7 @@
 <script>
   /* global chrome */
   import log from 'loglevel'
-  import Vue from 'vue'
-  import Auth from '../../plugins/auth.js'
+  // import Vue from 'vue'
   import Explorer from '../explorer/explorer.vue'
   import IconButton from '../explorer/ibutton.vue'
 
@@ -75,12 +74,12 @@
 
       self.organisation = { name: 'explaain' } // Should get this from subdomain
 
-      Vue.use(Auth, {
-        organisation: self.organisation,
-        // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-        getUserDataUrl: '//localhost:3000/api/user',
-      })
-      Auth.initApp(self.onAuthStateChanged)
+      // Vue.use(Auth, {
+      //   organisation: self.organisation,
+      //   // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
+      //   getUserDataUrl: '//localhost:3000/api/user',
+      // })
+      // Auth.initApp(false, self.onAuthStateChanged)
 
       window.addEventListener('message', function(event) {
         // log.info(event.data.action)
@@ -95,16 +94,31 @@
             break
         }
       }, false)
+      self.refreshUser()
     },
     methods: {
-      getUser: () => Auth.getUser(),
+      getUser: function() {
+        return this.user
+      },
+      refreshUser: function() {
+        const self = this
+        return new Promise(function(resolve, reject) {
+          chrome.runtime.sendMessage({action: 'getUser'}, response => {
+            console.log('response user', response)
+            self.user = response
+            resolve(response)
+          })
+        })
+      },
       toggleSignIn: function() {
+        const self = this
         if (this.sidebar) {
           console.log('sidebar')
         } else {
           console.log('not sidebar')
           chrome.runtime.sendMessage({action: 'signIn'}, response => {
-            console.log('response', response)
+            console.log('response user', response)
+            self.user = response
           })
         }
         // Auth.toggleSignIn()

@@ -1,24 +1,18 @@
-import Vue from 'vue'
+// import Vue from 'vue'
 import * as firebase from 'firebase'
 import axios from 'axios'
-import VueAxios from 'vue-axios'
+// import VueAxios from 'vue-axios'
 
-Vue.use(VueAxios, axios)
+// Vue.use(VueAxios, axios)
 
 const Auth = {
   install(Vue, options) {
     this.organisation = options.organisation
     this.user = {}
-    const self = this
+    // const self = this
     console.log('🖌  Auth running!')
-    console.log('globalvar:', Vue.globalvar)
-    console.log('Vue.prototype.$appName:', Vue.prototype.$appName)
-    Vue.globalGetUser = () => {
-      return self.user
-    }
-    Vue.globalSetUser = (user) => {
-      self.user = user
-    }
+    // console.log('globalvar:', Vue.globalvar)
+    // console.log('Vue.prototype.$appName:', Vue.prototype.$appName)
     /**
      * Function called when clicking the Login/Logout button.
      */
@@ -42,14 +36,16 @@ const Auth = {
      *  - firebase.auth().getRedirectResult(): This promise completes when the user gets back from
      *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
      */
-    const initApp = function(stateChangeCallback) {
+    const initApp = function(init, stateChangeCallback) {
       console.log('🔏⛏  Initialising Auth')
       const self = this
       var config = {
         apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
         authDomain: 'savvy-96d8b.firebaseapp.com',
       }
-      firebase.initializeApp(config)
+      if (init)
+        firebase.initializeApp(config)
+
       // Result from Redirect auth flow.
       // [START getidptoken]
       firebase.auth().getRedirectResult().then(function(result) {
@@ -57,6 +53,7 @@ const Auth = {
         //   // This gives you a Google Access Token. You can use it to access the Google API.
         //   var token = result.credential.accessToken
         // }
+        console.log('redirectResult', result)
       }).catch(function(error) {
         // Handle Errors here.
         var errorCode = error.code
@@ -75,8 +72,6 @@ const Auth = {
       })
       // [END getidptoken]
 
-      // Listening for auth state changes.
-      // [START authstatelistener]
       firebase.auth().onAuthStateChanged(function(userAuth) {
         if (userAuth) {
           userAuth = JSON.parse(JSON.stringify(userAuth))
@@ -99,7 +94,6 @@ const Auth = {
           stateChangeCallback()
         }
       })
-      // [END authstatelistener]
     }
 
     const refreshUserToken = () => {
@@ -116,7 +110,7 @@ const Auth = {
 
     const getUserData = function (organisationID, userAuth) {
       return new Promise(function(resolve, reject) {
-        Vue.axios.post(options.getUserDataUrl, {
+        axios.post(options.getUserDataUrl, {
           organisationID: organisationID,
           user: { uid: userAuth.uid, idToken: userAuth.stsTokenManager.accessToken }
         }).then((response) => {
