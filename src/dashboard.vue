@@ -100,7 +100,6 @@ export default {
     }
   },
   created: function () {
-    console.log(globalvar)
     const self = this
     self.organisation = { name: 'explaain' } // Should get this from subdomain
     console.log('NODE_ENV:', process.env.NODE_ENV)

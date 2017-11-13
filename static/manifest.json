@@ -20,6 +20,7 @@
   }],
   "background": {
     "scripts": [
+      "chrome/js/firebase.js",
       "chrome/manifest.js",
       "chrome/vendor.js",
       "chrome/eventPage.js"
