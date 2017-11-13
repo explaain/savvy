@@ -11,7 +11,7 @@
 </template>
 
 <script>
-  // /* global chrome */
+  /* global chrome */
   import log from 'loglevel'
   import Vue from 'vue'
   import Auth from '../../plugins/auth.js'
@@ -63,6 +63,10 @@
         // sidebar: true
       }
     },
+    components: {
+      explorer: Explorer,
+      ibutton: IconButton
+    },
     created: function(a) {
       const self = this
       // self.getUser()
@@ -92,20 +96,17 @@
         }
       }, false)
     },
-    components: {
-      explorer: Explorer,
-      ibutton: IconButton
-    },
     methods: {
       getUser: () => Auth.getUser(),
-      toggleSignIn: () => {
-        // if (this.sidebar) {
-        //   console.log('sidebar')
-        // } else {
-        //   chrome.runtime.sendMessage({action: 'signIn'}, response => {
-        //     console.log('response', response)
-        //   })
-        // }
+      toggleSignIn: function() {
+        if (this.sidebar) {
+          console.log('sidebar')
+        } else {
+          console.log('not sidebar')
+          chrome.runtime.sendMessage({action: 'signIn'}, response => {
+            console.log('response', response)
+          })
+        }
         // Auth.toggleSignIn()
         this.signInButton.disabled = true
       },

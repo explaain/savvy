@@ -10,6 +10,8 @@ import ExplaainSearch from '../plugins/explaain-search.js'
 
 log.setLevel('debug')
 
+var signingIn = false
+
 const UserIDs = {
   live: {
     Jeremy: '1627888800569309',
@@ -57,8 +59,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     log.debug((sender.tab ? 'From a content script: ' + sender.tab.url : 'From the extension'), request)
 
     if (request.action === 'signIn') {
-      console.log('Signing in!')
-      startSignIn()
+      console.log(signingIn)
+      if (!signingIn) {
+        console.log('Signing in!')
+        signingIn = true
+        startSignIn()
+      }
       sendResponse('hello')
       return true
     }
@@ -214,10 +220,10 @@ const getAllUserCards = function() {
 }
 // getAllUserCards()
 
-
-
-
-
+// Now it's Firebase Time
+// Now it's Firebase Time
+// Now it's Firebase Time
+// Now it's Firebase Time
 
 var config = {
   apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
@@ -226,8 +232,6 @@ var config = {
   storageBucket: ''
 }
 firebase.initializeApp(config)
-
-
 
 /**
  * initApp handles setting up the Firebase context and registering
@@ -243,10 +247,10 @@ firebase.initializeApp(config)
  *
  * When signed in, we also authenticate to the Firebase Realtime Database.
  */
-function initApp() {
+function initApp() { // eslint-disable-line
   firebase.auth().onAuthStateChanged(function(user) {
     console.log(user)
-  });
+  })
 }
 
 /**
@@ -256,25 +260,34 @@ function initApp() {
 function startAuth(interactive) {
   // Request an OAuth token from the Chrome Identity API.
   chrome.identity.getAuthToken({interactive: !!interactive}, function(token) {
+    console.log(token)
     if (chrome.runtime.lastError && !interactive) {
-      console.log('It was not possible to get a token programmatically.');
-    } else if(chrome.runtime.lastError) {
-      console.error(chrome.runtime.lastError);
+      console.log('It was not possible to get a token programmatically.')
+    } else if (chrome.runtime.lastError) {
+      console.error(chrome.runtime.lastError)
     } else if (token) {
+      console.log(1)
+      console.log(token)
+      console.log(firebase.auth())
+      console.log(JSON.parse(JSON.stringify(firebase.auth())))
+      setTimeout(function () {
+        console.log(JSON.parse(JSON.stringify(firebase.auth())))
+      }, 2000)
       // Authrorize Firebase with the OAuth Access Token.
-      var credential = firebase.auth.GoogleAuthProvider.credential(null, token);
+      var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
       firebase.auth().signInWithCredential(credential).catch(function(error) {
+        console.log('catch catch')
         // The OAuth token might have been invalidated. Lets' remove it from cache.
         if (error.code === 'auth/invalid-credential') {
           chrome.identity.removeCachedAuthToken({token: token}, function() {
-            startAuth(interactive);
-          });
+            startAuth(interactive)
+          })
         }
-      });
+      })
     } else {
-      console.error('The OAuth Token was null');
+      console.error('The OAuth Token was null')
     }
-  });
+  })
 }
 
 /**
@@ -282,18 +295,37 @@ function startAuth(interactive) {
  */
 function startSignIn() {
   // document.getElementById('quickstart-button').disabled = true;
-  if (firebase.auth().currentUser) {
-    firebase.auth().signOut();
+  var signedInCatch
+  try {
+    signedInCatch = signedIn  // eslint-disable-line
+  } catch (e) {
+    signedInCatch = false
+  }
+  if (!signedInCatch /* || !firebase.auth().currentUser */) {
+    console.log('yo')
+    var signedIn = true
+    startAuth(true)
   } else {
-    startAuth(true);
+    console.log('hi')
+    // firebase.auth().signOut()
   }
 }
 
-window.onload = function() {
-  console.log('onload');
-  initApp();
-  setTimeout(function() {
-    console.log('starting auth');
-    startAuth(true);
-  },3000)
-};
+try {
+  console.log('firebase.auth():', firebase.auth())
+  console.log('firebase.auth() (frozen):', JSON.parse(JSON.stringify(firebase.auth())))
+} catch (e) {
+
+}
+try {
+  console.log('signedIn:', signedIn)  // eslint-disable-line
+} catch (e) {
+
+}
+
+startSignIn()
+
+// // initApp()
+// setTimeout(function() {
+//   startSignIn()
+// }, 5000)

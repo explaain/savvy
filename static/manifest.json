@@ -67,11 +67,11 @@
     "<all_urls>"
   ],
   "oauth2": {
-    "client_id": "gbjmlelijbjldbpmdnilhbnmcnfmpmjc",
+    "client_id": "704974264220-bjqgp1g3aljp865ehn2kd5s2og2qkuqf.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/userinfo.email",
       "https://www.googleapis.com/auth/userinfo.profile"
     ]
   },
-  "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqj3YMrDVC6Pvk3qgNjbjRylKJJDRAuC9e0e6citgtYqZUslEKRyVYZTd/fE5u+ATzaSMzzPq2C0J396H7xh+TBibL2SwhRpDRvWtAK39Qzq196Zm2YfWtd4kYYd17Jlo2pnatenKCqlq0zHN9d6AX7Gaf958kvnhnzyuOLtX5Losr5e7l9zkXHJaOdOMWPTFR3OtxTuvVMtJKlihd+bh9mOe1qEyGuoP4YmC7Sy4xW6BgKY19kPlWL3gN0Kq1NYosvUsiTBZKfyHsKSdjwPfxYGjjTsZ7FsPjnN5jbOKS9SeATr0A48UmMtlvoVl4STmfWsf2a22m0pGn4oLdKwVAwIDAQAB-----END PUBLIC KEY-----"
+  "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp+80s08L2avOI6qgyaMN6xrx5B2gZU+xp7tbtiJHKDpY5XHGSvEJYshV6V+ddNidO9i8zQt6trNR+1ysHTJxTlU67J7UCU+qdUUc4iyQE4ng5Qw0DHX79lvYGJJ5KZz8sUSKwlrU0LQA5+av36P6G6rvbN2QxjrN6q/ACu4geeZ0srw7yxi992OIyg+YX6Fp7tkc1s+YX1cVUxwsTjsrd8rn0CAeDbawhdko6Kk1OblkBu6sVkIZ2IhzcyHpEblJC/lI0kigHPd/Z5bpQIqRs6MrvUrpE7FUfKbo8l067vnzkz0OgJdzCwmQwhMmxCPiSr030ODnMf26w5LsnZJ95QIDAQAB-----END PUBLIC KEY-----"
 }
