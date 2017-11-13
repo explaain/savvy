@@ -11,6 +11,8 @@ import ExplaainSearch from '../plugins/explaain-search.js'
 
 log.setLevel('debug')
 
+console.log('STARTING')
+
 var signingIn = false
 
 const UserIDs = {
@@ -48,8 +50,11 @@ const algoliaParams = { // Need to send these to app.vue to avoid duplication!
 Vue.use(ExplaainSearch, algoliaParams)
 
 chrome.browserAction.onClicked.addListener(function(tab) {
+  log.info(1)
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    log.info(2)
     chrome.tabs.sendMessage(tabs[0].id, {action: 'toggleDrawer'}, function(res) {
+      log.info(3)
       log.info(res)
     })
   })
@@ -239,7 +244,12 @@ var config = {
   databaseURL: 'https://chrometest-5cd53.firebaseio.com',
   storageBucket: ''
 }
-firebase.initializeApp(config)
+try {
+  console.log('initialising')
+  firebase.initializeApp(config)
+} catch (e) {
+  console.log(e)
+}
 
 /**
  * initApp handles setting up the Firebase context and registering
@@ -272,11 +282,12 @@ function startAuth(interactive) {
       console.log(token)
       if (chrome.runtime.lastError && !interactive) {
         console.log('It was not possible to get a token programmatically.')
+        reject(new Error('It was not possible to get a token programmatically.'))
       } else if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError)
+        reject(chrome.runtime.lastError)
       } else if (token) {
         console.log(1)
-        console.log(token)
         console.log(firebase.auth())
         console.log(JSON.parse(JSON.stringify(firebase.auth())))
         setTimeout(function () {
@@ -298,9 +309,11 @@ function startAuth(interactive) {
               startAuth(interactive)
             })
           }
+          reject(new Error())
         })
       } else {
         console.error('The OAuth Token was null')
+        reject(new Error('The OAuth Token was null'))
       }
     })
   })
@@ -311,16 +324,8 @@ function startAuth(interactive) {
  */
 function startSignIn() {
   return new Promise(function(resolve, reject) {
-    // document.getElementById('quickstart-button').disabled = true;
-    var signedInCatch
-    try {
-      signedInCatch = signedIn  // eslint-disable-line
-    } catch (e) {
-      signedInCatch = false
-    }
-    if (!signedInCatch /* || !firebase.auth().currentUser */) {
+    if (!firebase.auth().currentUser) {
       console.log('yo')
-      var signedIn = true
       startAuth(true)
       .then(res => {
         resolve(res)
@@ -330,6 +335,7 @@ function startSignIn() {
       })
     } else {
       console.log('hi')
+      resolve()
       // firebase.auth().signOut()
     }
   })
@@ -352,6 +358,11 @@ try {
 }
 
 startSignIn()
+.then(res => {
+  log.info(res)
+}).catch(e => {
+  log.info(e)
+})
 
 // // initApp()
 // setTimeout(function() {
