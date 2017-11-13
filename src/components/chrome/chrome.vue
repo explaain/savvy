@@ -99,7 +99,14 @@
     methods: {
       getUser: () => Auth.getUser(),
       toggleSignIn: () => {
-        Auth.toggleSignIn()
+        // if (this.sidebar) {
+        //   console.log('sidebar')
+        // } else {
+        //   chrome.runtime.sendMessage({action: 'signIn'}, response => {
+        //     console.log('response', response)
+        //   })
+        // }
+        // Auth.toggleSignIn()
         this.signInButton.disabled = true
       },
       onAuthStateChanged: function(user) {
