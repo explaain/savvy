@@ -11,6 +11,7 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 import LineChart from './line-chart'
 import BarChart from './bar-chart'
+import PieChart from './pie-chart'
 
 Vue.use(VueAxios, axios)
 
@@ -28,7 +29,8 @@ export default {
   },
   components: {
     'line-chart': LineChart,
-    'bar-chart': BarChart
+    'bar-chart': BarChart,
+    'pie-chart': PieChart
   },
   created: function() {
     this.fetchData()
@@ -42,11 +44,11 @@ export default {
         const data = response.data[self.query.event]
         console.log(data)
         self.data = {
-          labels: Object.keys(data),
+          labels: Object.keys(data).sort(),
           datasets: [{
             label: self.query.event,
             backgroundColor: '#f43759',
-            data: Object.keys(data).map(key => data[key])
+            data: Object.keys(data).sort().map(key => data[key])
           }]
         }
         console.log(self.data)
