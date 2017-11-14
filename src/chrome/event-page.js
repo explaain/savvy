@@ -49,80 +49,6 @@ const algoliaParams = { // Need to send these to app.vue to avoid duplication!
 }
 Vue.use(ExplaainSearch, algoliaParams)
 
-chrome.browserAction.onClicked.addListener(function(tab) {
-  log.info(1)
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    log.info(2)
-    chrome.tabs.sendMessage(tabs[0].id, {action: 'toggleDrawer'}, function(res) {
-      log.info(3)
-      log.info(res)
-    })
-  })
-})
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  try {
-    log.debug((sender.tab ? 'From a content script: ' + sender.tab.url : 'From the extension'), request)
-
-    if (request.action === 'signIn') {
-      console.log(signingIn)
-      if (!signingIn) {
-        console.log('Signing in!')
-        signingIn = true
-        startSignIn()
-        .then(res => {
-          sendResponse(res)
-        }).catch(e => {
-          console.log(e)
-          sendResponse({ error: e })
-        })
-      }
-      return true
-    }
-    if (request.action === 'getPageResults') {
-      getCurrentPageResults(request.data)
-      .then(function(res) {
-        log.debug(res)
-        sendResponse(res)
-      })
-      return true
-    }
-    if (request.action === 'checkPage') {
-      log.trace(request.data)
-      checkRefresh()
-      .then(function() {
-        return ExplaainSearch.getPageResults(UserID, request.data, UserCards)
-      }).then(function(res) {
-        addToPageResults(sender.tab.id, res)
-        PageResults = res
-        sendResponse(res)
-      }).catch(function(e) {
-        log.error(e)
-      })
-      return true
-    }
-    if (request.action === 'getUser') {
-      console.log('getUser')
-      const user = Auth.getUser()
-      console.log(user)
-      sendResponse(user)
-      return true
-    }
-    if (request.action === 'refreshCards') {
-      getAllUserCards()
-      return true
-    }
-    if (request.event === 'popupOpened') {
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, {event: 'popupOpened'}, function(response) {})
-      })
-      return true
-    }
-  } catch (e) {
-    log.error(e)
-  }
-})
-
 const getCurrentPageResults = function(data) {
   const d = Q.defer()
   var tabID
@@ -244,12 +170,17 @@ var config = {
   databaseURL: 'https://chrometest-5cd53.firebaseio.com',
   storageBucket: ''
 }
+var allowContinue = true
+
 try {
   console.log('initialising')
   firebase.initializeApp(config)
 } catch (e) {
   console.log(e)
+  allowContinue = false
 }
+
+console.log('allowContinue:', allowContinue)
 
 /**
  * initApp handles setting up the Firebase context and registering
@@ -357,14 +288,91 @@ try {
 
 }
 
-startSignIn()
-.then(res => {
-  log.info(res)
-}).catch(e => {
-  log.info(e)
-})
+if (allowContinue) {
+  console.log('Allow signin')
+  startSignIn()
+  .then(res => {
+    log.info(res)
+  }).catch(e => {
+    log.info(e)
+  })
 
-// // initApp()
-// setTimeout(function() {
-//   startSignIn()
-// }, 5000)
+  chrome.browserAction.onClicked.addListener(function(tab) {
+    log.info(1)
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      log.info(2)
+      chrome.tabs.sendMessage(tabs[0].id, {action: 'toggleDrawer'}, function(res) {
+        log.info(3)
+        log.info(res)
+      })
+    })
+  })
+
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    try {
+      log.debug((sender.tab ? 'From a content script: ' + sender.tab.url : 'From the extension'), request)
+
+      if (request.action === 'signIn') {
+        console.log(signingIn)
+        if (!signingIn) {
+          console.log('Signing in!')
+          signingIn = true
+          startSignIn()
+          .then(res => {
+            sendResponse(res)
+          }).catch(e => {
+            console.log(e)
+            sendResponse({ error: e })
+          })
+        }
+        return true
+      }
+      if (request.action === 'getPageResults') {
+        getCurrentPageResults(request.data)
+        .then(function(res) {
+          log.debug(res)
+          sendResponse(res)
+        })
+        return true
+      }
+      if (request.action === 'checkPage') {
+        log.trace(request.data)
+        checkRefresh()
+        .then(function() {
+          return ExplaainSearch.getPageResults(UserID, request.data, UserCards)
+        }).then(function(res) {
+          addToPageResults(sender.tab.id, res)
+          PageResults = res
+          sendResponse(res)
+        }).catch(function(e) {
+          log.error(e)
+        })
+        return true
+      }
+      if (request.action === 'getUser') {
+        console.log('getUser')
+        const user = Auth.getUser()
+        console.log(user)
+        sendResponse(user)
+        return true
+      }
+      if (request.action === 'refreshCards') {
+        getAllUserCards()
+        return true
+      }
+      if (request.event === 'popupOpened') {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          chrome.tabs.sendMessage(tabs[0].id, {event: 'popupOpened'}, function(response) {})
+        })
+        return true
+      }
+    } catch (e) {
+      log.error(e)
+    }
+  })
+
+  // // initApp()
+  // setTimeout(function() {
+  //   startSignIn()
+  // }, 5000)
+}

@@ -277,6 +277,39 @@ exports.searchCards = functions.https.onRequest((req, res) => {
   }
 })
 
+exports.getSources = functions.https.onRequest((req, res) => {
+  try {
+    console.log('📬 Data just arrived:', smartObj(req.body))
+    requireProps(req.body, ['organisationID'])
+
+    getSources(req.body.organisationID)
+    .then(sources => {
+      res.status(200).send(sources)
+    }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
+  } catch (e) {
+    console.log('📛 Error!', e.status, ':', e.message)
+    res.status(e.status || 500).send(e.message || e || '📛 Unknown Server Error')
+  }
+})
+
+exports.saveSource = functions.https.onRequest((req, res) => {
+  try {
+    console.log('📬 Data just arrived:', smartObj(req.body))
+    requireProps(req.body, ['organisationID', 'platform', 'name', 'token'])
+
+    getSourcesRef(req.body.organisationID).add({
+      platform: req.body.platform,
+      name: req.body.name,
+      token: req.body.token
+    }).then(snapshot => {
+      res.status(200).send(getID(snapshot))
+    }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
+  } catch (e) {
+    console.log('📛 Error!', e.status, ':', e.message)
+    res.status(e.status || 500).send(e.message || e || '📛 Unknown Server Error')
+  }
+})
+
 /*                               */
 /*                               */
 /* ----------------------------- */
@@ -301,12 +334,25 @@ const getDoc = function(organisationID, collectionID, docID) {
   })
 }
 
+const getDocs = function(organisationID, collectionID, query) { // Query doesn't yet do anything
+  return new Promise((resolve, reject) => {
+    console.log('📥  Getting docs', collectionID)
+    const ref = getCollectionRef(organisationID, collectionID)
+    ref.get().then(docs => {
+      console.log('🔍  Objects from ' + collectionID + ' found:', /* ref, */ docs.map(doc => smartObj(doc.data())))
+      resolve(docs.map(doc => { return { data: doc.data().data || doc.data(), ref: ref.doc(doc.id), objectID: doc.id } }))
+    }).catch(e => { console.log('📛 Error getting documents:', e); reject(e) })
+  })
+}
+
 const getDocRef = (organisationID, collectionID, docID) => getCollectionRef(organisationID, collectionID).doc(docID)
 const getCollectionRef = (organisationID, collectionID) => db.collection('organisations').doc(organisationID).collection(collectionID)
 
 const getUser = (organisationID, userID) => getDoc(organisationID, 'users', userID)
 const getTeam = (organisationID, teamID) => getDoc(organisationID, 'teams', teamID)
 const getCard = (organisationID, cardID) => getDoc(organisationID, 'cards', cardID)
+
+const getSources = (organisationID) => getDocs(organisationID, 'sources')
 
 const getUserRef = (organisationID, userID) => getDocRef(organisationID, 'users', userID) // eslint-disable-line
 const getTeamRef = (organisationID, teamID) => getDocRef(organisationID, 'teams', teamID)
@@ -315,6 +361,7 @@ const getCardRef = (organisationID, cardID) => getDocRef(organisationID, 'cards'
 const getUsersRef = organisationID => getCollectionRef(organisationID, 'users') // eslint-disable-line
 const getTeamsRef = organisationID => getCollectionRef(organisationID, 'teams') // eslint-disable-line
 const getCardsRef = organisationID => getCollectionRef(organisationID, 'cards')
+const getSourcesRef = organisationID => getCollectionRef(organisationID, 'sources')
 
 const getID = function(snapshot) {
   console.log(5, snapshot)
@@ -343,6 +390,7 @@ const setDoc = function(organisationID, collectionID, docID, data) {
 const setUser = (organisationID, userID, data) => setDoc(organisationID, 'users', userID, data)
 const setTeam = (organisationID, teamID, data) => setDoc(organisationID, 'teams', teamID, data) // eslint-disable-line
 const setCard = (organisationID, cardID, data) => setDoc(organisationID, 'cards', cardID, data) // eslint-disable-line
+const setSource = (organisationID, sourceID, data) => setDoc(organisationID, 'cards', sourceID, data) // eslint-disable-line
 
 const getConfig = function(docID, varID) {
   return new Promise(function(resolve, reject) {
