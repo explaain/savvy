@@ -277,6 +277,26 @@ exports.searchCards = functions.https.onRequest((req, res) => {
   }
 })
 
+exports.saveFiles = functions.https.onRequest((req, res) => {
+  try {
+    console.log('📬 Data just arrived:', smartObj(req.body))
+    requireProps(req.body, ['organisationID', 'files'])
+
+    const promises = req.body.files.map(file => {
+      if (file.source) file.source = getSourceRef(file.source)
+      return getFilesRef(req.body.organisationID).add(file)
+    })
+
+    Promise.all(promises)
+    .then(snapshot => {
+      res.status(200).send(getID(snapshot))
+    }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
+  } catch (e) {
+    console.log('📛 Error!', e.status, ':', e.message)
+    res.status(e.status || 500).send(e.message || e || '📛 Unknown Server Error')
+  }
+})
+
 exports.getSources = functions.https.onRequest((req, res) => {
   try {
     console.log('📬 Data just arrived:', smartObj(req.body))
@@ -357,10 +377,12 @@ const getSources = (organisationID) => getDocs(organisationID, 'sources')
 const getUserRef = (organisationID, userID) => getDocRef(organisationID, 'users', userID) // eslint-disable-line
 const getTeamRef = (organisationID, teamID) => getDocRef(organisationID, 'teams', teamID)
 const getCardRef = (organisationID, cardID) => getDocRef(organisationID, 'cards', cardID)
+const getSourceRef = (organisationID, sourceID) => getDocRef(organisationID, 'sources', sourceID)
 
 const getUsersRef = organisationID => getCollectionRef(organisationID, 'users') // eslint-disable-line
 const getTeamsRef = organisationID => getCollectionRef(organisationID, 'teams') // eslint-disable-line
 const getCardsRef = organisationID => getCollectionRef(organisationID, 'cards')
+const getFilesRef = organisationID => getCollectionRef(organisationID, 'files')
 const getSourcesRef = organisationID => getCollectionRef(organisationID, 'sources')
 
 const getID = function(snapshot) {
