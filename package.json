@@ -17,6 +17,7 @@
   "dependencies": {
     "firebase-admin": "^5.4.3",
     "html-webpack-plugin-assets-fix": "^1.0.2",
+    "mixpanel-browser": "^2.14.0",
     "sinon": "^4.0.2",
     "vue": "^2.5.2",
     "vue-chartjs": "^3.0.0",

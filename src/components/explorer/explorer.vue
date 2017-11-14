@@ -40,6 +40,7 @@
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
+  import Mixpanel from 'mixpanel-browser'
   import Card from './card.vue'
   import IconButton from './ibutton.vue'
   import Modal from './modal.vue'
@@ -105,6 +106,7 @@
       this.$parent.$on('updateCards', this.updateCards)
       this.$parent.$on('setLoading', this.setLoading)
       // SavvyImport.beginImport()
+      Mixpanel.init('e3b4939c1ae819d65712679199dfce7e')
     },
     components: {
       card: Card,
@@ -156,9 +158,23 @@
       },
       cardClick: function(card) {
         const self = this
+        console.log({
+          organisationID: self.organisation.name,
+          userID: self.getUser().uid,
+          cardID: card.objectID,
+          description: card.content.description,
+          listItems: card.content.listItems
+        })
         if (!this.sidebar) {
           setTimeout(function () { // Is this timeout stil necessary?
             self.openPopup(card)
+            Mixpanel.track('Card Clicked', {
+              organisationID: self.organisation.name,
+              userID: self.getUser().uid,
+              cardID: card.objectID,
+              description: card.content.description,
+              listItems: card.content.listItems
+            })
           }, 1)
         }
       },
