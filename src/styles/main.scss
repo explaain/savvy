@@ -53,5 +53,6 @@ button {
     transition: background-color .1s, box-shadow .1s, border .1s;
     @include blockShadow(1);
     background-color: #f6f6f6;
+    color: $savvy;
   }
 }
