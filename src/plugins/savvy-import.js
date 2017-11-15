@@ -189,9 +189,8 @@ const Import = {
         const win = []
         const lose = []
         var cardsCounted = 0
-        const filePromises = files.filter(function(file) {
-          return file.mimeType === 'application/vnd.google-apps.document'
-        }).map(function(file, i, filteredFiles) {
+        const filePromises = files.filter(file => file.mimeType === 'application/vnd.google-apps.document')
+        .map(function(file, i, filteredFiles) {
           return gapi.client.drive.files.export({
             'fileId': file.id,
             'mimeType': 'text/plain'

@@ -3,16 +3,18 @@
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     <div class="label"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type" v-if="full"><icon name="clock-o"></icon> Memory</span></div>
-    <editable :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable>
-    <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
-      <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
-      <section class="buttons" v-if="editing">
-        <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
-        <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton>
-        <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :getUser="getUser"></search>
-      </section>
-    </draggable>
-    <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
+    <div class="content">
+      <editable :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable>
+      <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
+        <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
+        <section class="buttons" v-if="editing">
+          <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
+          <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton>
+          <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :getUser="getUser"></search>
+        </section>
+      </draggable>
+      <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
+    </div>
     <div v-if="full && card.pending" class="pending">
       <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
       <div v-if="showPending">
@@ -223,31 +225,165 @@ String.prototype.trunc = function(n, useWordBoundary) {
 }
 </script>
 
-<style lang="css">
+<style lang="scss">
+
+  @import '../../styles/main.scss';
+
   .card {
+    @extend .block;
+    border-radius: 6px;
     position: relative;
     display: inline-block;
     vertical-align: top;
     margin: 10px;
     width: calc(100% - 50px);
     max-width: 320px;
-    /*min-height: 80px;*/
     padding: 20px 10px 20px 10px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
+    // border: 1px solid #ddd;
+    // border-radius: 10px;
     word-wrap: break-word;
     overflow-wrap: break-word;
     background: white;
     cursor: pointer;
+
+    &:hover {
+      @include blockShadow(2);
+    }
+
+    &.highlight {
+      box-shadow: 0px 0px 30px rgba(255,211,35,0.7);
+    }
+    &.highlight:hover {
+      box-shadow: 0px 0px 30px rgba(255,211,35,1);
+    }
+    .updating {
+      opacity: 0.5;
+    }
+    button {
+      &.copy {
+        float: right;
+        margin: -15px -5px 10px 20px;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      &.left {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      &.delete:hover {
+        background: #ffaaaa;
+      }
+      &.right {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      &.cancel {
+        background: #ffb6c9;
+      }
+      &.save {
+        background: #b8ecc0;
+      }
+      &.selected {
+        background: #ddd;
+      }
+
+      .small {
+        font-size: 0.8em;
+        padding: 0.5em 1em;
+      }
+    }
+    .label {
+      margin: 5px 5px 0 5px;
+      padding: 5px;
+      font-size: 14px;
+      text-transform: uppercase;
+      font-weight: bold;
+      color: #aaa;
+
+      .top-hit, .top-hit svg {
+        color: rgb(255,211,35)
+      }
+      .fa-icon {
+        color: #aaa;
+      }
+    }
+    img.icon {
+      height: 1em;
+      margin: 0 4px -1px 0px;
+      padding: 0;
+    }
+    p, img, .editable {
+      margin: 5px;
+      padding: 5px;
+    }
+    .editing.editable.editing {
+      margin: 3px;
+    }
+    p {
+      white-space: pre-wrap;
+    }
+    img {
+      max-width: calc(100% - 10px);
+      border-radius: 5px;
+    }
+    .content {
+      padding: 10px
+    }
+    .list {
+      margin: 20px 0 10px;
+    }
+    .extractedFrom {
+      font-size: 14px;
+      color: #999;
+      font-style: italic;
+    }
+    .extractedFrom a {
+      color: #999;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .extractedFrom a:hover {
+      border-bottom: 4px solid rgb(255,211,35);
+    }
+    footer {
+      min-height: 40px;
+    }
+    section.buttons {
+      margin: 10px;
+    }
+    footer .buttons {
+      position: absolute;
+      bottom: 15px;
+      left: 20px;
+      margin: 10px 20px -5px -16px;
+      padding: 6px 12px;
+    }
+    .buttons button {
+      padding: 6px 12px;
+      margin: -2px;
+      font-size: 12px;
+    }
+    .buttons button:focus {
+      outline:none;
+    }
+    .pending {
+      color: grey;
+      font-size: 0.8em;
+    }
+    .footer-logo {
+      position: absolute;
+      bottom: 15px;
+      right: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #aaa;
+    }
   }
-  .card.updating {
-    opacity: 0.5;
-  }
-  .card.shadow {
-    width: calc(100% - 70px);
-    box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
-    border: none;
-  }
+  // .card.shadow {
+  //   width: calc(100% - 70px);
+  //   box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
+  //   border: none;
+  // }
   @media (min-width: 600px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
       width: calc(50% - 50px);
@@ -264,15 +400,6 @@ String.prototype.trunc = function(n, useWordBoundary) {
       width: calc(33.3% - 70px);
     }
   }
-  .card.shadow:hover {
-    box-shadow: 0px 0px 30px rgba(100,100,100,0.5);
-  }
-  .card.highlight {
-    box-shadow: 0px 0px 30px rgba(255,211,35,0.7);
-  }
-  .card.highlight:hover {
-    box-shadow: 0px 0px 30px rgba(255,211,35,1);
-  }
 
   .editing:not(.non-editable) :not(.non-editable) .editable:not(.non-editable), .editing:not(.non-editable) > .editable:not(.non-editable) {
     border: 2px dashed lightgrey;
@@ -281,117 +408,5 @@ String.prototype.trunc = function(n, useWordBoundary) {
     cursor: text;
   }
 
-  .card button.copy {
-    float: right;
-    margin: -15px -5px 10px 20px;
-    padding: 6px 12px;
-    font-size: 12px;
-  }
-  .card .label {
-    margin: 5px 5px 20px 5px;
-    padding: 5px;
-    font-size: 14px;
-    text-transform: uppercase;
-    font-weight: bold;
-    /*display: inline-block;*/
-  }
-  .card .label .top-hit, .card .label .top-hit svg {
-    color: rgb(255,211,35)
-  }
-  .card .label, .card .label .fa-icon {
-    color: #aaa;
-  }
-  .card img.icon {
-    height: 1em;
-    margin: 0 4px -1px 0px;
-    padding: 0;
-  }
-  .card p, .card img, .card .editable {
-    margin: 5px;
-    padding: 5px;
-  }
-  .editing.card .editable.editing {
-    margin: 3px;
-  }
-  .card p {
-    white-space: pre-wrap;
-  }
-  .card img {
-    max-width: calc(100% - 10px);
-    border-radius: 5px;
-  }
-  .card .list {
-    margin: 20px 0 10px;
-  }
-  .card .extractedFrom {
-    font-size: 14px;
-    color: #999;
-    font-style: italic;
-  }
-  .card .extractedFrom a {
-    color: #999;
-    font-weight: bold;
-    text-decoration: none;
-  }
-  .card .extractedFrom a:hover {
-    border-bottom: 4px solid rgb(255,211,35);
-  }
-  footer {
-    min-height: 40px;
-  }
-  section.buttons {
-    margin: 10px;
-  }
-  .card footer .buttons {
-    position: absolute;
-    bottom: 15px;
-    left: 20px;
-    margin: 10px 20px -5px -16px;
-    padding: 6px 12px;
-  }
-  .card .buttons button {
-    padding: 6px 12px;
-    margin: -2px;
-    font-size: 12px;
-  }
-  .card .buttons button:focus {
-    outline:none;
-  }
-  .card .pending {
-    color: grey;
-    font-size: 0.8em;
-  }
-  button .small {
-    font-size: 0.8em;
-    padding: 0.5em 1em;
-  }
-  .card button.left {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-  .card button.delete:hover {
-    background: #ffaaaa;
-  }
-  .card button.right {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
-  .card button.cancel {
-    background: #ffb6c9;
-  }
-  .card button.save {
-    background: #b8ecc0;
-  }
-  .card button.selected {
-    background: #ddd;
-  }
-  .card .footer-logo {
-    position: absolute;
-    bottom: 15px;
-    right: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    color: #aaa;
-  }
 
 </style>

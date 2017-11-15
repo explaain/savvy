@@ -1,6 +1,8 @@
 <template>
   <div class="team">
-    <button type="button" @click="getFiles">Refresh</button>
+    <header class="settings">
+      <ibutton icon="refresh" text="Refresh" :click="getFiles"></ibutton>
+    </header>
     <div class="files">
       <h1>List of Files</h1>
       <table>
@@ -14,34 +16,39 @@
 </template>
 
 <script>
-export default {
-  name: 'Files',
-  data () {
-    return {
-      files: []
-    }
-  },
-  created: function() {
-    this.getFiles()
-  },
-  methods: {
-    getFiles: function() {
-      // Dummy Data
-      this.files = [
-        {
-          name: 'Competitor analysis'
-        },
-        {
-          name: 'Marketing spec'
-        },
-        {
-          name: 'Onboarding sheet'
-        },
-        {
-          name: 'Persona Brief'
-        }
-      ]
+  import IconButton from './explorer/ibutton.vue'
+
+  export default {
+    name: 'Files',
+    data () {
+      return {
+        files: []
+      }
+    },
+    components: {
+      ibutton: IconButton
+    },
+    created: function() {
+      this.getFiles()
+    },
+    methods: {
+      getFiles: function() {
+        // Dummy Data
+        this.files = [
+          {
+            name: 'Competitor analysis'
+          },
+          {
+            name: 'Marketing spec'
+          },
+          {
+            name: 'Onboarding sheet'
+          },
+          {
+            name: 'Persona Brief'
+          }
+        ]
+      }
     }
   }
-}
 </script>

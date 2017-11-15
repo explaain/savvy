@@ -96,6 +96,14 @@
         }) : []
       }
     },
+    components: {
+      card: Card,
+      icon: Icon,
+      ibutton: IconButton,
+      modal: Modal,
+      alert: Alert,
+      draggable: Draggable
+    },
     created: function () {
       Vue.use(ExplaainSearch, this.algoliaParams)
       Vue.use(ExplaainAuthor, this.authorParams)
@@ -106,14 +114,6 @@
       this.$parent.$on('updateCards', this.updateCards)
       this.$parent.$on('setLoading', this.setLoading)
       // SavvyImport.beginImport()
-    },
-    components: {
-      card: Card,
-      icon: Icon,
-      ibutton: IconButton,
-      modal: Modal,
-      alert: Alert,
-      draggable: Draggable
     },
     methods: {
       convertFileToCards: function(body, file) {
@@ -420,28 +420,20 @@
 //       onreadystatechange='if (this.readyState === 'complete') this.onload()'>
 //     </script> -->
 
-<style lang="css">
-  @import url('https://fonts.googleapis.com/css?family=Lato:100,100i,300,300i,400,400i,700,700i,900,900i');
+<style lang="scss">
+
+  @import '../../styles/main.scss';
 
   body {
-    font-size: 16px;
-    font-family: "Lato", Arial, sans-serif;
-    color: #555;
     pointer-events: none;
   }
   body div:not(.popup), body button {
     pointer-events: all;
   }
 
-  .main p {
-    margin: 50px 10px;
-  }
-
-  .fa-icon {
-    margin-bottom: -0.2em;
-    color: #777;
-    height: 1.2em;
-  }
+  // .main p {
+  //   margin: 50px 10px;
+  // }
 
   .loader-text {
     font-size: 30px;
@@ -461,24 +453,25 @@
     max-width: 500px;
     width: calc(100% - 100px);
     background: #ddd;
-  }
-  .loader > div {
-    height: 100%;
-    background: #ffd51c;
+
+    > div {
+      height: 100%;
+      background: #ffd51c;
+    }
   }
 
   .spinner {
     margin: 60px auto;
     text-align: center;
     font-size: 40px;
-  }
-  .spinner svg {
-    width: auto;
-    height: 1em; /* or any other relative font sizes */
 
-    /* You would have to include the following two lines to make this work in Safari */
-    max-width: 100%;
-    max-height: 100%;
+    svg {
+      width: auto;
+      height: 1em;
+      /* The following two lines make this work in Safari */
+      max-width: 100%;
+      max-height: 100%;
+    }
   }
 
   .header {
@@ -492,58 +485,46 @@
     display: block;
     margin: 20px auto 0;
   }
+
   .explorer {
-    /*pointer-events: none;*/
-  }
-  .explorer .main {
-    position: absolute;
-    z-index: 1;
-    pointer-events: all;
-  }
-  .explorer:not(.sidebar) .main {
-    width: calc(100% - 20px);
+    .main {
+      // position: absolute;
+      z-index: 1;
+      pointer-events: all;
+    }
+    .popup {
+      position: fixed;
+      z-index: 100;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 180px 10px 60px;
+      text-align: center;
+      pointer-events: none;
+
+      &.active {
+        pointer-events: all;
+        overflow: scroll;
+      }
+
+      .card {
+        pointer-events: all;
+      }
+    }
+
   }
 
-  .explorer.sidebar .main {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 50%;
-    right: 0;
-  }
 
-  .popup {
-    position: fixed;
-    z-index: 100;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 180px 10px 60px;
-    text-align: center;
-    pointer-events: none;
-  }
-  .explorer.sidebar .popup {
-    right: 50%;
-    pointer-events: all;
-  }
-  .explorer .popup.active {
-    pointer-events: all;
-    overflow: scroll;
-  }
-  .explorer:not(.sidebar) .popup.active {
-    background: rgba(0,0,0,0.2);
-  }
-  .popup .card {
-    pointer-events: all;
-  }
+
+
 
   input, textarea, button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    margin: 10px 5px;
-    border: 1px solid #ddd;
+    // padding: 10px 20px;
+    // font-size: 16px;
+    // border-radius: 5px;
+    // margin: 10px 5px;
+    // border: 1px solid #ddd;
   }
 
   input, .card {
@@ -558,15 +539,6 @@
     outline:none;
   }
 
-  button {
-    background: white;
-    cursor: pointer;
-    color: #333;
-  }
-  button:hover {
-    background: #eee;
-  }
-
   p.cards-label {
     font-weight: bold;
     margin: 20px 20px 0px;
@@ -579,18 +551,33 @@
     text-align: center;
   }
 
-  li { /* Is this even being used anymore? */
-    list-style: none;
-    display: inline-block;
-    vertical-align: top;
-    width: 90%;
-    max-width: 300px;
-  }
-
   p.no-cards {
     text-align: center;
     margin: 50px 20px;
     color: #bbb;
     font-style: italic;
+  }
+
+  .explorer.sidebar {
+    .main {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      right: 0;
+    }
+    .popup {
+      right: 50%;
+      pointer-events: all;
+    }
+  }
+
+  .explorer:not(.sidebar) {
+    .main {
+      // width: calc(100% - 20px);
+    }
+    .popup.active {
+      background: rgba(0,0,0,0.2);
+    }
   }
 </style>

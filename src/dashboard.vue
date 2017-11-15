@@ -1,11 +1,16 @@
 <template>
 <section id="dashboard">
-  <div class="top-banner">
+  <div class="topBanner">
     <!-- Div for the top nav -->
-    <div class="logo-container">
+    <div class="logoContainer">
       <img class="logo" src="./assets/logo.png"/>
     </div>
-    <button :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
+    <div class="spacer">
+
+    </div>
+    <div class="buttonContainer">
+      <button class="sign-in" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
+    </div>
     <div>
 
     </div>
@@ -32,47 +37,44 @@
 
   <section class="container">
     <div id="navigation-sidebar" class="sidebar">
-      <!-- Div for the side nav -->
-      <ul class="nav-options">
-        <li id="home" class="option">
-          <i></i>
-          <router-link class="option-text" to="/">Home</router-link>
-        </li>
-        <li id="notifications" class="option">
-          <i></i>
-          <router-link class="option-text" to="/notifications">Notifications</router-link>
-        </li>
-        <li id="analytics" class="option">
-          <i></i>
-          <router-link class="option-text" to="/analytics">Analytics</router-link>
-        </li>
-        <li id="card-manager" class="option">
-          <i></i>
-          <router-link class="option-text" to="/card-manager">Card Manager</router-link>
-        </li>
-        <li id="teams" class="option">
-          <i></i>
-          <router-link class="option-text" to="/teams">Teams</router-link>
-        </li>
-        <li id="files" class="option">
-          <i></i>
-          <router-link class="option-text" to="/files">Files</router-link>
-        </li>
-        <li id="help" class="option">
-          <i></i>
-          <router-link class="option-text" to="/help">Help</router-link>
-        </li>
-        <li id="billing" class="option">
-          <i></i>
-          <router-link class="option-text" to="/billing">Billing</router-link>
-        </li>
-        <li id="settings" class="option">
-          <i></i>
-          <router-link class="option-text" to="/settings">Settings</router-link>
-        </li>
-      </ul>
+        <router-link id="home" class="option" to="/">
+          <icon name="home"></icon>
+          Home
+        </router-link>
+        <router-link id="notifications" class="option" to="/notifications">
+          <icon name="envelope-open-o"></icon>
+          Inbox
+        </router-link>
+        <router-link id="analytics" class="option" to="/analytics">
+          <icon name="line-chart"></icon>
+          Analytics
+        </router-link>
+        <router-link id="card-manager" class="option" to="/card-manager">
+          <icon name="clone"></icon>
+          Card Manager
+        </router-link>
+        <router-link id="teams" class="option" to="/teams">
+          <icon name="users"></icon>
+          Teams
+        </router-link>
+        <router-link id="files" class="option" to="/files">
+          <icon name="folder-o"></icon>
+          Files
+        </router-link>
+        <router-link id="help" class="option" to="/help">
+          <icon name="question-circle-o"></icon>
+          Help
+        </router-link>
+        <router-link id="billing" class="option" to="/billing">
+          <icon name="money"></icon>
+          Billing
+        </router-link>
+        <router-link id="settings" class="option" to="/settings">
+          <icon name="gears"></icon>
+          Settings
+        </router-link>
     </div>
-    <div class="router-view">
+    <div class="routerView">
       <router-view :organisation="organisation" :getUser="getUser"></router-view>
     </div>
   </section>
@@ -81,6 +83,8 @@
 
 <script>
 import Vue from 'vue'
+import 'vue-awesome/icons'
+import Icon from 'vue-awesome/components/Icon.vue'
 import Auth from './plugins/auth.js'
 
 export default {
@@ -98,6 +102,9 @@ export default {
         disabled: true
       }
     }
+  },
+  components: {
+    icon: Icon
   },
   created: function () {
     const self = this
@@ -129,66 +136,96 @@ export default {
 }
 </script>
 
-<style media="screen">
+<style lang="scss" media="screen">
+
+  @import 'styles/main.scss';
+
   body {
+    @extend .defaultFont;
     margin: 0;
   }
+
   #dashboard {
-    background-color: #eee;
+    background-color: #f6f6f6;
     min-height: 500px;
     overflow: auto;
   }
 
-  .top-banner {
-    padding: 20px;
-  }
+  .topBanner {
+    @extend .blockStyle;
+    display: flex;
+    margin: 0 0 10px 0;
 
-  .logo-container {
-    float: left;
-    width: 150px;
-  }
+    .logoContainer {
+      flex: 1 1 20%;
+      margin: 20px 50px;
 
-  .logo {
-    width: 100%;
-    height: auto;
+      .logo {
+        width: 120px;
+        height: auto;
+        padding-top: 6px; // Until the logo image itself is vertically centred
+      }
+    }
+    .spacer {
+      flex: 1 1 60%;
+    }
+    .buttonContainer {
+      flex: 1 1 20%;
+      margin: 10px 50px;
+    }
   }
 
   .container {
-    height: auto;
-    clear: both; /* drops down rest of page below top banner */
+    display: flex;
+    align-items: flex-start;
+    padding: 10px;
   }
 
   .sidebar {
-    float: left;
-    background-color: white;
-    width: 10%;
+    @extend .block;
+    padding: 20px 0;
+    width: 20%;
+    flex: 0 0 auto;
+
+    .option {
+      padding: 20px 0px;
+      display: block;
+      color: $dashboardGrey;
+      text-decoration: none;
+
+      &.router-link-exact-active, &:hover {
+        background: $savvyLight;
+        border-left: 5px solid $savvy;
+
+        svg {
+          color: $savvy;
+        }
+      }
+
+      svg {
+        display: inline-block;
+        margin: 0px 10px -3px 40px;
+      }
+      .optionText {
+        display: inline-block;
+        margin: 0 40px 0 5px;
+        text-decoration: none;
+        font-size: 20px;
+        color: $dashboardGrey;
+      }
+    }
   }
 
-  .nav-options {
-    list-style-type: none;
-    padding-left: 0px;
-    text-align: center;
-    margin: 0;
-  }
-
-  .option {
-    padding: 20px 0px;
-    /*background-color: orange;*/
-    border-style: solid;
-  }
-
-  .option-text {
-    text-decoration: none;
-    font-size: 20px;
-    width: auto;
-    /*background-color: purple;*/
-    display: block;
-  }
-
-  .router-view {
-    /*background-color: green;*/
-    margin-left: 10%;
+  .routerView {
+    flex: 1 1 auto;
     padding: 20px;
+
+    header {
+      text-align: center;
+    }
+    > div > div {
+      padding: 20px;
+    }
   }
 
   button#quickstart-sign-in {

@@ -138,7 +138,6 @@ const Auth = {
   },
   getUser: function() {
     const self = this
-    console.log(self.user)
     const user = JSON.parse(JSON.stringify(self.user))
     console.log(user)
     if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins

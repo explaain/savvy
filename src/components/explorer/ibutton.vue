@@ -31,5 +31,8 @@
   }
 </script>
 
-<style lang="css">
+<style lang="scss">
+  .fa-icon {
+    margin-right: 0.25em;
+  }
 </style>

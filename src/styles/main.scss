@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:100,100i,300,300i,400,400i,700,700i,900,900i');
+
+$savvy: #6454f3;
+$savvyLight: rgba($savvy, .05);
+$grey: #777;
+$dashboardGrey: #888;
+$shadow: hsla(0, 0%, 63%, .95);
+
+@mixin blockShadow($n: 1, $color: $shadow) {
+  box-shadow: 0 0 $n * 17px -5px $color;
+}
+
+.defaultFont {
+  font-family: "Lato", Arial, sans-serif;
+  font-size: 16px;
+  color: $grey;
+}
+.blockSpacing {
+  margin: 10px;
+  padding: 10px;
+}
+.blockStyle {
+  border-radius: 3px;
+  background-color: #fff;
+  @include blockShadow(1);
+  transition: background-color .3s, box-shadow .3s, border .3s;
+}
+.block {
+  @extend .blockSpacing;
+  @extend .blockStyle;
+}
+.fa-icon {
+  margin-bottom: -0.25em;
+  height: 1.2em;
+}
+button, input, textarea {
+  @extend .block;
+  @extend .defaultFont;
+  border: 1px solid #ddd;
+  padding: 10px 20px;
+  border-radius: 6px;
+}
+button {
+  cursor: pointer;
+
+  &:hover {
+    @include blockShadow(2);
+  }
+}

@@ -4,10 +4,6 @@ import Algolia from 'algoliasearch'
 
 log.setLevel('debug')
 
-const escapeRegExp = function(str) {
-  return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&') // str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
-}
-
 const Search = {
   install(Vue, options) {
     log.trace(options)
@@ -101,7 +97,8 @@ const Search = {
       return card
     }
 
-    const compoundSearch = function(userID, searchText) {
+    const compoundSearch = function(user, searchText) {
+      console.log(user)
       const d = Q.defer()
       const maxLength = 400
       const searchTextArray = []
@@ -109,7 +106,7 @@ const Search = {
       for (var i = 0; i < searchText.length; i += maxLength)
         searchTextArray.push(searchText.substring(i, i + maxLength))
       const promises = searchTextArray.map(function(t, j) {
-        return searchCards(userID, t, hitsPerPage)
+        return searchCards(user, t, hitsPerPage)
       })
       Q.allSettled(promises)
       .then(function(res) {
@@ -124,7 +121,7 @@ const Search = {
       return d.promise
     }
 
-    const removeDuplicates = function(originalArray, objKey) {
+    const removeDuplicates = (originalArray, objKey) => {
       var trimmedArray = []
       var values = []
       var value
@@ -206,143 +203,10 @@ const Search = {
     //   return d.promise
     // }
 
-    const getPageResults = function(userID, pageData, allUserCards) {
-      const d = Q.defer()
-      // Gets all results
-      const pageResults = {
-        hits: [],
-        reminders: [],
-        pings: [],
-        memories: [],
-      }
-      log.trace(userID, pageData)
-      const gmailBoringPhrases = [
-        'Skip to content',
-        'Using',
-        'with screen readers',
-        'Search',
-        'Mail',
-        'COMPOSE',
-        'Labels',
-        'Inbox',
-        'Starred',
-        'Sent Mail',
-        'Drafts',
-        'More',
-        '---------- Forwarded message ----------',
-        'From: ',
-        'Date: ',
-        'Subject: ',
-        'To: ',
-        'Click here to Reply or Forward',
-        'GB',
-        'GB used',
-        'Manage',
-        'Program Policies',
-        'Powered by Google',
-        'Last account activity:',
-        'hour ago',
-        'hours ago',
-        'Details',
-      ]
-      gmailBoringPhrases.forEach(function(phrase) {
-        pageData.pageText = pageData.pageText.replace(phrase, '')
-      })
-      const boringWords = [
-        'i',
-        'a',
-        'of',
-        'me',
-        'my',
-        'is',
-        'im',
-        'so',
-        'all',
-        'get',
-        'how',
-        'new',
-        'out',
-        'the',
-        'use',
-        'best',
-        'name',
-        'next',
-        'take',
-        'what',
-        'image',
-        'something',
-      ]
-
-      try {
-        const allWords = []
-        allUserCards.forEach(function(card) {
-          var score = 0
-          card.context.forEach(function(entity) {
-            const val = String(entity.value)
-            if (boringWords.indexOf(val.toLowerCase()) === -1 && val.length > 1) {
-              const reg = new RegExp(escapeRegExp(val), 'gi')
-              const points = (pageData.pageText.match(reg) || []).length * val.length
-              score += points
-              if (points && allWords.indexOf(val) === -1) allWords.push(val)
-            }
-          })
-          if (score > 100)
-            pageResults.hits.push(card)
-          else if (score > 0)
-            pageResults.memories.push(card)
-        })
-        log.debug(allWords)
-
-        pageResults.reminders = allUserCards.filter(function(card) {
-          const urlRoot = pageData.baseUrl.replace('.com', '').replace('.co.uk', '').replace('.org', '')
-          log.info(card.triggerURL)
-          return card.triggerURL && (card.triggerURL.indexOf(urlRoot) > -1 || card.triggerURL.indexOf(urlRoot) > -1)
-        })
-        pageResults.pings = pageResults.reminders // .concat(pageResults.hits)
-        pageResults.pings.forEach(function(ping) { ping.highlight = true })
-        // pageResults.memories = pageResults.pings.concat(pageResults.memories)
-        pageResults.memories = removeDuplicates(pageResults.memories, 'objectID')
-        log.debug(pageResults)
-        d.resolve(pageResults)
-      } catch (e) {
-        log.error(e)
-      }
-
-      // compoundSearch(userID, pageData.pageText)
-      // .then(function(results) {
-      //   log.trace(1)
-      //   log.trace(results)
-      //   pageResults.memories = results
-      //   // Checks whether a ping is required
-      //   pageResults.hits = checkPageHit(pageData, results)
-      //   log.trace(2)
-      //   log.trace(pageResults.hits)
-      //   return checkPageReminder(userID, pageData)
-      // }).then(function(reminders) {
-      //   pageResults.reminders = reminders
-      //   log.trace(3)
-      //   log.trace(pageResults.reminders)
-      //   // Returns results plus ping
-      //   pageResults.pings = pageResults.reminders.concat(pageResults.hits)
-      //   pageResults.pings.forEach(function(ping) {
-      //     log.trace(ping.objectID)
-      //     ping.highlight = true
-      //   })
-      //   pageResults.memories = pageResults.pings.concat(pageResults.memories)
-      //   pageResults.memories = removeDuplicates(pageResults.memories, 'objectID')
-      //   log.trace(pageResults)
-      //   d.resolve(pageResults)
-      // }).catch(function(e) {
-      //   log.trace(e)
-      //   d.reject(e)
-      // })
-      return d.promise
-    }
-
     this.advancedSearch = advancedSearch
     this.searchCards = searchCards
     this.compoundSearch = compoundSearch
-    this.getPageResults = getPageResults
+    this.removeDuplicates = removeDuplicates
   }
 
 }

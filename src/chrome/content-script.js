@@ -2,117 +2,131 @@
 import log from 'loglevel'
 log.setLevel('debug')
 
-const getPageText = function() {
-  return document.body.innerText
-}
-const getUrl = function() {
-  return window.location.href
-}
-const getBaseUrl = function() {
-  return window.location.host.replace('www.', '')
-}
-const collectPageData = function() {
-  const pageText = getPageText()
-  const url = getUrl()
-  const baseUrl = getBaseUrl()
-  return {url: url, baseUrl: baseUrl, pageText: pageText}
+const getPageText = () => document.body.innerText
+const getUrl = () => window.location.href
+const getBaseUrl = () => window.location.host.replace('www.', '')
+const collectPageData = () => {
+  return {
+    pageText: getPageText(),
+    url: getUrl(),
+    baseUrl: getBaseUrl()
+  }
 }
 
+var pingStatus = 'unborn'
 var pingDiv
 const drawer = document.createElement('div')
 const iframe = document.createElement('iframe')
 
-// document.addEventListener('DOMContentLoaded', function() { sendPageText() }, false)
+/* ----------------------- */
+/* ----------------------- */
+/* --- Event Listeners --- */
 
-window.onload = function(e) {
-  sendPageText()
-}
-
-const sendPageText = function() {
-  log.trace(sendPageText)
-  const pageText = getPageText()
-  const url = getUrl()
-  const baseUrl = getBaseUrl()
-  log.trace([pageText])
-  log.debug(url)
-  chrome.runtime.sendMessage({action: 'checkPage', data: {url: url, baseUrl: baseUrl, pageText: pageText}}, function(response) {
-    log.debug(response)
-    const numPings = response.pings.length
-    log.debug('numPings: ', numPings)
-    if (numPings && pingDiv !== -1) {
-      const existingPings = document.getElementsByClassName('forget-me-not-ping')
-      while (existingPings.length > 0) {
-        log.trace('Deleting existing ping')
-        existingPings[0].parentNode.removeChild(existingPings[0])
-      }
-      if (pingDiv) pingDiv.remove()
-      pingDiv = document.createElement('div')
-      pingDiv.style.cssText = ''
-        + 'position: fixed;'
-        + 'top: 0;'
-        + 'right: 0;'
-        + 'width: 300px;'
-        + 'margin: 20px;'
-        + 'padding: 20px 35px;'
-        + 'font-size: 16px;'
-        + 'font-weight: normal;'
-        + 'color: #333;'
-        + 'box-shadow: rgba(50, 50, 50, 0.95) 0px 0px 30px;'
-        + 'border: none;'
-        + 'border-radius: 10px;'
-        + 'z-index: 1000000;'
-        + 'background: white;'
-        + 'cursor: pointer;'
-        + 'line-height: 1.4;'
-        + 'font-family: Arial, sans-serif;'
-      var pageFloat = document.createElement('div')
-      pageFloat.style.cssText = ''
-      + 'float: right;'
-      pageFloat.innerHTML = '👆👆'
-      pingDiv.appendChild(pageFloat)
-      const text1 = document.createTextNode((numPings === 1 ? 'One memory' : numPings + ' memories') + ' relevant to this page! 😃')
-      text1.className = 'forget-me-not-ping'
-      pingDiv.appendChild(text1)
-      var pageSpan = document.createElement('span')
-      pageSpan.style.cssText = ''
-        + 'color: grey;'
-        + 'font-style: italic;'
-        + 'margin-left: 5px;'
-      pageSpan.innerHTML = 'Click to view'
-      pingDiv.appendChild(pageSpan)
-      pingDiv.onclick = function(e) {
-        openDrawer(e)
-        pingDiv.remove()
-        pingDiv = -1
-      }
-      document.body.appendChild(pingDiv)
-      log.trace(pingDiv)
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  log.trace('Request received', request)
+  if (request.action)
+    switch (request.action) {
+      // case 'getPageData':
+      //   sendResponse(collectPageData())
+      //   break
+      case 'toggleDrawer':
+        toggleDrawer()
+        break
     }
-  })
-}
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  log.trace('Request received')
-  if (request.action === 'getPageData') {
-    log.debug('1')
-    log.trace('Received getPageData request')
-    const pageData = collectPageData()
-    log.debug(pageData)
-    sendResponse(pageData)
-  }
-  if (request.event === 'popupOpened') {
-    log.trace('Received popupOpened event')
-    if (pingDiv) pingDiv.remove()
-  }
-  if (request.action === 'toggleDrawer') {
-    log.trace('Received toggleDrawer action')
-    toggleDrawer()
-  }
+  if (request.event)
+    switch (request.event) {
+      case 'popupOpened':
+        if (pingDiv) pingDiv.remove()
+        break
+    }
+  return true
 })
 
-sendPageText()
+window.addEventListener('message', event => {
+  switch (event.data.action) {
+    case 'getPageResults':
+      getPageResults()
+      break
+    case 'closeDrawer':
+      closeDrawer()
+      break
+  }
+}, false)
 
-const createDrawer = function() {
+/* ----------------------- */
+/* ----------------------- */
+/* ------ Functions ------ */
+
+const sendToChrome = data => new Promise((resolve, reject) => {
+  chrome.runtime.sendMessage(data, res => resolve(res)) // Needs catch => reject
+})
+const sendToFrame = data => {
+  console.log('Sending to Frame:', data)
+  window.frames['forgetmenot-frame'].contentWindow.postMessage(data, '*')
+}
+/*  Sends pageData to event-page.js, Collects page results, Sends results to frame, Shows ping if necessary  */
+const getPageResults = () => new Promise((resolve, reject) => {
+  sendToFrame({ action: 'setLoading' })
+  sendToChrome({ action: 'getPageResults', data: collectPageData() })
+  .then(response => sendToFrame({ action: 'updatePageResults', data: { pageResults: response } }))
+  .then(res => {
+    if (res.pings.length & (pingStatus === 'unborn' || pingStatus === 'showing'))
+      showPingAlert(res.pings.length)
+    resolve()
+  }).catch(reject)
+})
+
+/* ----------------------- */
+/* ----------------------- */
+/* ---- DOM Functions ---- */
+
+const showPingAlert = (number) => {
+  document.getElementsByClassName('forget-me-not-ping').forEach(ping => ping.parentNode.removeChild(ping))
+  if (pingDiv) pingDiv.remove()
+  pingDiv = document.createElement('div')
+  pingDiv.style.cssText = ''
+    + 'position: fixed;'
+    + 'top: 0;'
+    + 'right: 0;'
+    + 'width: 300px;'
+    + 'margin: 20px;'
+    + 'padding: 20px 35px;'
+    + 'font-size: 16px;'
+    + 'font-weight: normal;'
+    + 'color: #333;'
+    + 'box-shadow: rgba(50, 50, 50, 0.95) 0px 0px 30px;'
+    + 'border: none;'
+    + 'border-radius: 10px;'
+    + 'z-index: 1000000;'
+    + 'background: white;'
+    + 'cursor: pointer;'
+    + 'line-height: 1.4;'
+    + 'font-family: Arial, sans-serif;'
+  var pageFloat = document.createElement('div')
+  pageFloat.style.cssText = ''
+  + 'float: right;'
+  pageFloat.innerHTML = '👆👆'
+  pingDiv.appendChild(pageFloat)
+  const text1 = document.createTextNode((number === 1 ? 'One memory' : number + ' memories') + ' relevant to this page! 😃')
+  text1.className = 'forget-me-not-ping'
+  pingDiv.appendChild(text1)
+  var pageSpan = document.createElement('span')
+  pageSpan.style.cssText = ''
+    + 'color: grey;'
+    + 'font-style: italic;'
+    + 'margin-left: 5px;'
+  pageSpan.innerHTML = 'Click to view'
+  pingDiv.appendChild(pageSpan)
+  pingDiv.onclick = e => {
+    openDrawer(e)
+    pingDiv.remove()
+    pingStatus = 'closed'
+  }
+  document.body.appendChild(pingDiv)
+  log.trace(pingDiv)
+  pingStatus = 'showing'
+}
+const createDrawer = () => {
   try {
     drawer.style.cssText = ''
       + 'all: initial;'
@@ -157,16 +171,12 @@ const createDrawer = function() {
     close.appendChild(document.createTextNode('x'))
 
     // Click Events
-    close.onclick = function(e) {
-      closeDrawer(e)
-    }
-    document.addEventListener('click', function(event) {
-      // log.info(pingDiv)
-      var isClickInside = drawer.contains(event.target) || (pingDiv && pingDiv !== -1 && pingDiv.contains(event.target))
+    close.onclick = e => closeDrawer(e)
 
-      if (!isClickInside) {
+    document.addEventListener('click', event => {
+      const isClickInside = drawer.contains(event.target) || (pingDiv && pingDiv !== -1 && pingDiv.contains(event.target))
+      if (!isClickInside)
         closeDrawer(event)
-      }
     })
 
     const timeSaved = document.createElement('div')
@@ -193,39 +203,30 @@ const createDrawer = function() {
     log.error(e)
   }
 }
-const displayPageResults = function() {
-  log.info('Sending setLoading to frame')
-  window.frames['forgetmenot-frame'].contentWindow.postMessage({action: 'setLoading'}, '*')
-  chrome.runtime.sendMessage({action: 'getPageResults', data: {pageData: collectPageData()}}, function(response) {
-    const message = {action: 'updatePageResults', data: {pageResults: response}}
-    log.info(message)
-    window.frames['forgetmenot-frame'].contentWindow.postMessage(message, '*')
-  })
-}
-const openDrawer = function(e) {
-  // log.info(drawer.getAttribute('data-opened'))
+const openDrawer = e => {
+  console.log('Opening Drawer')
   if (drawer.getAttribute('data-opened') !== 'true' && (!e || !e.dealtWith)) {
-    displayPageResults()
+    getPageResults()
     drawer.style.right = '0px'
-    // drawer.style.marginRight = '0px'
+    drawer.style.marginRight = '0px'
     drawer.style.boxShadow = 'rgba(0, 0, 0, 0.4) -1px 3px 50px 0px'
-    iframe.style.pointerEvents = 'all'
     drawer.setAttribute('data-opened', 'true')
+    iframe.style.pointerEvents = 'all'
     iframe.style.display = 'block'
     log.info(drawer.getAttribute('data-opened'))
   }
   if (e) e.dealtWith = true
 }
-const closeDrawer = function(e) {
-  // log.info(drawer.getAttribute('data-opened'))
+const closeDrawer = e => {
+  console.log('Closing Drawer')
   if (drawer.getAttribute('data-opened') === 'true' && (!e || !e.dealtWith)) {
     drawer.style.right = '-' + drawer.style.width
-    // drawer.style.marginRight = '-' + drawer.style.width
     drawer.style.boxShadow = 'none'
-    iframe.style.pointerEvents = 'none'
     drawer.setAttribute('data-opened', 'false')
-    setTimeout(function () {
+    iframe.style.pointerEvents = 'none'
+    setTimeout(() => {
       if (drawer.getAttribute('data-opened') !== 'true') {
+        drawer.style.marginRight = '-' + drawer.style.width
         iframe.style.display = 'none'
       }
     }, 1000)
@@ -233,7 +234,7 @@ const closeDrawer = function(e) {
   // log.info(drawer.getAttribute('data-opened'))
   if (e) e.dealtWith = true
 }
-const toggleDrawer = function(e) {
+const toggleDrawer = e => {
   if (drawer.getAttribute('data-opened') === 'true') {
     closeDrawer(e)
   } else {
@@ -241,18 +242,10 @@ const toggleDrawer = function(e) {
   }
 }
 
-window.addEventListener('message', function(event) {
-  switch (event.data.action) {
-    case 'getPageResults':
-      log.info(5)
-      displayPageResults()
-      break
-    case 'closeDrawer':
-      console.log('closeDrawer')
-      closeDrawer()
-      break
-    default:
-  }
-}, false)
+/* ----------------------- */
+/* ----------------------- */
+/* --- ONLOAD Functions -- */
 
 createDrawer()
+getPageResults()
+window.onload = e => getPageResults()
