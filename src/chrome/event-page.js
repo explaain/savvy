@@ -149,7 +149,7 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
       firebase.auth().signInWithCredential(credential)
       .then(res => {
         console.log('Auth starting')
-        Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: { name: 'explaain' }, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
+        Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: { id: 'explaain' }, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
         console.log('Auth done')
         resolve(res)
       }).catch(error => {
@@ -229,7 +229,7 @@ if (allowContinue) {
             })
             break
           case 'getPageResults':
-            CardDetection.getPageResults(organisation.name, Auth.getUser(), request.data)
+            CardDetection.getPageResults(organisation.id, Auth.getUser(), request.data)
             .then(sendResponse)
             .catch(e => {
               log.error(e)

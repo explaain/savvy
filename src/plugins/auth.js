@@ -10,7 +10,7 @@ const Auth = {
     const self = this
     self.organisation = options.organisation
     self.user = {}
-    self.authState = 'pending'
+    var stateChangeCallback = () => {}
     // const self = this
     console.log('🖌  Auth running!')
     // console.log('globalvar:', Vue.globalvar)
@@ -19,6 +19,13 @@ const Auth = {
      * Function called when clicking the Login/Logout button.
      */
     // [START buttoncallback]
+
+    const updateAuthState = state => {
+      self.authState = state
+      stateChangeCallback(self.user)
+    }
+    updateAuthState('pending')
+
     const toggleSignIn = function() {
       console.log('🔐  Toggling Sign in')
       if (!firebase.auth().currentUser) {
@@ -28,7 +35,7 @@ const Auth = {
       } else {
         firebase.auth().signOut()
       }
-      self.authState = 'pending'
+      updateAuthState('pending')
     }
     // [END buttoncallback]
 
@@ -39,9 +46,10 @@ const Auth = {
      *  - firebase.auth().getRedirectResult(): This promise completes when the user gets back from
      *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
      */
-    const initApp = function(init, stateChangeCallback) {
+    const initApp = function(init, callback) {
       console.log('🔏⛏  Initialising Auth')
       const self = this
+      stateChangeCallback = callback
       var config = {
         apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
         authDomain: 'savvy-96d8b.firebaseapp.com',
@@ -79,25 +87,34 @@ const Auth = {
         if (userAuth) {
           userAuth = JSON.parse(JSON.stringify(userAuth))
           console.log('🖌👤  Setting user', userAuth)
-          getUserData(self.organisation.name, userAuth)
-          .then(userData => {
-            console.log('👤  User data!', userData)
-            self.user = {
-              uid: userAuth.uid,
-              lastRefreshed: new Date(),
-              auth: userAuth,
-              data: userData
-            }
-            self.authState = 'loggedIn'
+          self.user = {
+            uid: userAuth.uid,
+            lastRefreshed: new Date(),
+            auth: userAuth,
+          }
+          if (self.organisation.id) {
+            getUserData(self.organisation.id, userAuth)
+            .then(userData => {
+              console.log('👤  User data!', userData)
+              self.user.data = userData
+              updateAuthState('loggedIn')
+              console.log('self.authState', self.authState)
+              stateChangeCallback(self.user)
+            }).catch(e => {
+              // updateAuthState('loggedOut') // ???
+              // console.log(e)
+              updateAuthState('readyToJoinOrg') // Logged in but not yet joined organisation
+              console.log('self.authState', self.authState)
+              stateChangeCallback(self.user)
+            })
+          } else {
+            updateAuthState('readyToChooseOrg') // Logged in but not yet chosen (or joined) organisation
             console.log('self.authState', self.authState)
             stateChangeCallback(self.user)
-          }).catch(e => {
-            self.authState = 'loggedOut' // ???
-            console.log(e)
-          })
+          }
         } else {
           console.log('Calling back but with no user')
-          self.authState = 'loggedOut'
+          updateAuthState('loggedOut')
           stateChangeCallback()
         }
       })
@@ -149,12 +166,36 @@ const Auth = {
       return user
     }
 
+    const joinOrg = organisationID => new Promise(function(resolve, reject) {
+      console.log('Joining Org!')
+      console.log('Joining Org!')
+      try {
+        updateAuthState('pending')
+        axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
+          organisationID: self.organisation.id,
+          user: { uid: self.user.auth.uid, idToken: self.user.auth.stsTokenManager.accessToken },
+          verifiedEmails: [ self.user.auth.email ] // Only working for Google Auth for now
+        }).then(res => {
+          console.log(res)
+          self.user.data = res.data
+          updateAuthState('loggedIn')
+          resolve(self.user)
+        }).catch(e => {
+          updateAuthState('readyToJoinOrg')
+          console.log(e)
+          reject(e)
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    })
+
     this.toggleSignIn = toggleSignIn
     this.initApp = initApp
     this.refreshUserToken = refreshUserToken
     this.getUser = getUser
-  },
-
+    this.joinOrg = joinOrg
+  }
 }
 
 export default Auth

@@ -72,7 +72,7 @@
       if (self.plugin)
         self.fromPage()
 
-      self.organisation = { name: 'explaain' } // Should get this from subdomain
+      self.organisation = { id: 'explaain' } // Should get this from subdomain
 
       // Vue.use(Auth, {
       //   organisation: self.organisation,

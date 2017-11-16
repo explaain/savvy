@@ -109,7 +109,7 @@
       Vue.use(ExplaainAuthor, this.authorParams)
 
       // Vue.use(SavvyImport)
-      this.modal.sender = this.auth().user.uid
+      this.modal.sender = this.auth.user.uid
       this.modal.callback = this.modalCallback
       this.$parent.$on('updateCards', this.updateCards)
       this.$parent.$on('setLoading', this.setLoading)
@@ -211,7 +211,7 @@
         const self = this
         self.setLoading()
         self.lastQuery = self.query
-        ExplaainSearch.searchCards(self.auth().user, self.query, 12)
+        ExplaainSearch.searchCards(self.auth.user, self.query, 12)
         .then(function(hits) {
           self.loading = false
           self.pingCards = []
@@ -228,7 +228,7 @@
       searchRecent: function () {
         const self = this
         self.setLoading()
-        ExplaainSearch.searchCards(self.auth().user, '', 24)
+        ExplaainSearch.searchCards(self.auth.user, '', 24)
         .then(function(hits) {
           self.loading = false
           console.log('hits')
@@ -255,7 +255,7 @@
         })
       },
       // beginCreate: function () {
-      //   this.modal.sender = this.auth().user.uid
+      //   this.modal.sender = this.auth.user.uid
       //   this.modal.show = true
       //   console.log(222)
       //   this.modal.submit = this.saveCard
@@ -297,7 +297,7 @@
       deleteCard: function(objectID) {
         const d = Q.defer()
         const data = {
-          sender: this.auth().user.uid,
+          sender: this.auth.user.uid,
           objectID: objectID
         }
         ExplaainAuthor.deleteCard(data)
@@ -313,7 +313,7 @@
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.auth().user, '', 50)
+        ExplaainSearch.searchCards(self.auth.user, '', 50)
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -341,7 +341,7 @@
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
               listCard.intent = 'storeMemory'
-              listCard.sender = self.auth().user.uid
+              listCard.sender = self.auth.user.uid
             }
             console.log('hi')
             self.saveCard(listCard)
@@ -370,9 +370,9 @@
         if (data.content && data.content.listCards) delete data.content.listCards
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
-        console.log(self.auth().user)
-        data.user = { uid: self.auth().user.uid, idToken: self.auth().user.getAccessToken() }
-        data.organisationID = self.organisation.name
+        console.log(self.auth.user)
+        data.user = { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() }
+        data.organisationID = self.organisation.id
         ExplaainAuthor.saveCard(data)
         .then(function(res) {
           const returnedCard = res.data.memories[0]

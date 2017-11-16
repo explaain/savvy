@@ -75,6 +75,11 @@ button {
     color: #aaa;
   }
 }
+input {
+  &::placeholder {
+    color: #bbb;
+  }
+}
 table {
   @extend .block;
   width: 100%;

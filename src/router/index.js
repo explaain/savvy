@@ -3,6 +3,7 @@ import Router from 'vue-router'
 
 // Components for dashboard
 import Login from '@/components/login'
+import Join from '@/components/join'
 import Home from '@/components/home'
 import Analytics from '@/components/analytics'
 import Notifications from '@/components/notifications'
@@ -45,6 +46,11 @@ const router = new Router({
       path: '/login',
       name: 'Login',
       component: Login
+    },
+    {
+      path: '/join',
+      name: 'Join',
+      component: Join
     },
     {
       path: '/',
@@ -97,9 +103,15 @@ router.beforeEach((to, from, next) => {
     } catch (e) {
       user = null
     }
+    console.log(user)
     if (!user || !user.auth) { // Needs to actually check auth.loggedIn() or something
       next({
         path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else if (!user.data) {
+      next({
+        path: '/join',
         query: { redirect: to.fullPath }
       })
     } else {

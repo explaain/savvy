@@ -95,7 +95,7 @@ const Auth = {
           auth: userAuth
         }
         console.log(self.organisation)
-        self.getUserData(self.organisation.name, userAuth)
+        self.getUserData(self.organisation.id, userAuth)
         .then(userData => {
           self.user.data = userData
           console.log('👤  User data!', userData)

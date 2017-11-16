@@ -1,7 +1,12 @@
 <template>
   <div class="team">
     <header class="settings">
+      <ibutton icon="cloud" text="Connect to Your Files" :click="toggleConnect"></ibutton>
       <ibutton icon="refresh" text="Refresh" :click="getFiles"></ibutton>
+      <form class="new-user" v-if="showingConnect">
+        <ibutton icon="google" text="Google Drive" :click="inviteNewUser"></ibutton>
+        <ibutton icon="paper-plane" text="Confluence" :click="inviteNewUser"></ibutton>
+      </form>
     </header>
     <div class="files">
       <h1>Files Currently Processed as Cards:</h1>
@@ -25,7 +30,8 @@
     name: 'Files',
     data () {
       return {
-        files: []
+        files: [],
+        showingConnect: false
       }
     },
     components: {
@@ -36,6 +42,9 @@
       this.getFiles()
     },
     methods: {
+      toggleConnect: function() {
+        this.showingConnect = !this.showingConnect
+      },
       getFiles: function() {
         // Dummy Data
         this.files = [

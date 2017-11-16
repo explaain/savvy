@@ -9,7 +9,7 @@
 
     </div>
     <div class="buttonContainer">
-      <button class="sign-in" :disabled="auth.authState == 'pending'" id="quickstart-sign-in" @click="toggleSignIn">{{authButtonText}}</button>
+      <button v-if="authButtonText" class="sign-in" :disabled="auth.authState == 'pending'" id="quickstart-sign-in" @click="toggleSignIn">{{authButtonText}}</button>
     </div>
     <div>
 
@@ -36,7 +36,7 @@
   </div>
 
   <section class="container">
-    <div id="navigation-sidebar" class="sidebar">
+    <div id="navigation-sidebar" class="sidebar" :class="{disabled: !auth.user || !auth.user.data}">
         <router-link id="home" class="option" to="/">
           <icon name="home"></icon>
           Home
@@ -101,7 +101,9 @@
             auth: {},
             data: {}
           },
-          authState: Auth.authState || 'pending'
+          authState: Auth.authState || 'pending',
+          toggleSignIn: this.toggleSignIn,
+          joinOrg: this.joinOrg
         }
       }
     },
@@ -111,6 +113,8 @@
         var text
         switch (self.auth.authState) {
           case 'loggedIn':
+          case 'readyToJoinOrg':
+          case 'readyToChooseOrg':
             text = 'Sign out'
             break
           case 'loggedOut':
@@ -125,7 +129,6 @@
     },
     created: function () {
       const self = this
-      self.organisation = { name: 'explaain' } // Should get this from subdomain
       console.log('NODE_ENV:', process.env.NODE_ENV)
       console.log('BACKEND_URL:', process.env.BACKEND_URL)
       Vue.use(Auth, {
@@ -140,15 +143,21 @@
     },
     methods: {
       toggleSignIn: () => {
-        console.log('hihi')
         Auth.toggleSignIn()
       },
+      joinOrg: () => Auth.joinOrg(),
       onAuthStateChanged: function(user) {
-        this.user = user
+        console.log('onAuthStateChanged')
+        console.log(user)
+        this.auth.user = user
         this.auth.authState = Auth.authState
-        if (this.auth.authState === 'loggedIn' && this.$route.query.redirect) {
-          this.$router.push(this.$route.query.redirect)
-        }
+        console.log(Auth.authState)
+        if (this.auth.authState === 'loggedIn')
+          this.$router.push(this.$route.query.redirect || '/')
+        else if (this.auth.authState === 'readyToJoinOrg' || this.auth.authState === 'readyToChooseOrg')
+          this.$router.push('/join')
+        else
+          this.$router.push('/login')
       }
     }
   }
@@ -203,6 +212,19 @@
     padding: 20px 0;
     width: 20%;
     flex: 0 0 auto;
+
+    &.disabled .option {
+      color: #aaa;
+
+      &:hover {
+        background: #fafafa;
+        border-left: none;
+
+        svg {
+          color: $dashboardGrey;
+        }
+      }
+    }
 
     .option {
       padding: 20px 0px;

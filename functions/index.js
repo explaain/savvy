@@ -131,6 +131,33 @@ exports.onCardDeleted = functions.firestore
 /* ---------- EXPORTS ---------- */
 /* ----------------------------- */
 
+exports.addUserToOrganisation = functions.https.onRequest((req, res) => {
+  try {
+    console.log('📬 Data just arrived:', smartObj(req.body))
+    requireProps(req.body, ['organisationID', 'userID', 'verifiedEmails'])
+    const data = req.body
+    var user
+    getUser(data.organisationID, data.userID)
+    .then(snapshot => {
+      console.log(smartIdObj(snapshot.data))
+      res.status(200).json(smartIdObj(snapshot.data))
+    }).catch(e => {
+      getInvite(data.organisationID, data.verifiedEmails[0]) // For now just takes the first one
+      .then(snapshot => {
+        console.log(snapshot.data)
+        console.log(smartIdObj(snapshot.data))
+        user = snapshot.data
+        return setUser(data.organisationID, data.userID, user)
+      }).then(snapshot => {
+        res.status(200).json(smartIdObj(user))
+      }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
+    })
+  } catch (e) {
+    console.log('📛 Error!', e)
+    res.status(e.status || 500).send(e.message || e || '📛 Unknown Server Error')
+  }
+})
+
 exports.getUserData = functions.https.onRequest((req, res) => {
   try {
     console.log('📬 Data just arrived:', smartObj(req.body))
@@ -283,7 +310,7 @@ exports.saveFiles = functions.https.onRequest((req, res) => {
     requireProps(req.body, ['organisationID', 'files'])
 
     const promises = req.body.files.map(file => {
-      if (file.source) file.source = getSourceRef(file.source)
+      if (file.source) file.source = getSourceRef(req.body.organisationID, file.source)
       return getFilesRef(req.body.organisationID).add(file)
     })
 
@@ -371,6 +398,7 @@ const getCollectionRef = (organisationID, collectionID) => db.collection('organi
 const getUser = (organisationID, userID) => getDoc(organisationID, 'users', userID)
 const getTeam = (organisationID, teamID) => getDoc(organisationID, 'teams', teamID)
 const getCard = (organisationID, cardID) => getDoc(organisationID, 'cards', cardID)
+const getInvite = (organisationID, inviteID) => getDoc(organisationID, 'invites', inviteID)
 
 const getSources = (organisationID) => getDocs(organisationID, 'sources')
 
@@ -394,13 +422,8 @@ const setDoc = function(organisationID, collectionID, docID, data) {
   return new Promise((resolve, reject) => {
     const ref = getDocRef(organisationID, collectionID, docID)
     ref.set(data).then(doc => {
-      if (!doc.exists) {
-        console.log('❌ Couldn\'t find object from ' + collectionID)
-        reject(new Error(404))
-      } else {
-        console.log('🔍 Object from ' + collectionID + ' found:', /* ref, */ doc.data())
-        resolve({ data: doc.data(), ref: ref, objectID: docID })
-      }
+      console.log('🔍 Object from ' + collectionID + ' found:', /* ref, */ doc.data())
+      resolve({ data: doc.data(), ref: ref, objectID: docID })
     }).catch(function(err) {
       const e = { status: 500, message: '📛 Error setting object ' + docID + ' from ' + collectionID + ': ' + (err.message || err) }
       console.log('📛 Error!', e)
