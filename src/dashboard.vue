@@ -9,7 +9,7 @@
 
     </div>
     <div class="buttonContainer">
-      <button class="sign-in" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
+      <button class="sign-in" :disabled="auth.authState == 'pending'" id="quickstart-sign-in" @click="toggleSignIn">{{authButtonText}}</button>
     </div>
     <div>
 
@@ -75,69 +75,86 @@
         </router-link>
     </div>
     <div class="routerView">
-      <router-view :organisation="organisation" :getUser="getUser"></router-view>
+      <router-view :organisation="organisation" :auth="auth"></router-view>
     </div>
   </section>
 </section>
 </template>
 
 <script>
-import Vue from 'vue'
-import 'vue-awesome/icons'
-import Icon from 'vue-awesome/components/Icon.vue'
-import Auth from './plugins/auth.js'
+  import Vue from 'vue'
+  import 'vue-awesome/icons'
+  import Icon from 'vue-awesome/components/Icon.vue'
+  import Auth from './plugins/auth.js'
 
-export default {
-  name: 'dashboard',
-  data () {
-    return {
-      organisation: {},
-      user: {
-        uid: '',
-        auth: {},
-        data: {}
+  export default {
+    name: 'dashboard',
+    components: {
+      icon: Icon
+    },
+    data () {
+      return {
+        organisation: {},
+        auth: {
+          user: {
+            uid: '',
+            auth: {},
+            data: {}
+          },
+          authState: Auth.authState || 'pending'
+        }
+      }
+    },
+    computed: {
+      authButtonText: function() {
+        const self = this
+        var text
+        switch (self.auth.authState) {
+          case 'loggedIn':
+            text = 'Sign out'
+            break
+          case 'loggedOut':
+            text = 'Sign in with Google'
+            break
+          case 'pending':
+            text = 'Working...'
+            break
+        }
+        return text
+      }
+    },
+    created: function () {
+      const self = this
+      self.organisation = { name: 'explaain' } // Should get this from subdomain
+      console.log('NODE_ENV:', process.env.NODE_ENV)
+      console.log('BACKEND_URL:', process.env.BACKEND_URL)
+      Vue.use(Auth, {
+        organisation: self.organisation,
+        // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
+        getUserDataUrl: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/user'
+        // getUserDataUrl: '//localhost:3000/api/user',
+      })
+      Auth.initApp(true, self.onAuthStateChanged)
+      Vue.globalGetUser = () => Auth.getUser()
+      // Vue.globalSetUser = (user) => Auth.setUser()
+    },
+    methods: {
+      toggleSignIn: () => {
+        console.log('hihi')
+        Auth.toggleSignIn()
       },
-      signInButton: {
-        text: 'Sign in with Google',
-        disabled: true
+      onAuthStateChanged: function(user) {
+        this.user = user
+        this.auth.authState = Auth.authState
+        if (this.auth.authState === 'loggedIn' && this.$route.query.redirect) {
+          this.$router.push(this.$route.query.redirect)
+        }
       }
     }
-  },
-  components: {
-    icon: Icon
-  },
-  created: function () {
-    const self = this
-    self.organisation = { name: 'explaain' } // Should get this from subdomain
-    console.log('NODE_ENV:', process.env.NODE_ENV)
-    console.log('BACKEND_URL:', process.env.BACKEND_URL)
-    Vue.use(Auth, {
-      organisation: self.organisation,
-      // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-      getUserDataUrl: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/user'
-      // getUserDataUrl: '//localhost:3000/api/user',
-    })
-    Auth.initApp(true, self.onAuthStateChanged)
-    Vue.globalGetUser = () => Auth.getUser()
-    // Vue.globalSetUser = (user) => Auth.setUser()
-  },
-  methods: {
-    getUser: () => Auth.getUser(),
-    toggleSignIn: () => {
-      Auth.toggleSignIn()
-      this.signInButton.disabled = true
-    },
-    onAuthStateChanged: function(user) {
-      this.user = user
-      this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
-      this.signInButton.disabled = false
-    }
   }
-}
 </script>
 
 <style lang="scss" media="screen">
-
   @import 'styles/main.scss';
 
   body {

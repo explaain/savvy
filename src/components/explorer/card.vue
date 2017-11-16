@@ -10,7 +10,7 @@
         <section class="buttons" v-if="editing">
           <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
           <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton>
-          <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :getUser="getUser"></search>
+          <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
         </section>
       </draggable>
       <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
@@ -57,7 +57,7 @@ export default {
     'full',
     'allCards',
     'setCard',
-    'getUser',
+    'auth',
   ],
   components: {
     icon: Icon,
@@ -327,7 +327,8 @@ String.prototype.trunc = function(n, useWordBoundary) {
       border-radius: 5px;
     }
     .content {
-      padding: 10px
+      @extend .blockSpacing;
+      margin: 0 10px;
     }
     .list {
       margin: 20px 0 10px;
@@ -388,16 +389,10 @@ String.prototype.trunc = function(n, useWordBoundary) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
       width: calc(50% - 50px);
     }
-    .explorer:not(.sidebar) .main .card.shadow:not(.cardlet) {
-      width: calc(50% - 70px);
-    }
   }
   @media (min-width: 900px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
       width: calc(33.3% - 50px);
-    }
-    .explorer:not(.sidebar) .main .card.shadow:not(.cardlet) {
-      width: calc(33.3% - 70px);
     }
   }
 

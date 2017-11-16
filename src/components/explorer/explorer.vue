@@ -18,16 +18,16 @@
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-for="card in pingCards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :getUser="getUser" @copy="copyAlert"></card>
+        <card v-for="card in pingCards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-for="card in cards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :getUser="getUser" @copy="copyAlert"></card>
+        <card v-for="card in cards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
       </ul>
     </div>
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
-        <card v-for="card in popupCards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :getUser="getUser" @copy="copyAlert"></card>
+        <card v-for="card in popupCards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
       </ul>
     </div>
   </div>
@@ -52,7 +52,7 @@
   export default {
     props: [
       'organisation',
-      'getUser',
+      'auth',
       'logo',
       'firebaseConfig',
       'algoliaParams',
@@ -109,7 +109,7 @@
       Vue.use(ExplaainAuthor, this.authorParams)
 
       // Vue.use(SavvyImport)
-      this.modal.sender = this.getUser().uid
+      this.modal.sender = this.auth().user.uid
       this.modal.callback = this.modalCallback
       this.$parent.$on('updateCards', this.updateCards)
       this.$parent.$on('setLoading', this.setLoading)
@@ -211,7 +211,7 @@
         const self = this
         self.setLoading()
         self.lastQuery = self.query
-        ExplaainSearch.searchCards(self.getUser(), self.query, 12)
+        ExplaainSearch.searchCards(self.auth().user, self.query, 12)
         .then(function(hits) {
           self.loading = false
           self.pingCards = []
@@ -228,7 +228,7 @@
       searchRecent: function () {
         const self = this
         self.setLoading()
-        ExplaainSearch.searchCards(self.getUser(), '', 24)
+        ExplaainSearch.searchCards(self.auth().user, '', 24)
         .then(function(hits) {
           self.loading = false
           console.log('hits')
@@ -255,7 +255,7 @@
         })
       },
       // beginCreate: function () {
-      //   this.modal.sender = this.getUser().uid
+      //   this.modal.sender = this.auth().user.uid
       //   this.modal.show = true
       //   console.log(222)
       //   this.modal.submit = this.saveCard
@@ -297,7 +297,7 @@
       deleteCard: function(objectID) {
         const d = Q.defer()
         const data = {
-          sender: this.getUser().uid,
+          sender: this.auth().user.uid,
           objectID: objectID
         }
         ExplaainAuthor.deleteCard(data)
@@ -313,7 +313,7 @@
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.getUser(), '', 50)
+        ExplaainSearch.searchCards(self.auth().user, '', 50)
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -341,7 +341,7 @@
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
               listCard.intent = 'storeMemory'
-              listCard.sender = self.getUser().uid
+              listCard.sender = self.auth().user.uid
             }
             console.log('hi')
             self.saveCard(listCard)
@@ -370,8 +370,8 @@
         if (data.content && data.content.listCards) delete data.content.listCards
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
-        console.log(self.getUser())
-        data.user = { uid: self.getUser().uid, idToken: self.getUser().getAccessToken() }
+        console.log(self.auth().user)
+        data.user = { uid: self.auth().user.uid, idToken: self.auth().user.getAccessToken() }
         data.organisationID = self.organisation.name
         ExplaainAuthor.saveCard(data)
         .then(function(res) {
@@ -415,11 +415,6 @@
   }
 </script>
 
-<!-- // <script async defer src='https://apis.google.com/js/api.js'
-//       onload='this.onload=function () {};handleClientLoad()'
-//       onreadystatechange='if (this.readyState === 'complete') this.onload()'>
-//     </script> -->
-
 <style lang="scss">
 
   @import '../../styles/main.scss';
@@ -430,10 +425,6 @@
   body div:not(.popup), body button {
     pointer-events: all;
   }
-
-  // .main p {
-  //   margin: 50px 10px;
-  // }
 
   .loader-text {
     font-size: 30px;

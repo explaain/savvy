@@ -9,6 +9,20 @@ $shadow: hsla(0, 0%, 63%, .95);
 @mixin blockShadow($n: 1, $color: $shadow) {
   box-shadow: 0 0 $n * 17px -5px $color;
 }
+@mixin blockHover($touchable: true, $textHighlight: false, $stripHighlight: true) {
+  cursor: pointer;
+
+  &:hover {
+    background: $savvyLight;
+    @if $textHighlight {
+      color: $savvy;
+    }
+    @if $stripHighlight {
+      background: $savvyLight;
+      border-left: 5px solid $savvy;
+    }
+  }
+}
 
 .defaultFont {
   font-family: "Lato", Arial, sans-serif;
@@ -54,5 +68,46 @@ button {
     @include blockShadow(1);
     background-color: #f6f6f6;
     color: $savvy;
+  }
+  &[disabled] {
+    cursor: default;
+    background: #eee;
+    color: #aaa;
+  }
+}
+table {
+  @extend .block;
+  width: 100%;
+  padding: 0;
+  border-spacing: 0;
+
+  thead tr {
+    font-weight: bold;
+    pointer-events: none;
+
+    td {
+      background: #fbfbfb;
+      border-bottom-color: #ccc;
+    }
+  }
+
+  tr {
+    @extend .blockSpacing;
+    @include blockHover(true, true, false);
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+
+    td {
+      border-bottom: 2px solid #eee;
+      @extend .blockSpacing;
+      padding: 20px 30px;
+
+      &.icon {
+        width: 20px;
+        padding-right: 0;
+      }
+    }
   }
 }

@@ -7,8 +7,10 @@ import axios from 'axios'
 
 const Auth = {
   install(Vue, options) {
-    this.organisation = options.organisation
-    this.user = {}
+    const self = this
+    self.organisation = options.organisation
+    self.user = {}
+    self.authState = 'pending'
     // const self = this
     console.log('🖌  Auth running!')
     // console.log('globalvar:', Vue.globalvar)
@@ -26,6 +28,7 @@ const Auth = {
       } else {
         firebase.auth().signOut()
       }
+      self.authState = 'pending'
     }
     // [END buttoncallback]
 
@@ -85,12 +88,16 @@ const Auth = {
               auth: userAuth,
               data: userData
             }
+            self.authState = 'loggedIn'
+            console.log('self.authState', self.authState)
             stateChangeCallback(self.user)
           }).catch(e => {
+            self.authState = 'loggedOut' // ???
             console.log(e)
           })
         } else {
           console.log('Calling back but with no user')
+          self.authState = 'loggedOut'
           stateChangeCallback()
         }
       })

@@ -4,25 +4,26 @@
       <ibutton icon="envelope-o" text="Invite New User" :click="toggleNewUser"></ibutton>
       <!-- <button type="button" @click="showingJoinTeam = !showingJoinTeam">Invite Existing User To Join Team</button> -->
       <ibutton icon="refresh" text="Refresh" :click="getTeams"></ibutton>
-    </header>
-    <form class="new-user" v-if="showingNewUser">
-      <input type="text" v-model="newUserEmail" placeholder="Email Address">
-      <ibutton icon="paper-plane" text="Invite" :click="inviteNewUser"></ibutton>
-    </form>
-    <!-- <form class="join-team" v-if="showingJoinTeam"> -->
+      <form class="new-user" v-if="showingNewUser">
+        <input type="text" v-model="newUserEmail" placeholder="Email Address">
+        <ibutton icon="paper-plane" text="Invite" :click="inviteNewUser"></ibutton>
+      </form>
+      <!-- <form class="block join-team" v-if="showingJoinTeam"> -->
       <!-- search field for users --> <!-- <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :getUser="getUser"></search> -->
       <!-- search field for teams --> <!-- <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :getUser="getUser"></search> -->
       <!-- <button type="button" name="button" @click="">Go</button> -->
-    <!-- </form> -->
+      <!-- </form> -->
+    </header>
     <div class="team">
-      <h1>List of Team Members</h1>
+      <!-- <h1>List of Team Members</h1> -->
       <table v-for="team in teams">
         <thead>
           <tr>
-            <td>{{team.name}}</td>
+            <td colspan="3">{{team.name}}</td>
           </tr>
         </thead>
         <tr v-for="user in teamUsers[team.id]">
+          <td class="icon"><icon name="user-o"></icon></td>
           <td>{{user.name}}</td>
           <td>{{user.email}}</td>
         </tr>
@@ -33,6 +34,8 @@
 </template>
 
 <script>
+  import 'vue-awesome/icons'
+  import Icon from 'vue-awesome/components/Icon.vue'
   import IconButton from './explorer/ibutton.vue'
 
   export default {
@@ -47,7 +50,8 @@
       }
     },
     components: {
-      ibutton: IconButton
+      ibutton: IconButton,
+      icon: Icon
     },
     computed: {
       teamUsers: function () { // This is created by inserting the relevant user from this.users into this.teams
@@ -77,7 +81,7 @@
         this.teams = [
           {
             id: 'team1',
-            name: 'First Team',
+            name: 'Sales Team',
             users: [
               'userA',
               'userB',
@@ -86,7 +90,7 @@
           },
           {
             id: 'team2',
-            name: 'Second Team',
+            name: 'Marketing Team',
             users: [
               'userD',
               'userB'
@@ -115,3 +119,19 @@
     }
   }
 </script>
+
+<style lang="scss">
+
+  @import '../styles/main.scss';
+
+  form.block {
+    display: block;
+    max-width: 600px;
+    margin: auto;
+
+    input {
+      max-width: 350px;
+    }
+  }
+
+</style>

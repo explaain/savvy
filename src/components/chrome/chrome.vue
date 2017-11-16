@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="app" :class="{'sidebar-true': sidebar}">
-    <explorer :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :getUser="getUser">
+    <explorer :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth">
       <div class="chrome-header" slot="header">
         <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
         <img src="/images/logo.png" class="savvy-logo" alt="">
@@ -97,8 +97,10 @@
       self.refreshUser()
     },
     methods: {
-      getUser: function() {
-        return this.user
+      auth: function() {
+        return {
+          user: this.user
+        }
       },
       refreshUser: function() {
         const self = this
