@@ -77,7 +77,7 @@ export default {
     const self = this
     Vue.use(Auth, {
       // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-      getUserDataUrl: '//localhost:5000/api/user',
+      getUserDataUrl: '//localhost:3000/api/user',
     })
     Auth.initApp(self.onAuthStateChanged)
     self.organisation = { name: 'explaain' } // Should get this from subdomain

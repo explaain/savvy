@@ -6,6 +6,7 @@ export default{
   props: ['options'],
   mounted() {
     const self = this
+    console.log('hello')
     this.renderChart(self.chartData, self.options)
   }
 }

@@ -60,6 +60,7 @@
     "topSites",
     "webNavigation",
     "http://localhost:5000/*",
+    "http://localhost:3000/*",
     "webRequestBlocking",
     "<all_urls>"
   ]

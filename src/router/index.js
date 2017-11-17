@@ -28,7 +28,7 @@ var algoliaParams = { // Need to fetch these from app.vue to avoid duplication!
 var authorParams = {
   // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
   // url: '//forget-me-not--staging.herokuapp.com/api/memories',
-  url: '//localhost:5000/api/memories',
+  url: '//localhost:3000/api/memories',
   importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
 }
 // var userID = '101118387301286232222'

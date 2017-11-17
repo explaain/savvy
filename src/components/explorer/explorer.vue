@@ -226,8 +226,16 @@
         const self = this
         self.setLoading()
         self.lastQuery = self.query
+        const query = self.query
         ExplaainSearch.searchCards(self.getUser(), self.query, 12)
         .then(function(hits) {
+          Mixpanel.track('Searched', {
+            organisationID: self.organisation.name,
+            userID: self.getUser().uid,
+            searchQuery: query,
+            noOfResults: hits.length,
+            results: hits.map(hit => { return { objectID: hit.objectID, description: hit.content.description } })
+          })
           self.loading = false
           self.pingCards = []
           // self.cards = hits

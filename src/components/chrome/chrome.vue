@@ -38,7 +38,7 @@
         authorParams: {
           // url: 'https:// forget-me-not--app.herokuapp.com/api/memories',
           url: '// forget-me-not--demo.herokuapp.com/api/memories',
-          // url: '// localhost:5000/api/memories',
+          // url: '// localhost:3000/api/memories',
           importUrl: '// forget-me-not--demo.herokuapp.com/api/import'
         },
         userID: '101118387301286232222', // This will be replaced by user: {authProvider: '', id: ''}
