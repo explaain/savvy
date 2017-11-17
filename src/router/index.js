@@ -11,6 +11,8 @@ import Explorer from '@/components/explorer/explorer'
 import Teams from '@/components/teams'
 import Files from '@/components/files'
 import Settings from '@/components/settings'
+import Billing from '@/components/billing'
+import Help from '@/components/help'
 
 Vue.use(Router)
 
@@ -88,6 +90,14 @@ const router = new Router({
       path: '/settings',
       component: Settings,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/billing',
+      component: Billing
+    },
+    {
+      path: '/help',
+      component: Help
     }
   ]
 })

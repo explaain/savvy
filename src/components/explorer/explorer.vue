@@ -1,4 +1,4 @@
-<template lang="html">
+auth.user<template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
     <div uid="main" class="main">
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
@@ -41,6 +41,7 @@
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
+  import Mixpanel from 'mixpanel-browser'
   import Card from './card.vue'
   import IconButton from './ibutton.vue'
   import Modal from './modal.vue'
@@ -114,6 +115,7 @@
       this.$parent.$on('updateCards', this.updateCards)
       this.$parent.$on('setLoading', this.setLoading)
       // SavvyImport.beginImport()
+      Mixpanel.init('e3b4939c1ae819d65712679199dfce7e')
     },
     methods: {
       convertFileToCards: function(body, file) {
@@ -157,9 +159,23 @@
       },
       cardClick: function(card) {
         const self = this
+        console.log({
+          organisationID: self.organisation.name,
+          userID: self.auth.user.uid,
+          cardID: card.objectID,
+          description: card.content.description,
+          listItems: card.content.listItems
+        })
         if (!this.sidebar) {
           setTimeout(function () { // Is this timeout stil necessary?
             self.openPopup(card)
+            Mixpanel.track('Card Clicked', {
+              organisationID: self.organisation.name,
+              userID: self.auth.user.uid,
+              cardID: card.objectID,
+              description: card.content.description,
+              listItems: card.content.listItems
+            })
           }, 1)
         }
       },
@@ -211,8 +227,16 @@
         const self = this
         self.setLoading()
         self.lastQuery = self.query
+        const query = self.query
         ExplaainSearch.searchCards(self.auth.user, self.query, 12)
         .then(function(hits) {
+          Mixpanel.track('Searched', {
+            organisationID: self.organisation.name,
+            userID: self.auth.user.uid,
+            searchQuery: query,
+            noOfResults: hits.length,
+            results: hits.map(hit => { return { objectID: hit.objectID, description: hit.content.description } })
+          })
           self.loading = false
           self.pingCards = []
           // self.cards = hits
@@ -230,6 +254,10 @@
         self.setLoading()
         ExplaainSearch.searchCards(self.auth.user, '', 24)
         .then(function(hits) {
+          Mixpanel.track('Recently Searched', {
+            organisationID: self.organisation.name,
+            userID: self.auth.user.uid
+          })
           self.loading = false
           console.log('hits')
           console.log(hits)
