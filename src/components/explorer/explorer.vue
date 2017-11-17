@@ -160,7 +160,7 @@ auth.user<template lang="html">
       cardClick: function(card) {
         const self = this
         console.log({
-          organisationID: self.organisation.name,
+          organisationID: self.organisation.id,
           userID: self.auth.user.uid,
           cardID: card.objectID,
           description: card.content.description,
@@ -170,7 +170,7 @@ auth.user<template lang="html">
           setTimeout(function () { // Is this timeout stil necessary?
             self.openPopup(card)
             Mixpanel.track('Card Clicked', {
-              organisationID: self.organisation.name,
+              organisationID: self.organisation.id,
               userID: self.auth.user.uid,
               cardID: card.objectID,
               description: card.content.description,
@@ -231,7 +231,7 @@ auth.user<template lang="html">
         ExplaainSearch.searchCards(self.auth.user, self.query, 12)
         .then(function(hits) {
           Mixpanel.track('Searched', {
-            organisationID: self.organisation.name,
+            organisationID: self.organisation.id,
             userID: self.auth.user.uid,
             searchQuery: query,
             noOfResults: hits.length,
@@ -255,7 +255,7 @@ auth.user<template lang="html">
         ExplaainSearch.searchCards(self.auth.user, '', 24)
         .then(function(hits) {
           Mixpanel.track('Recently Searched', {
-            organisationID: self.organisation.name,
+            organisationID: self.organisation.id,
             userID: self.auth.user.uid
           })
           self.loading = false
@@ -323,9 +323,11 @@ auth.user<template lang="html">
         })
       },
       deleteCard: function(objectID) {
+        const self = this
         const d = Q.defer()
         const data = {
           sender: this.auth.user.uid,
+          organisationID: self.organisation.id,
           objectID: objectID
         }
         ExplaainAuthor.deleteCard(data)

@@ -58,7 +58,7 @@ export default {
   methods: {
     fetchData: function() {
       const self = this
-      const url = 'http://localhost:3000/analytics/fetch'
+      const url = '//forget-me-not--staging.herokuapp.com/analytics/fetch'
       Vue.axios.post(url, self.computedQuery)
       .then((response) => {
         console.log('the response', response)

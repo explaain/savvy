@@ -4,28 +4,8 @@
     <div class="graph-grid">
       <div class="column">
         <div class="graph-card">
-          <h4>Content Overview</h4>
-          <chart class="wrapper" :base="base" :type="'bar-chart'" :options="{}" :query="{ start: '2017-11-03', event: 'Card Saved' }"></chart>
-        </div>
-      </div>
-      <div class="column">
-        <div class="graph-card">
-          <h4>Active Users</h4>
-          <chart class="wrapper" :base="base" :type="'line-chart'" :options="{}" :query="{ start: '2017-11-05', event: 'User logged in' }"></chart>
-        </div>
-      </div>
-      <div class="column">
-        <div class="graph-card">
-          <h4>Savvy Employees</h4>
-          <chart class="wrapper" :base="base" :type="'pie-chart'" :options="{ legend: true }" :query="{ start: '2017-11-03', end: '2017-11-07', event: 'Card Saved' }"></chart>
-        </div>
-      </div>
-    </div>
-    <div class="graph-grid">
-      <div class="column">
-        <div class="graph-card">
-          <h4>Active Users</h4>
-          <chart class="wrapper" :base="base" :type="'bar-chart'" :options="{ sumMethod: 'blocks' }" :query="{ start: '2017-11-02', event: 'Card Clicked', properties: ['cardID']  }"></chart>
+          <h4>Most Active Users</h4>
+          <chart class="wrapper" :base="base" :type="'pie-chart'" :options="{ sumMethod: 'blocks' }" :query="{ start: '2017-11-02', event: 'Card Clicked', properties: ['cardID']  }"></chart>
         </div>
       </div>
       <div class="column">
@@ -36,8 +16,28 @@
       </div>
       <div class="column">
         <div class="graph-card">
+          <h4>User Activity over Time</h4>
+          <chart class="wrapper" :base="base" :type="'line-chart'" :options="{}" :query="{ start: '2017-11-05', event: 'User logged in' }"></chart>
+        </div>
+      </div>
+    </div>
+    <div class="graph-grid">
+      <div class="column">
+        <div class="graph-card">
+          <h4>Content Overview</h4>
+          <chart class="wrapper" :base="base" :type="'bar-chart'" :options="{}" :query="{ start: '2017-11-03', event: 'Card Created' }"></chart>
+        </div>
+      </div>
+      <div class="column">
+        <div class="graph-card">
           <h4>Team Usage Over Time</h4>
           <chart class="wrapper" :base="base" :type="'line-chart'" :options="{}" :query="{ start: '2017-11-03', event: 'Card Clicked' }"></chart>
+        </div>
+      </div>
+      <div class="column">
+        <div class="graph-card">
+          <h4>Savvy Employees</h4>
+          <chart class="wrapper" :base="base" :type="'line-chart'" :options="{ sumMethod: 'blocks', legend: true }" :query="{ start: '2017-11-03', event: 'Card Created', properties: ['userID'] }"></chart>
         </div>
       </div>
     </div>

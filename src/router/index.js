@@ -32,9 +32,9 @@ var algoliaParams = { // Need to fetch these from app.vue to avoid duplication!
 var authorParams = {
   // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
   // url: '//forget-me-not--staging.herokuapp.com/api/memories',
-  // url: '//localhost:3000/api/memories',
-  url: '//' + (process.env.BACKEND_URL || '//forget-me-not--staging.herokuapp.com') + '/api/memories',
-  importUrl: '//' + (process.env.BACKEND_URL || '//forget-me-not--staging.herokuapp.com') + '/api/import'
+  url: '//localhost:3000/api/memories',
+  // url: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/memories',
+  importUrl: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/import'
 }
 // var userID = '101118387301286232222'
 var logo = '../../assets/logo.png'

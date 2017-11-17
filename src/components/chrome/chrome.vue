@@ -1,8 +1,10 @@
+ <!-- @TODO: remove hard-coded organisation -->
+
 <template lang="html">
   <div class="app" :class="{'sidebar-true': sidebar}">
     <explorer :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth">
       <div class="chrome-header" slot="header">
-        <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button>
+        <!-- <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button> -->
         <img src="/images/logo.png" class="savvy-logo" alt="">
       </div>
       <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="plugin"></ibutton>
@@ -27,10 +29,12 @@
     data() {
       return {
         organisation: {},
-        user: {
-          uid: '',
-          auth: {},
-          data: {}
+        auth: {
+          user: {
+            uid: '',
+            auth: {},
+            data: {}
+          }
         },
         signInButton: {
           text: 'Sign in with Google',
@@ -51,8 +55,8 @@
         },
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
-          // url: '//forget-me-not--staging.herokuapp.com/api/memories',
-          url: '//localhost:3000/api/memories',
+          url: '//forget-me-not--staging.herokuapp.com/api/memories',
+          // url: '//localhost:3000/api/memories',
           importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
         },
         plugin: true,
@@ -97,41 +101,42 @@
       self.refreshUser()
     },
     methods: {
-      auth: function() {
-        return {
-          user: this.user
-        }
-      },
       refreshUser: function() {
         const self = this
         return new Promise(function(resolve, reject) {
           chrome.runtime.sendMessage({action: 'getUser'}, response => {
             console.log('response user', response)
-            self.user = response
+            self.auth.user = response
             resolve(response)
           })
         })
       },
-      toggleSignIn: function() {
-        const self = this
-        if (this.sidebar) {
-          console.log('sidebar')
-        } else {
-          console.log('not sidebar')
-          chrome.runtime.sendMessage({action: 'signIn'}, response => {
-            console.log('response user', response)
-            self.user = response
-          })
-        }
-        // Auth.toggleSignIn()
-        this.signInButton.disabled = true
-      },
-      onAuthStateChanged: function(user) {
-        console.log('user', user)
-        this.user = user
-        this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
-        this.signInButton.disabled = false
-      },
+      // toggleSignIn: function() {
+      //   const self = this
+      //   if (this.sidebar) {
+      //     console.log('sidebar')
+      //   } else {
+      //     console.log('not sidebar')
+      //     chrome.runtime.sendMessage({action: 'signIn'}, response => {
+      //       console.log('response user', response)
+      //       self.auth.user = response
+      //     })
+      //   }
+      //   // Auth.toggleSignIn()
+      //   this.signInButton.disabled = true
+      // },
+      // onAuthStateChanged: function(user) {
+      //   console.log('onAuthStateChanged')
+      //   console.log(user)
+      //   this.auth.user = user
+      //   this.auth.authState = Auth.authState
+      // },
+      // onAuthStateChanged: function(user) {
+      //   console.log('user', user)
+      //   this.user = user
+      //   this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
+      //   this.signInButton.disabled = false
+      // },
       // getUser: function() {
       //   const self = this
       //   try {

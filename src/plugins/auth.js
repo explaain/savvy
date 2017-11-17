@@ -11,7 +11,6 @@ const Auth = {
     self.organisation = options.organisation
     self.user = {}
     var stateChangeCallback = () => {}
-    // const self = this
     console.log('🖌  Auth running!')
     // console.log('globalvar:', Vue.globalvar)
     // console.log('Vue.prototype.$appName:', Vue.prototype.$appName)
@@ -48,7 +47,6 @@ const Auth = {
      */
     const initApp = function(init, callback) {
       console.log('🔏⛏  Initialising Auth')
-      const self = this
       stateChangeCallback = callback
       var config = {
         apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
@@ -91,6 +89,7 @@ const Auth = {
             uid: userAuth.uid,
             lastRefreshed: new Date(),
             auth: userAuth,
+            getAccessToken: () => userAuth.stsTokenManager.accessToken
           }
           if (self.organisation.id) {
             getUserData(self.organisation.id, userAuth)
@@ -148,8 +147,7 @@ const Auth = {
       })
     }
 
-    const getUser = () => {
-      const self = this
+    const getUser = () => { // Not often used now!
       const user = JSON.parse(JSON.stringify(self.user))
       if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
         console.log('♻️  Refreshing User Token!')
@@ -163,6 +161,7 @@ const Auth = {
         })
       }
       user.getAccessToken = () => user.auth.stsTokenManager.accessToken
+      self.user = user
       return user
     }
 

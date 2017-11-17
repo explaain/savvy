@@ -14,25 +14,6 @@
     <div>
 
     </div>
-    <!-- <h3>Source Testing</h3>
-    <a href="http://localhost:3000/authorisations/add-gdrive">Add New Google Drive</a>
-    <br />
-    <br />
-    <strong>Add New Confluence</strong>
-    <br />
-    <form method="get" action="http://localhost:3000/authorisations/save-confluence">
-      Username  <input type="text" name="username" placeholder="admin"><br />
-      Password <input type="password" name="password"><br />
-      Site URL  <input type="url" name="baseUrl" placeholder="https://savvy-development.atlassian.net">
-      <i> ie https://savvy-development.atlassian.net</i><br />
-      <input type="submit">
-    </form>
-    (saves authorisation to db and processes files)
-    <br />
-    <br />
-    <a href="http://localhost:3000/authorisations/update">Refresh Files</a>
-    <br />
-    (processes files from saved source) -->
   </div>
 
   <section class="container">
