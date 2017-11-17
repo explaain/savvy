@@ -5,7 +5,7 @@
       <ibutton icon="refresh" text="Refresh" :click="getFiles"></ibutton>
       <form class="new-user" v-if="showingConnect">
         <ibutton icon="google" text="Google Drive" :click="inviteNewUser"></ibutton>
-        <ibutton icon="paper-plane" text="Confluence" :click="inviteNewUser"></ibutton>
+        <ibutton icon="glass" text="Confluence" :click="inviteNewUser"></ibutton>
       </form>
     </header>
     <div class="files">

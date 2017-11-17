@@ -47,7 +47,7 @@ $shadow: hsla(0, 0%, 63%, .95);
   margin-bottom: -0.25em;
   height: 1.2em;
 }
-button, input, textarea {
+button, input, textarea, select {
   @extend .block;
   @extend .defaultFont;
   border: 1px solid #ddd;
@@ -79,6 +79,12 @@ input {
   &::placeholder {
     color: #bbb;
   }
+}
+select {
+  @extend .block;
+  @extend .defaultFont;
+  padding: 10px;
+  height: 40px;
 }
 table {
   @extend .block;

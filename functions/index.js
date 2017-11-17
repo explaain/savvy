@@ -176,6 +176,31 @@ exports.getUserData = functions.https.onRequest((req, res) => {
   }
 })
 
+exports.getUserTeamDetails = functions.https.onRequest((req, res) => {
+  try {
+    console.log('📬 Data just arrived:', smartObj(req.body))
+    requireProps(req.body, ['organisationID', 'userID'])
+    const data = req.body
+    var teams
+    getUser(data.organisationID, data.userID)
+    .then(snapshot => {
+      console.log(snapshot.data)
+      console.log(smartIdObj(snapshot.data))
+      teams = snapshot.data.teams
+      return getUsers(req.body.organisationID)
+    }).then(users => {
+      const details = {
+        teams: teams,
+        users: users.filter(user => user.teams.filter(userTeam => teams.filter(team => compareReferences(userTeam.team, team.team)).length))
+      }
+      res.status(200).json(smartIdObj(details))
+    }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
+  } catch (e) {
+    console.log('📛 Error!', e)
+    res.status(e.status || 500).send(e.message || e || '📛 Unknown Server Error')
+  }
+})
+
 exports.changeUserTeamRole = functions.https.onRequest((req, res) => {
   try {
     console.log('📬 Data just arrived:', smartObj(req.body))
@@ -386,6 +411,8 @@ const getDocs = function(organisationID, collectionID, query) { // Query doesn't
     console.log('📥  Getting docs', collectionID)
     const ref = getCollectionRef(organisationID, collectionID)
     ref.get().then(docs => {
+      console.log(docs.data())
+      console.log(JSON.stringify(docs.data()))
       console.log('🔍  Objects from ' + collectionID + ' found:', /* ref, */ docs.map(doc => smartObj(doc.data())))
       resolve(docs.map(doc => { return { data: doc.data().data || doc.data(), ref: ref.doc(doc.id), objectID: doc.id } }))
     }).catch(e => { console.log('📛 Error getting documents:', e); reject(e) })
@@ -400,6 +427,7 @@ const getTeam = (organisationID, teamID) => getDoc(organisationID, 'teams', team
 const getCard = (organisationID, cardID) => getDoc(organisationID, 'cards', cardID)
 const getInvite = (organisationID, inviteID) => getDoc(organisationID, 'invites', inviteID)
 
+const getUsers = (organisationID) => getDocs(organisationID, 'users')
 const getSources = (organisationID) => getDocs(organisationID, 'sources')
 
 const getUserRef = (organisationID, userID) => getDocRef(organisationID, 'users', userID) // eslint-disable-line
