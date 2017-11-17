@@ -41,6 +41,27 @@ export default {
       const url = 'http://localhost:3000/analytics/fetch'
       Vue.axios.post(url, self.query)
       .then((response) => {
+        console.log('the response', response)
+        const data = response.data[self.query.event]
+        // console.log(data)
+        self.data = {
+          labels: Object.keys(data).sort(),
+          datasets: [{
+            label: self.query.event,
+            backgroundColor: '#f43759',
+            data: Object.keys(data).sort().map(key => data[key])
+          }]
+        }
+        // console.log(self.data)
+      }).catch(function(error) {
+        console.log(error)
+      })
+    },
+    fetchPopularCards: function() {
+      const self = this
+      const url = 'http://localhost:3000/analytics/fetch'
+      Vue.axios.post(url, self.query)
+      .then((response) => {
         const data = response.data[self.query.event]
         console.log(data)
         self.data = {

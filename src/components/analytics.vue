@@ -21,6 +21,27 @@
         </div>
       </div>
     </div>
+    <div class="graph-grid">
+      <div class="column">
+        <div class="graph-card">
+          <h4>Active Users</h4>
+          <button type="button" name="button" @click="fetchData">Refresh</button>
+          <chart class="wrapper" :type="'line-chart'" :options="{}" :query="{start: '2017-11-02', end: todayFormatted, event: 'Card Clicked', properties: 'properties["cardID"]' }"></chart>
+        </div>
+      </div>
+      <div class="column">
+        <div class="graph-card">
+          <h4>This graph shows other stuff</h4>
+          <chart class="wrapper" :type="'bar-chart'" :options="{}" :query="{start: '2017-11-03', end: '2017-11-07', event: 'Card Clicked', properties: 'properties[\"cardID\"]'}"></chart>
+        </div>
+      </div>
+      <div class="column">
+        <div class="graph-card">
+          <h4>Savvy Employees</h4>
+          <chart class="wrapper" :type="'pie-chart'" :options="{}" :query="{start: '2017-11-03', end: '2017-11-07', event: 'Card Clicked', properties: 'properties[\"cardID\"]'}"></chart>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>

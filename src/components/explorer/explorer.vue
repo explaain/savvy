@@ -245,6 +245,10 @@
         self.setLoading()
         ExplaainSearch.searchCards(self.getUser(), '', 24)
         .then(function(hits) {
+          Mixpanel.track('Recently Searched', {
+            organisationID: self.organisation.name,
+            userID: self.getUser().uid
+          })
           self.loading = false
           console.log('hits')
           console.log(hits)
