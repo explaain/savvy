@@ -2,6 +2,7 @@
 /* global firebase */
 import Vue from 'vue'
 import log from 'loglevel'
+import axios from 'axios'
 import Auth from '../plugins/auth2' // Need to concolidate this + 'auth'
 import CardDetection from '../plugins/card-detection.js'
 import ExplaainSearch from '../plugins/explaain-search.js'
@@ -17,7 +18,7 @@ const organisation = {
 var config = {
   apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
   authDomain: 'savvy-96d8b.firebaseapp.com',
-  databaseURL: 'https://chrometest-5cd53.firebaseio.com',
+  databaseURL: 'https://chrometest-5cd53.firebaseio.com', // Should delete this?
   storageBucket: ''
 }
 var allowContinue = true
@@ -229,8 +230,20 @@ if (allowContinue) {
             })
             break
           case 'getPageResults':
-            CardDetection.getPageResults(organisation.id, Auth.getUser(), request.data)
-            .then(sendResponse)
+            const user = Auth.getUser()
+            user.idToken = user.auth.stsTokenManager.accessToken
+            // axios.post('http://localhost:5000/parse', {
+            axios.post('http://savvy-nlp--staging.herokuapp.com/parse', {
+              organisationID: organisation.id,
+              user: user,
+              content: request.data.pageText,
+              url: request.data.url
+            })
+            // CardDetection.getPageResults(organisation.id, Auth.getUser(), request.data)
+            .then(res => {
+              log.debug(res.data.results)
+              return sendResponse(res.data.results)
+            })
             .catch(e => {
               log.error(e)
               sendResponse({ error: e })
@@ -259,6 +272,16 @@ if (allowContinue) {
           //   break
           case 'getUser':
             sendResponse(Auth.getUser())
+            break
+          case 'saveCard':
+            axios.post(request.url, request.data)
+            .then(response => {
+              log.debug(response)
+              sendResponse(response)
+            }).catch(e => {
+              log.error(e)
+              sendResponse({ error: e })
+            })
             break
           // case 'refreshCards':
           //   getAllUserCards()

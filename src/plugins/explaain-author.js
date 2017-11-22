@@ -1,3 +1,4 @@
+/* global chrome */
 import Vue from 'vue'
 import Q from 'q'
 import axios from 'axios'
@@ -10,6 +11,7 @@ const Author = {
   install(Vue, options) {
     console.log(options)
     var url = options.url
+    this.plugin = options.plugin
     console.log(url)
 
     const importFromDrive = function(user) {
@@ -26,14 +28,18 @@ const Author = {
 
     const saveCard = function(data) {
       const d = Q.defer()
-      console.log(data)
-      Vue.axios.post(url, data)
-      .then((response) => {
-        console.log(response)
-        d.resolve(response)
-      }).catch(function(e) {
-        d.reject(e)
-      })
+      if (this.plugin)
+        chrome.runtime.sendMessage({action: 'saveCard', url: url, data: data}, response => {
+          d.resolve(response)
+        })
+      else
+        Vue.axios.post(url, data)
+        .then((response) => {
+          console.log(response)
+          d.resolve(response)
+        }).catch(function(e) {
+          d.reject(e)
+        })
       return d.promise
     }
 

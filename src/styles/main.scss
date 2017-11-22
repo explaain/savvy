@@ -5,6 +5,7 @@ $savvyLight: rgba($savvy, .05);
 $grey: #777;
 $dashboardGrey: #888;
 $shadow: hsla(0, 0%, 63%, .95);
+$background: url("/static/images/background1.png"); // #f6f6f6;
 
 @mixin blockShadow($n: 1, $color: $shadow) {
   box-shadow: 0 0 $n * 17px -5px $color;
@@ -46,6 +47,9 @@ $shadow: hsla(0, 0%, 63%, .95);
 .fa-icon {
   margin-bottom: -0.25em;
   height: 1.2em;
+}
+.emoji {
+  font-size: 0.8em;
 }
 button, input, textarea, select {
   @extend .block;

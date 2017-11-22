@@ -60,18 +60,22 @@ window.addEventListener('message', event => {
 const sendToChrome = data => new Promise((resolve, reject) => {
   chrome.runtime.sendMessage(data, res => resolve(res)) // Needs catch => reject
 })
-const sendToFrame = data => {
+const sendToFrame = data => new Promise((resolve, reject) => {
   console.log('Sending to Frame:', data)
   window.frames['forgetmenot-frame'].contentWindow.postMessage(data, '*')
-}
+  resolve(data)
+})
 /*  Sends pageData to event-page.js, Collects page results, Sends results to frame, Shows ping if necessary  */
 const getPageResults = () => new Promise((resolve, reject) => {
   sendToFrame({ action: 'setLoading' })
   sendToChrome({ action: 'getPageResults', data: collectPageData() })
-  .then(response => sendToFrame({ action: 'updatePageResults', data: { pageResults: response } }))
-  .then(res => {
-    if (res.pings.length & (pingStatus === 'unborn' || pingStatus === 'showing'))
-      showPingAlert(res.pings.length)
+  .then(response => {
+    log.debug(response)
+    return sendToFrame({ action: 'updatePageResults', data: { pageResults: response } })
+  }).then(res => {
+    log.debug(res)
+    if (res.data.pageResults.pings.length & (pingStatus === 'unborn' || pingStatus === 'showing'))
+      showPingAlert(res.data.pageResults.pings.length)
     resolve()
   }).catch(reject)
 })
@@ -81,7 +85,9 @@ const getPageResults = () => new Promise((resolve, reject) => {
 /* ---- DOM Functions ---- */
 
 const showPingAlert = (number) => {
-  document.getElementsByClassName('forget-me-not-ping').forEach(ping => ping.parentNode.removeChild(ping))
+  if (document.getElementsByClassName('forget-me-not-ping') && document.getElementsByClassName('forget-me-not-ping').length)
+    document.getElementsByClassName('forget-me-not-ping').forEach(ping => ping.parentNode.removeChild(ping))
+
   if (pingDiv) pingDiv.remove()
   pingDiv = document.createElement('div')
   pingDiv.style.cssText = ''
@@ -97,7 +103,7 @@ const showPingAlert = (number) => {
     + 'box-shadow: rgba(50, 50, 50, 0.95) 0px 0px 30px;'
     + 'border: none;'
     + 'border-radius: 10px;'
-    + 'z-index: 1000000;'
+    + 'z-index: 10000000000000000;'
     + 'background: white;'
     + 'cursor: pointer;'
     + 'line-height: 1.4;'
@@ -107,7 +113,7 @@ const showPingAlert = (number) => {
   + 'float: right;'
   pageFloat.innerHTML = '👆👆'
   pingDiv.appendChild(pageFloat)
-  const text1 = document.createTextNode((number === 1 ? 'One memory' : number + ' memories') + ' relevant to this page! 😃')
+  const text1 = document.createTextNode((number === 1 ? 'One card' : number + ' cards') + ' relevant to this page! 😃')
   text1.className = 'forget-me-not-ping'
   pingDiv.appendChild(text1)
   var pageSpan = document.createElement('span')
@@ -197,15 +203,15 @@ const createDrawer = () => {
 
     drawer.appendChild(close)
     drawer.appendChild(iframe)
-    drawer.appendChild(timeSaved)
+    // drawer.appendChild(timeSaved)
     document.body.appendChild(drawer)
   } catch (e) {
     log.error(e)
   }
 }
 const openDrawer = e => {
-  console.log('Opening Drawer')
   if (drawer.getAttribute('data-opened') !== 'true' && (!e || !e.dealtWith)) {
+    console.log('Opening Drawer')
     getPageResults()
     drawer.style.right = '0px'
     drawer.style.marginRight = '0px'
@@ -218,8 +224,8 @@ const openDrawer = e => {
   if (e) e.dealtWith = true
 }
 const closeDrawer = e => {
-  console.log('Closing Drawer')
   if (drawer.getAttribute('data-opened') === 'true' && (!e || !e.dealtWith)) {
+    console.log('Closing Drawer')
     drawer.style.right = '-' + drawer.style.width
     drawer.style.boxShadow = 'none'
     drawer.setAttribute('data-opened', 'false')

@@ -1,5 +1,5 @@
 <template lang="html">
-  <div :class="{ editable: !(editable === false) }" :contenteditable="editable" @input="update"></div>
+  <div :class="{ editable: !(editable === false) }" :contenteditable="!(editable === false)" @input="update"></div>
 </template>
 
 <script type="text/javascript">

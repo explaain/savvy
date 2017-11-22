@@ -340,8 +340,8 @@ exports.saveFiles = functions.https.onRequest((req, res) => {
     })
 
     Promise.all(promises)
-    .then(snapshot => {
-      res.status(200).send(getID(snapshot))
+    .then(snapshots => {
+      res.status(200).send(snapshots.map(snapshot => getID(snapshot)))
     }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
   } catch (e) {
     console.log('📛 Error!', e.status, ':', e.message)
@@ -532,7 +532,7 @@ const getPermissionLevel = function(organisationID, user, card) {
   if (roles.indexOf('manager') > -1)
     return 'write'
   else if (roles.indexOf('member') > -1)
-    return 'submit'
+    return 'write' // Will eventually be 'submit'
   else
     return null
 }
@@ -560,6 +560,7 @@ const getPermissionLevel = function(organisationID, user, card) {
 
 const firebaseToAlgolia = function(data) {
   const card = {
+    organisationID: getOrganisationFromRef(data._ref),
     objectID: getID(data._ref),
     description: data.data().content.description,
     teams: data.data().teams.map(team => getID(team))
@@ -567,6 +568,14 @@ const firebaseToAlgolia = function(data) {
   if (data.data().pending) card.pending = data.data().pending.map(submission => submission.content.description)
   console.log('🔎 Algolia card:', card)
   return card
+}
+
+const getOrganisationFromRef = (ref) => {
+  const segments = ref._referencePath.segments
+  const orgSegment = segments.indexOf('organisations')
+  const organisationID = segments[orgSegment + 1]
+  console.log('🏢  organisationID:', organisationID)
+  return organisationID
 }
 
 const compareReferences = (ref1, ref2) => ref1._referencePath.segments.join('/') === ref2._referencePath.segments.join('/') // Should check _firestore as well?

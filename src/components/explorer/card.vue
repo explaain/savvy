@@ -2,7 +2,7 @@
   <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click="cardClick" :class="{ highlight: card.highlight, editing: editing, updating: updating }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
-    <div class="label"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type" v-if="full"><icon name="clock-o"></icon> Memory</span></div>
+    <div class="label"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type" v-if="full"><!--<icon name="clock-o"></icon> Memory--></span></div>
     <div class="content">
       <editable :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable>
       <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
@@ -33,13 +33,24 @@
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
       </div>
-      <div class="footer-logo">ForgetMeNot</div>
+      <div class="buttons reaction" v-if="reacted">
+        <p>How well did this match what you were looking for?</p>
+        <button class="" @click="reaction('great')">😍</button>
+        <button class="" @click="reaction('ok')">😐</button>
+        <button class="" @click="reaction('bad')">😢</button>
+      </div>
+      <div class="buttons reaction" v-if="reacted">
+        <p>Thanks for letting us know! Our AI uses this feedback to get smarter 😎</p>
+      </div>
+      <div class="footer-logo">Savvy</div>
     </footer>
+    <ibutton class="approve" v-if="pendingApproval" icon="check" text="Approve"></ibutton>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
+// import log from 'loglevel'
 import Clipboards from 'vue-clipboards'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
@@ -58,6 +69,7 @@ export default {
     'allCards',
     'setCard',
     'auth',
+    'pendingApproval',
   ],
   components: {
     icon: Icon,
@@ -72,9 +84,10 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: '../../static/images/clipboard.svg',
+      copyIcon: './static/images/clipboard.svg',
       showListSearch: false,
       showPending: false,
+      reacted: false
     }
   },
   computed: {
@@ -140,7 +153,6 @@ export default {
   },
   methods: {
     syncData: function() {
-      console.log('sync')
       this.card = JSON.parse(JSON.stringify(this.data))
     },
     cardMouseover: function() {
@@ -212,6 +224,12 @@ export default {
     copy: function(e) {
       // The v-clipboard directive has already copied the text from the card - this function just shows the alert
       this.$emit('copy')
+    },
+    reaction: function(reaction) {
+      console.log('REACTION!')
+      const self = this
+      self.$emit('reaction', { reaction: reaction, card: self.card })
+      self.reacted = true
     }
   }
 }
@@ -238,9 +256,9 @@ String.prototype.trunc = function(n, useWordBoundary) {
     margin: 10px;
     width: calc(100% - 50px);
     max-width: 320px;
-    padding: 20px 10px 20px 10px;
+    padding: 10px 10px 20px 10px;
     // border: 1px solid #ddd;
-    // border-radius: 10px;
+    border-radius: 10px;
     word-wrap: break-word;
     overflow-wrap: break-word;
     background: white;
@@ -248,23 +266,36 @@ String.prototype.trunc = function(n, useWordBoundary) {
 
     &:hover {
       @include blockShadow(2);
+
+      button.copy {
+        display: block;
+      }
     }
 
     &.highlight {
-      box-shadow: 0px 0px 30px rgba(255,211,35,0.7);
+      box-shadow: 0px 0px 30px rgba(100, 84, 244, 0.5);
     }
     &.highlight:hover {
-      box-shadow: 0px 0px 30px rgba(255,211,35,1);
+      box-shadow: 0px 0px 30px rgba(100, 84, 244, 0.8);
     }
     .updating {
       opacity: 0.5;
     }
+
     button {
       &.copy {
-        float: right;
-        margin: -15px -5px 10px 20px;
+        display: none;
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        // margin: -5px -5px 10px 20px;
         padding: 6px 12px;
         font-size: 12px;
+        box-shadow: none;
+
+        &:hover {
+          box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        }
       }
       &.left {
         border-top-right-radius: 0;
@@ -301,7 +332,7 @@ String.prototype.trunc = function(n, useWordBoundary) {
       color: #aaa;
 
       .top-hit, .top-hit svg {
-        color: rgb(255,211,35)
+        color: rgb(100, 84, 244);
       }
       .fa-icon {
         color: #aaa;
@@ -349,15 +380,24 @@ String.prototype.trunc = function(n, useWordBoundary) {
     footer {
       min-height: 40px;
     }
-    section.buttons {
-      margin: 10px;
+    .list section.buttons {
+      margin: 10px 0;
     }
     footer .buttons {
-      position: absolute;
+      // position: absolute;
       bottom: 15px;
       left: 20px;
-      margin: 10px 20px -5px -16px;
+      margin: 10px 20px -15px -8px;
       padding: 6px 12px;
+
+      &.reaction {
+        position: relative;
+        text-align: center;
+
+        button {
+          margin: 10px;
+        }
+      }
     }
     .buttons button {
       padding: 6px 12px;
@@ -401,6 +441,15 @@ String.prototype.trunc = function(n, useWordBoundary) {
     border-radius: 4px;
     color: black;
     cursor: text;
+  }
+
+  button.approve {
+    margin: 20px 0 0 0;
+    color: green;
+
+    svg {
+      color: green;
+    }
   }
 
 

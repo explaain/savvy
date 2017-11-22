@@ -2,12 +2,12 @@
 
 <template lang="html">
   <div class="app" :class="{'sidebar-true': sidebar}">
-    <explorer :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth">
+    <explorer :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth">
       <div class="chrome-header" slot="header">
         <!-- <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button> -->
         <img src="/images/logo.png" class="savvy-logo" alt="">
       </div>
-      <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="plugin"></ibutton>
+      <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton>
     </explorer>
   </div>
 </template>
@@ -55,9 +55,9 @@
         },
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
-          url: '//forget-me-not--staging.herokuapp.com/api/memories',
+          url: 'https://forget-me-not--staging.herokuapp.com/api/memories',
           // url: '//localhost:3000/api/memories',
-          importUrl: '//forget-me-not--staging.herokuapp.com/api/import'
+          importUrl: 'https://forget-me-not--staging.herokuapp.com/api/import'
         },
         plugin: true,
         logo: '../images/logo.png',
@@ -94,6 +94,7 @@
           case 'updatePageResults':
             log.info(event.data)
             self.pageCards = event.data.data.pageResults
+            log.info(self.pageCards)
             self.updateCards(self.pageCards, 'No cards found from page')
             break
         }
@@ -162,6 +163,7 @@
           cards: cards,
           noCardMessage: noCardMessage
         }
+        log.debug(data)
         this.$emit('updateCards', data)
       },
       closeDrawer: function() {
@@ -173,11 +175,23 @@
   }
 </script>
 
-<style lang="css">
+<style lang="scss">
 
+  @import '../../styles/main.scss';
+
+  body {
+    margin: 0;
+  }
+  html, body, body > .app, body > .app > .explorer, body > .app > .explorer > .main {
+    height: 100%;
+  }
   body > div.app {
     margin: auto;
     text-align: center;
+
+    > .explorer > .main {
+      background: url("/images/background1.png");
+    }
   }
 
   .savvy-logo {

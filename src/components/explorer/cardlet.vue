@@ -1,5 +1,5 @@
 <template lang="html">
-  <div class="card cardlet" @click.stop="cardletClick">
+  <div class="cardlet" @click.stop="cardletClick">
     <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton>
     <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton>
     <editable :content="card.content.description" :editable="editing && editable" @update="card.content.description = $event"></editable>
@@ -53,7 +53,7 @@ export default {
     padding: 8px 15px;
     border-radius: 0;
     width: calc(100% - 50px);
-    border-color: #e4e4e4;
+    border: 1px solid #e4e4e4;
     box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
     -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
   }

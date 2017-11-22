@@ -1,6 +1,6 @@
 <template>
-  <div class="team">
-    <header class="settings">
+  <div class="files">
+    <header class="files-settings">
       <ibutton icon="cloud" text="Connect to Your Files" :click="toggleConnect"></ibutton>
       <ibutton icon="refresh" text="Refresh" :click="getFiles"></ibutton>
       <form class="new-user" v-if="showingConnect">

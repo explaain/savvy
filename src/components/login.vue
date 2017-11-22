@@ -1,5 +1,7 @@
 <template>
   <div class="login">
+    <h1>🙌 Welcome to Savvy!</h1>
+    <h2>Sign in below to get started</h2>
     <!-- <div>Sign in to <input v-if="noOrg" type="text" v-model="organisationID" placeholder="myorg"> <span v-if="!noOrg"></span>.heysavvy.com</div> -->
     <button :disabled="auth.authState == 'pending'" @click="auth.toggleSignIn()">{{authButtonText}}</button>
   </div>
@@ -55,16 +57,21 @@
 
   div.login {
     // display: flex;
+    padding-top: 50px;
     // text-align: center;
 
-    >div {
+    > div {
       @extend .blockSpacing;
+    }
+    h1, h2 {
+      text-align: center;
     }
     input {
       text-align: right;
     }
     button {
       display: block;
+      margin: auto;
       // flex: 0 0 auto;
     }
   }

@@ -1,6 +1,6 @@
 <template>
-  <div class="team">
-    <header class="settings">
+  <div class="teams">
+    <header class="teams-settings">
       <ibutton icon="envelope-o" text="Invite New User" :click="toggleNewUser"></ibutton>
       <!-- <button type="button" @click="showingJoinTeam = !showingJoinTeam">Invite Existing User To Join Team</button> -->
       <ibutton icon="refresh" text="Refresh" :click="getTeams"></ibutton>

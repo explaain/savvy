@@ -31,6 +31,7 @@ const Search = {
 
     const searchCards = function(user, searchText, hitsPerPage) {
       const d = Q.defer()
+      log.debug(user)
       const params = {
         query: searchText,
         filters: 'teams: "' + user.data.teams.map(team => { return team.team }).join('" OR teams: "') + '"',
@@ -90,7 +91,6 @@ const Search = {
           description: card.description || card.sentence || card.text,
           listItems: card.listItems || [],
         }
-      console.log(JSON.stringify(card.content))
       if (card.sentence) delete card.sentence
       if (card.text) delete card.text
       if (card.description) delete card.description
@@ -98,7 +98,6 @@ const Search = {
     }
 
     const compoundSearch = function(user, searchText) {
-      console.log(user)
       const d = Q.defer()
       const maxLength = 400
       const searchTextArray = []

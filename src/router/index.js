@@ -114,15 +114,16 @@ router.beforeEach((to, from, next) => {
       user = null
     }
     console.log(user)
+    console.log('from', from)
     if (!user || !user.auth) { // Needs to actually check auth.loggedIn() or something
       next({
         path: '/login',
-        query: { redirect: to.fullPath }
+        query: from.query.redirect ? { redirect: from.query.redirect || to.fullPath } : {}
       })
     } else if (!user.data) {
       next({
         path: '/join',
-        query: { redirect: to.fullPath }
+        query: from.query.redirect ? { redirect: from.query.redirect || to.fullPath } : {}
       })
     } else {
       next()

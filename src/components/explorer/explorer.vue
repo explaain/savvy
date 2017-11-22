@@ -3,14 +3,15 @@ auth.user<template lang="html">
     <div uid="main" class="main">
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
-      <div class="header">
+      <div class="header" v-if="!$route.query.q">
         <slot name="header"></slot>
-        <input autofocus type="text" placeholder="Search for cards..." v-model="query" @keyup.enter="search"><br>
+        <input class="search" autofocus type="text" placeholder="Search for cards..." v-model="query" @keyup.enter="search"><br>
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
         <ibutton icon="history" text="Recent" :click="searchRecent"></ibutton>
         <ibutton icon="plus" text="Create" :click="beginCreate"></ibutton>
       </div>
+      <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
 
       <ul class="cards">
         <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
@@ -37,6 +38,7 @@ auth.user<template lang="html">
 
 <script>
   import Vue from 'vue'
+  import log from 'loglevel'
   import Q from 'q'
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'
@@ -51,7 +53,16 @@ auth.user<template lang="html">
   // import SavvyImport from '../../plugins/savvy-import.js'
 
   export default {
+    components: {
+      card: Card,
+      icon: Icon,
+      ibutton: IconButton,
+      modal: Modal,
+      alert: Alert,
+      draggable: Draggable
+    },
     props: [
+      'plugin',
       'organisation',
       'auth',
       'logo',
@@ -93,29 +104,30 @@ auth.user<template lang="html">
         const watchThis = self.allCards // This does nothing other than force this function to watch for changes in self.allCards
         console.log(watchThis)
         return self.mainCardList ? self.mainCardList.map(function(objectID) {
-          return self.allCards[objectID] || { description: 'Card Not Found' }
+          return self.allCards[objectID] || { content: { description: 'Card Not Found' } }
         }) : []
       }
     },
-    components: {
-      card: Card,
-      icon: Icon,
-      ibutton: IconButton,
-      modal: Modal,
-      alert: Alert,
-      draggable: Draggable
-    },
     created: function () {
-      Vue.use(ExplaainSearch, this.algoliaParams)
-      Vue.use(ExplaainAuthor, this.authorParams)
+      const self = this
+      Vue.use(ExplaainSearch, self.algoliaParams)
+      self.authorParams.plugin = self.plugin
+      Vue.use(ExplaainAuthor, self.authorParams)
 
       // Vue.use(SavvyImport)
-      this.modal.sender = this.auth.user.uid
-      this.modal.callback = this.modalCallback
-      this.$parent.$on('updateCards', this.updateCards)
-      this.$parent.$on('setLoading', this.setLoading)
+      self.modal.sender = self.auth.user.uid
+      self.modal.callback = self.modalCallback
+      self.$parent.$on('updateCards', self.updateCards)
+      self.$parent.$on('setLoading', self.setLoading)
+      self.$parent.$on('search', function(query) {
+        self.search(self.$route.query.q)
+      })
+      self.$parent.$on('reaction', self.reaction)
       // SavvyImport.beginImport()
-      Mixpanel.init('e3b4939c1ae819d65712679199dfce7e')
+      Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
+      setTimeout(() => {
+        self.search(self.$route.query.q)
+      }, 200)
     },
     methods: {
       convertFileToCards: function(body, file) {
@@ -159,13 +171,6 @@ auth.user<template lang="html">
       },
       cardClick: function(card) {
         const self = this
-        console.log({
-          organisationID: self.organisation.id,
-          userID: self.auth.user.uid,
-          cardID: card.objectID,
-          description: card.content.description,
-          listItems: card.content.listItems
-        })
         if (!this.sidebar) {
           setTimeout(function () { // Is this timeout stil necessary?
             self.openPopup(card)
@@ -212,20 +217,32 @@ auth.user<template lang="html">
         }
       },
       updateCards: function(data) {
-        this.loading = false
-        this.pingCards = data.cards.pings
-        // this.cards = data.cards.memories
-        this.mainCardList = data.cards.memories.map(function(card) { return card.objectID })
-        this.noCardMessage = data.noCardMessage
+        const self = this
+        self.loading = false
+        self.pingCards = data.cards.pings.map(card => card.card)
+        log.debug(1, self.pingCards)
+        // self.cards = data.cards.memories
+        self.mainCardList = data.cards.memories.map(function(card) { return card.card.objectID })
+        log.debug(2, self.mainCardList)
+        // Need to add to allCards?
+        data.cards.memories.forEach(card => {
+          self.allCards[card.card.objectID] = card.card
+        })
+        if (data.cards.hits) data.cards.hits.forEach(card => {
+          self.allCards[card.card.objectID] = card.card
+        })
+        log.debug(3, self.allCards)
+        self.noCardMessage = data.noCardMessage
       },
       setLoading: function () {
         this.loading = true
         this.pingCards = []
         this.mainCardList = []
       },
-      search: function () {
+      search: function (optionalQuery) {
         const self = this
         self.setLoading()
+        if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
         const query = self.query
         ExplaainSearch.searchCards(self.auth.user, self.query, 12)
@@ -252,6 +269,7 @@ auth.user<template lang="html">
       searchRecent: function () {
         const self = this
         self.setLoading()
+        log.debug(self.auth)
         ExplaainSearch.searchCards(self.auth.user, '', 24)
         .then(function(hits) {
           Mixpanel.track('Recently Searched', {
@@ -401,7 +419,7 @@ auth.user<template lang="html">
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.auth.user)
-        data.user = { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() }
+        data.user = { uid: self.auth.user.uid, idToken: /* self.auth.user.getAccessToken() || */ self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
         data.organisationID = self.organisation.id
         ExplaainAuthor.saveCard(data)
         .then(function(res) {
@@ -440,6 +458,17 @@ auth.user<template lang="html">
         setTimeout(function () {
           self.alertData.show = false
         }, duration)
+      },
+      reaction: function(data) {
+        Mixpanel.track('User Reacted to Card', {
+          organisationID: self.organisation.id,
+          userID: self.auth.user.uid,
+          reaction: data.reaction,
+          cardID: data.card.objectID,
+          description: data.card.content.description,
+          listItems: data.card.content.listItems,
+          searchQuery: self.query
+        })
       }
     }
   }
@@ -450,6 +479,7 @@ auth.user<template lang="html">
   @import '../../styles/main.scss';
 
   body {
+    @extend .defaultFont;
     pointer-events: none;
   }
   body div:not(.popup), body button {
@@ -512,6 +542,7 @@ auth.user<template lang="html">
       // position: absolute;
       z-index: 1;
       pointer-events: all;
+      background: $background;
     }
     .popup {
       position: fixed;
@@ -586,6 +617,10 @@ auth.user<template lang="html">
       bottom: 0;
       left: 50%;
       right: 0;
+
+      .header > button {
+        margin: 10px 2px;
+      }
     }
     .popup {
       right: 50%;
