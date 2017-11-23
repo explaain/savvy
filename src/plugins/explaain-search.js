@@ -20,9 +20,18 @@ const Search = {
           log.trace(e)
           d.reject(e)
         } else {
-          fetchListItemCards(content.hits)
-          .then(function() {
-            d.resolve(content.hits)
+          const cards = content.hits.map(card => correctCard(card))
+          fetchListItemCards(cards)
+          .then(function(results) {
+            console.log('results', results)
+            var allHits
+            try {
+              allHits = cards.concat(results)
+            } catch (e) {
+              console.log(e)
+            }
+            console.log('allHits', allHits)
+            d.resolve(allHits)
           })
         }
       })
@@ -52,7 +61,6 @@ const Search = {
       const d = Q.defer()
       const promises = []
       cards.forEach(function(card) {
-        card = correctCard(card)
         card.content.listCards = []
         if (!card.content.listItems) card.content.listItems = []
         card.content.listItems.forEach(function(key) {
@@ -64,7 +72,12 @@ const Search = {
       log.trace(promises)
       Q.allSettled(promises)
       .then(function(results) {
-        d.resolve(results)
+        console.log('fetchListItemCards results', results)
+        const cards = results.map(result => result.value)
+        cards.forEach(card => {
+          card.fetched = true
+        })
+        d.resolve(cards)
       }).catch(function(e) {
         log.trace(e)
         d.reject(e)
@@ -79,7 +92,9 @@ const Search = {
           log.trace(e)
           d.reject(e)
         } else {
-          d.resolve(content)
+          const card = correctCard(content)
+          console.log('gotCard:', card)
+          d.resolve(card)
         }
       })
       return d.promise

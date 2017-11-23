@@ -118,6 +118,7 @@ auth.user<template lang="html">
       self.modal.sender = self.auth.user.uid
       self.modal.callback = self.modalCallback
       self.$parent.$on('updateCards', self.updateCards)
+      self.$parent.$on('getCard', self.getCard)
       self.$parent.$on('setLoading', self.setLoading)
       self.$parent.$on('search', function(query) {
         self.search(self.$route.query.q)
@@ -147,7 +148,14 @@ auth.user<template lang="html">
         return cards
       },
       getCard: function(objectID) {
-        return this.allCards[objectID]
+        const self = this
+        const card = JSON.parse(JSON.stringify(self.allCards[objectID] || null))
+        // if (!card)
+        //   ExplaainSearch.getCard(objectID)
+        //   .then(card => {
+        //     self.allCards[objectID] = card
+        //   })
+        return card
       },
       setCard: function(objectID, card) {
         const self = this
@@ -257,7 +265,9 @@ auth.user<template lang="html">
           self.loading = false
           self.pingCards = []
           // self.cards = hits
-          self.mainCardList = hits.map(function(card) { return card.objectID })
+          self.mainCardList = hits.filter(card => {
+            return card.fetched !== true
+          }).map(function(card) { return card.objectID })
           self.noCardMessage = 'No cards found'
           hits.forEach(function(hit) {
             self.setCard(hit.objectID, hit)
@@ -281,7 +291,9 @@ auth.user<template lang="html">
           console.log(hits)
           self.pingCards = []
           // self.cards = hits
-          self.mainCardList = hits.map(function(card) { return card.objectID })
+          self.mainCardList = hits.filter(card => {
+            return card.fetched !== true
+          }).map(function(card) { return card.objectID })
           self.noCardMessage = 'No recent cards found'
           hits.forEach(function(hit) {
             self.setCard(hit.objectID, hit)
@@ -361,7 +373,7 @@ auth.user<template lang="html">
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.auth.user, '', 50)
+        ExplaainSearch.searchCards(self.auth.user, '', 1 /* 50 */) /* Have set this to be one at a time for now to avoid BAD THINGS */
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
