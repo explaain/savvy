@@ -24,6 +24,11 @@
     </div>
     <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
     <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
+    <a class="file" target="_blank" href="https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing">
+      <img src="https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300" alt="">
+      <h4>Marketing Strategy Q4</h4>
+      <h5>Google Doc</h5>
+    </a>
     <footer v-if="full">
       <div class="buttons" v-if="!editing">
         <ibutton class="left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
@@ -376,6 +381,30 @@ String.prototype.trunc = function(n, useWordBoundary) {
     }
     .extractedFrom a:hover {
       border-bottom: 4px solid rgb(255,211,35);
+    }
+    a.file {
+      display: block;
+      margin: 10px -10px;
+      padding: 10px;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+      -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+      background: #f0f0f0;
+      transition: background-color .3s;
+      color: inherit;
+      text-decoration: inherit;
+
+      &:hover {
+        background: #e0e0e0;
+      }
+
+      img {
+        height: 40px;
+        float: left;
+        margin: 0 10px;
+      }
+      h4, h5 {
+        margin: 5px;
+      }
     }
     footer {
       min-height: 40px;
