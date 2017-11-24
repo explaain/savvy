@@ -388,13 +388,13 @@ String.prototype.trunc = function(n, useWordBoundary) {
       padding: 10px;
       box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
       -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-      background: #f0f0f0;
+      background: #f5f5f5;
       transition: background-color .3s;
       color: inherit;
       text-decoration: inherit;
 
       &:hover {
-        background: #e0e0e0;
+        background: #eee;
       }
 
       img {
