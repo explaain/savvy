@@ -26,8 +26,8 @@
     <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     <a class="file" target="_blank" href="https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing">
       <img src="https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300" alt="">
-      <h4>Marketing Strategy Q4</h4>
-      <h5>Google Doc</h5>
+      <h4>Inbound Strategy Q4</h4>
+      <h5>📂 Marketing Processes</h5>
     </a>
     <footer v-if="full">
       <div class="buttons" v-if="!editing">
@@ -403,7 +403,10 @@ String.prototype.trunc = function(n, useWordBoundary) {
         margin: 0 10px;
       }
       h4, h5 {
-        margin: 5px;
+        margin: 3px;
+      }
+      h4 {
+        font-size: 1em;
       }
     }
     footer {
