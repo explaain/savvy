@@ -1,4 +1,4 @@
-auth.user<template lang="html">
+<template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
     <div uid="main" class="main">
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
@@ -9,7 +9,7 @@ auth.user<template lang="html">
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
         <ibutton icon="history" text="Recent" :click="searchRecent"></ibutton>
-        <ibutton icon="plus" text="Create" :click="beginCreate"></ibutton>
+        <ibutton icon="plus" text="Create" :click="createCard"></ibutton>
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
 
@@ -19,16 +19,16 @@ auth.user<template lang="html">
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-for="card in pingCards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-for="card in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-for="card in cards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-for="card in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
       </ul>
     </div>
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
-        <card v-for="card in popupCards" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" :data="card" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-for="card in popupCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
       </ul>
     </div>
   </div>
@@ -123,7 +123,6 @@ auth.user<template lang="html">
       self.$parent.$on('search', function(query) {
         self.search(self.$route.query.q)
       })
-      self.$parent.$on('reaction', self.reaction)
       // SavvyImport.beginImport()
       Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
       setTimeout(() => {
@@ -140,7 +139,7 @@ auth.user<template lang="html">
               description: chunk,
               extractedFrom: {
                 title: file.name,
-                url: file.webContentLink // Could be webViewLink?
+                url: file.webViewLink // Not yet working maybe?
               }
             })
           }
@@ -208,9 +207,20 @@ auth.user<template lang="html">
           self.closePopup()
         }
       },
-      openPopup: function(card) {
-        this.popupCards = [card]
-        clearTimeout(this.popupTimeout)
+      openPopup: function(c) {
+        ExplaainSearch.getCard(c.objectID)
+        .then(card => {
+          console.log('ccccc', c)
+          if (c._highlightResult) {
+            Object.keys(c._highlightResult).forEach(key => {
+              console.log(key)
+              card.content[key === 'content' ? 'description' : key] = c._highlightResult[key].value
+            })
+          }
+          console.log('card', card)
+          this.popupCards = [card]
+          clearTimeout(this.popupTimeout)
+        })
       },
       closePopup: function(instantly) {
         const self = this
@@ -323,7 +333,7 @@ auth.user<template lang="html">
       //   delete this.modal.objectID
       //   this.modal.text = ''
       // },
-      beginCreate: function () {
+      createCard: function () {
         const card = {
           // objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'storeMemory',
@@ -472,6 +482,8 @@ auth.user<template lang="html">
         }, duration)
       },
       reaction: function(data) {
+        console.log('Reacting!')
+        const self = this
         Mixpanel.track('User Reacted to Card', {
           organisationID: self.organisation.id,
           userID: self.auth.user.uid,
@@ -479,6 +491,7 @@ auth.user<template lang="html">
           cardID: data.card.objectID,
           description: data.card.content.description,
           listItems: data.card.content.listItems,
+          files: data.card.files.map(file => { return { id: file.objectID, title: file.title } }),
           searchQuery: self.query
         })
       }
@@ -550,13 +563,13 @@ auth.user<template lang="html">
   }
 
   .explorer {
-    .main {
+    > .main {
       // position: absolute;
       z-index: 1;
       pointer-events: all;
       background: $background;
     }
-    .popup {
+    > .popup {
       position: fixed;
       z-index: 100;
       top: 0;
@@ -623,7 +636,7 @@ auth.user<template lang="html">
   }
 
   .explorer.sidebar {
-    .main {
+    > .main {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -634,17 +647,17 @@ auth.user<template lang="html">
         margin: 10px 2px;
       }
     }
-    .popup {
+    > .popup {
       right: 50%;
       pointer-events: all;
     }
   }
 
   .explorer:not(.sidebar) {
-    .main {
+    > .main {
       // width: calc(100% - 20px);
     }
-    .popup.active {
+    > .popup.active {
       background: rgba(0,0,0,0.2);
     }
   }

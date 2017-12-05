@@ -562,6 +562,7 @@ const firebaseToAlgolia = function(data) {
   const card = {
     organisationID: getOrganisationFromRef(data._ref),
     objectID: getID(data._ref),
+    title: data.data().content.title,
     description: data.data().content.description,
     listItems: data.data().content.listItems,
     teams: data.data().teams.map(team => getID(team))

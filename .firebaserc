@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "savvy-96d8b"
+    "default": "savvy-96d8b",
+    "staging": "savvy-staging-5041f"
   }
 }

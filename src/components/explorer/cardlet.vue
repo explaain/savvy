@@ -2,7 +2,8 @@
   <div class="cardlet" @click.stop="cardletClick">
     <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton>
     <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton>
-    <editable :content="card.content.description" :editable="editing && editable" @update="card.content.description = $event"></editable>
+    <!-- <editable :content="card.content.description" :editable="editing && editable" @update="card.content.description = $event"></editable> -->
+    <editable-markdown :content="text" :editable="editing && editable" @update="card.content.description = $event" :class="{ greyed: greyed }"></editable-markdown>
   </div>
 </template>
 
@@ -11,6 +12,7 @@ import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
 import IconButton from './ibutton.vue'
 import Editable from './editable.vue'
+import EditableMarkdown from './editable-markdown.vue'
 
 export default {
   props: [
@@ -26,12 +28,28 @@ export default {
   computed: {
     cardletEditable: function() {
       return this.editing && this.editable
+    },
+    text: {
+      get: function() {
+        const text = this.card.content.description || ''
+        // if (!text || !text.length) console.log(text)
+        const snippetLength = 100
+        const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
+        return this.full ? text : text.trunc(snippetStart, snippetLength, true)
+      },
+      set: function(val) {
+        this.card.content.description = val
+      }
+    },
+    greyed: function() {
+      return this.text.indexOf('**') === -1
     }
   },
   components: {
     icon: Icon,
     ibutton: IconButton,
     editable: Editable,
+    EditableMarkdown
   },
   methods: {
     removeCardlet: function() {
@@ -46,7 +64,7 @@ export default {
 }
 </script>
 
-<style lang="css">
+<style lang="scss">
   .cardlet {
     margin: 0 8px -1px;
     min-height: unset;
@@ -56,6 +74,11 @@ export default {
     border: 1px solid #e4e4e4;
     box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
     -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+
+    p {
+      margin: 0;
+      padding: 0;
+    }
   }
   .cardlet:first-of-type {
     border-top-left-radius: 10px;
@@ -78,6 +101,9 @@ export default {
   }
   .remove {
     float: right;
+  }
+  .greyed {
+    // color: #999;
   }
 
 </style>

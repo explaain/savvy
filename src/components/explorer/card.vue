@@ -1,33 +1,36 @@
 <template lang="html">
-  <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click="cardClick" :class="{ highlight: card.highlight, editing: editing, updating: updating }">
+  <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
-    <div class="label"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type" v-if="full"><!--<icon name="clock-o"></icon> Memory--></span></div>
-    <div class="content">
-      <editable :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable>
-      <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
-        <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
-        <section class="buttons" v-if="editing">
-          <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
-          <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton>
-          <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
-        </section>
-      </draggable>
-      <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
-    </div>
-    <div v-if="full && card.pending" class="pending">
-      <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
-      <div v-if="showPending">
-        <b>Pending:</b><br>
-        {{card.pending[0].description}}
+    <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description">
+      <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
+      <div class="content" @click="linkClick">
+        <editable v-if="card.content.title || editing" :content="card.content.title || ''" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable>
+        <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable-markdown>
+        <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
+          <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
+          <section class="buttons" v-if="editing">
+            <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
+            <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton>
+            <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
+          </section>
+        </draggable>
+        <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
       </div>
+      <div v-if="full && card.pending" class="pending">
+        <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
+        <div v-if="showPending">
+          <b>Pending:</b><br>
+          {{card.pending[0].description}}
+        </div>
+      </div>
+      <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+      <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     </div>
-    <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
-    <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
-    <a class="file" target="_blank" href="https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing">
-      <img src="https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300" alt="">
-      <h4>Inbound Strategy Q4</h4>
-      <h5>📂 Marketing Processes</h5>
+    <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
+      <img :src="fileIcons[i]" alt="">
+      <h4><vue-markdown :watches="['card.files']" :source="file.title" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
+      <h5>📂 {{file.folder || 'Explaain Drive'}}</h5>
     </a>
     <footer v-if="full">
       <div class="buttons" v-if="!editing">
@@ -38,7 +41,7 @@
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
       </div>
-      <div class="buttons reaction" v-if="reacted">
+      <div class="buttons reaction" v-if="!reacted">
         <p>How well did this match what you were looking for?</p>
         <button class="" @click="reaction('great')">😍</button>
         <button class="" @click="reaction('ok')">😐</button>
@@ -55,41 +58,49 @@
 
 <script>
 import Vue from 'vue'
-// import log from 'loglevel'
+import log from 'loglevel'
+// import _ from 'lodash'
 import Clipboards from 'vue-clipboards'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
+import VueMarkdown from 'vue-markdown'
 import Draggable from 'vuedraggable'
 import IconButton from './ibutton.vue'
 import Cardlet from './cardlet.vue'
 import Editable from './editable.vue'
+import EditableMarkdown from './editable-markdown.vue'
 import Search from './search.vue'
 
 Vue.use(Clipboards)
 
 export default {
   props: [
+    'plugin',
     'data',
     'full',
     'allCards',
     'setCard',
     'auth',
     'pendingApproval',
+    'position',
+    'highlight'
   ],
   components: {
-    icon: Icon,
+    Icon,
+    VueMarkdown,
     ibutton: IconButton,
-    cardlet: Cardlet,
-    editable: Editable,
-    draggable: Draggable,
-    search: Search,
+    Cardlet,
+    Editable,
+    Draggable,
+    Search,
+    EditableMarkdown
   },
   data: function() {
     return {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: './static/images/clipboard.svg',
+      copyIcon: this.plugin ? './images/clipboard.svg' : './static/images/clipboard.svg',
       showListSearch: false,
       showPending: false,
       reacted: false
@@ -99,30 +110,61 @@ export default {
     updating: function() {
       return this.card.updating || false
     },
-    listCards: {
-      get: function() {
-        const self = this
-        return self.card.content.listItems ? self.card.content.listItems.map(function(objectID) {
-          return self.tempListCards[objectID] || JSON.parse(JSON.stringify(self.allCards[objectID] || null)) || { content: { description: 'Card Not Found' } }
-        }) : []
-      },
-      set: function(newValue) { // Doesn't get called for deep events which could cause issues
-        const self = this
-        self.card.content.listItems = newValue.map(function(listCard) {
-          self.tempListCards[listCard.objectID] = listCard // Is having this here good practice?
-          return listCard.objectID
-        })
-      }
+    listCards: function() {
+      const self = this
+      const listCards = (self.card._highlightResult && self.card._highlightResult.listCards) || self.card.listCards || []
+      return listCards.map((content, i) => {
+        return {
+          objectID: self.card.listItems[i],
+          content: {
+            description: content.value || content
+          }
+        }
+      })
     },
+    // listCards: {
+    //   get: function() {
+    //     const self = this
+    //     return self.card.content.listItems ? self.card.content.listItems.map(function(objectID) {
+    //       return self.tempListCards[objectID] || JSON.parse(JSON.stringify(self.allCards[objectID] || null)) || { content: { description: 'Card Not Found' } }
+    //     }) : []
+    //   },
+    //   set: function(newValue) { // Doesn't get called for deep events which could cause issues
+    //     const self = this
+    //     self.card.content.listItems = newValue.map(function(listCard) {
+    //       self.tempListCards[listCard.objectID] = listCard // Is having this here good practice?
+    //       return listCard.objectID
+    //     })
+    //   }
+    // },
     text: {
       get: function() {
         const text = this.card.content.description || ''
-        if (!text || !text.length) console.log(text)
-        return this.full ? text : text.trunc(100, true)
+        // if (!text || !text.length) console.log(text)
+        const snippetLength = 100
+        const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
+        return this.full ? text : text.trunc(snippetStart, snippetLength, true)
       },
       set: function(val) {
         this.card.content.description = val
       }
+    },
+    fileIcons: function() {
+      return this.card.files.map(file => {
+        switch (file.mimeType) {
+          case 'application/vnd.google-apps.document':
+          case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+            return 'https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300'
+          case 'application/vnd.google-apps.spreadsheet':
+          case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+            return 'http://icons.iconarchive.com/icons/dtafalonso/android-lollipop/512/Sheets-icon.png'
+          case 'application/vnd.google-apps.presentation':
+          case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+            return 'http://cliparting.com/wp-content/uploads/2017/07/Google-slides-icon-free-download-at-icons8-clipart.png'
+          default:
+            return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
+        }
+      })
     },
     fullText: function() {
       return this.text + this.listCards.map(function(listCard) {
@@ -130,8 +172,9 @@ export default {
       })
     },
     fontSize: function() {
-      const self = this
-      return 16 + 2 * Math.floor(Math.min(5, 100 / (self.text.length))) + 'px'
+      // const self = this
+      // return 16 + 2 * Math.floor(Math.min(5, 100 / (self.text.length))) + 'px'
+      return 16 + 'px'
     }
   },
   watch: {
@@ -152,6 +195,7 @@ export default {
     }
   },
   created: function() {
+    log.debug(this.data.objectID)
     this.syncData()
     if (this.data.newlyCreated)
       this.editing = true
@@ -159,6 +203,28 @@ export default {
   methods: {
     syncData: function() {
       this.card = JSON.parse(JSON.stringify(this.data))
+    },
+    linkClick: function(event) {
+      const self = this
+      if (event.srcElement.nodeName === 'A') {
+        event.stopPropagation()
+        var myRegexp = /\[.*?\]\((.*?)\)/g
+        var match = myRegexp.exec(self.text)
+        const toLayerKeys = []
+        while (match != null) {
+          toLayerKeys.push(match[1].replace('#', ''))
+          match = myRegexp.exec(self.text)
+        }
+        const data = {
+          type: 'link',
+          toURI: event.srcElement.hash.replace('#', ''),
+          fromPos: self.position,
+          // fromDOM: getCardDOM(triggerTarget),
+          toLayerKeys: toLayerKeys
+        }
+        data.toPos = [ data.fromPos[0] + 1, data.toLayerKeys.indexOf(data.toURI) ]
+        this.$emit('showCard', data)
+      }
     },
     cardMouseover: function() {
       const self = this
@@ -170,7 +236,18 @@ export default {
     },
     cardClick: function() {
       const self = this
+      console.log('cardClick')
       if (!this.editing) this.$emit('cardClick', self.card)
+
+      const data = {
+        type: 'select',
+        // toURI: event.srcElement.hash.replace('#', ''),
+        fromPos: self.position,
+        toPos: self.position,
+        // fromDOM: getCardDOM(triggerTarget),
+        // toLayerKeys: toLayerKeys
+      }
+      this.$emit('showCard', data)
     },
     cardletClick: function(card) {
       if (!this.editing) this.$emit('cardClick', card)
@@ -231,7 +308,6 @@ export default {
       this.$emit('copy')
     },
     reaction: function(reaction) {
-      console.log('REACTION!')
       const self = this
       self.$emit('reaction', { reaction: reaction, card: self.card })
       self.reacted = true
@@ -239,10 +315,10 @@ export default {
   }
 }
 
-String.prototype.trunc = function(n, useWordBoundary) {
-  if (this.length <= n) return this
-  var subString = this.substr(0, n - 1)
-  return (useWordBoundary
+String.prototype.trunc = function(start, length, useWordBoundary) {
+  if (this.length <= length) return this
+  var subString = this.substr(start, length - 1)
+  return (start > 0 ? '...' : '') + (useWordBoundary
     ? subString.substr(0, subString.lastIndexOf(' '))
     : subString) + '...'
 }
@@ -254,26 +330,30 @@ String.prototype.trunc = function(n, useWordBoundary) {
 
   .card {
     @extend .block;
-    border-radius: 6px;
     position: relative;
     display: inline-block;
     vertical-align: top;
     margin: 10px;
     width: calc(100% - 50px);
-    max-width: 320px;
-    padding: 10px 10px 20px 10px;
-    // border: 1px solid #ddd;
-    border-radius: 10px;
+    max-width: 380px;
+    padding: 0;
+    // border-radius: 10px;
     word-wrap: break-word;
     overflow-wrap: break-word;
     background: white;
     cursor: pointer;
+    overflow: hidden;
 
     &:hover {
       @include blockShadow(2);
 
       button.copy {
         display: block;
+        opacity: 0.5;
+
+        &:hover {
+          opacity: 1
+        }
       }
     }
 
@@ -283,10 +363,15 @@ String.prototype.trunc = function(n, useWordBoundary) {
     &.highlight:hover {
       box-shadow: 0px 0px 30px rgba(100, 84, 244, 0.8);
     }
+    &.full {
+      a.file {
+        margin-bottom: 10px;
+      }
+    }
+
     .updating {
       opacity: 0.5;
     }
-
     button {
       &.copy {
         display: none;
@@ -300,6 +385,9 @@ String.prototype.trunc = function(n, useWordBoundary) {
 
         &:hover {
           box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        }
+        img {
+          display: inline-block;
         }
       }
       &.left {
@@ -358,13 +446,52 @@ String.prototype.trunc = function(n, useWordBoundary) {
     p {
       white-space: pre-wrap;
     }
-    img {
-      max-width: calc(100% - 10px);
-      border-radius: 5px;
-    }
-    .content {
-      @extend .blockSpacing;
-      margin: 0 10px;
+    .main {
+      margin: 5px;
+      padding: 5px;
+
+      .content {
+        // @extend .blockSpacing;
+        // margin: 5px;
+        // padding: 5px;
+
+        em {
+          font-weight: 800;
+          font-style: normal;
+          color: #777;
+        }
+        p {
+          line-height: 1.5;
+        }
+        a {
+          text-decoration: inherit;
+          padding: 0 4px;
+          border: 2px solid $explaainLink;
+          background-color: $explaainLink;
+          color: inherit;
+          border-radius: 4px;
+
+          &:hover {
+            color: white;
+            border: 2px solid $savvy;
+            background-color: $savvy;
+
+            em {
+              color: white;
+            }
+          }
+        }
+        img {
+          max-width: calc(100% - 10px);
+          border-radius: 5px;
+        }
+        .title {
+          font-weight: bold;
+          font-size: 1.2em;
+          margin: 5px;
+          padding: 5px;
+        }
+      }
     }
     .list {
       margin: 20px 0 10px;
@@ -384,7 +511,7 @@ String.prototype.trunc = function(n, useWordBoundary) {
     }
     a.file {
       display: block;
-      margin: 10px -10px;
+      margin: 0;
       padding: 10px;
       box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
       -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
@@ -407,10 +534,20 @@ String.prototype.trunc = function(n, useWordBoundary) {
       }
       h4 {
         font-size: 1em;
+
+        em {
+          font-weight: 900;
+          color: #555;
+          font-style: normal;
+        }
+        p {
+          margin: 0;
+          padding: 0;
+        }
       }
     }
     footer {
-      min-height: 40px;
+      min-height: 60px;
     }
     .list section.buttons {
       margin: 10px 0;
@@ -419,15 +556,20 @@ String.prototype.trunc = function(n, useWordBoundary) {
       // position: absolute;
       bottom: 15px;
       left: 20px;
-      margin: 10px 20px -15px -8px;
+      margin: 10px 20px -15px 2px;
       padding: 6px 12px;
 
       &.reaction {
         position: relative;
+        left: auto;
+        margin: 30px 0 10px;
         text-align: center;
+        font-size: 14px;
 
         button {
-          margin: 10px;
+          margin: 5px 5px 10px;
+          font-size: 24px;
+          padding: 4px 10px 0;
         }
       }
     }
@@ -464,7 +606,7 @@ String.prototype.trunc = function(n, useWordBoundary) {
   }
   @media (min-width: 900px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
-      width: calc(33.3% - 50px);
+      width: calc(33.3% - 20px);
     }
   }
 

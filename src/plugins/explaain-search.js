@@ -11,6 +11,8 @@ const Search = {
       protocol: 'https:'
     })
     const AlgoliaIndex = AlgoliaClient.initIndex(options.index)
+    const AlgoliaChunkIndex = AlgoliaClient.initIndex('SavvyChunks')
+    const AlgoliaFileIndex = AlgoliaClient.initIndex('SavvyFiles')
 
     const advancedSearch = function(params) {
       const d = Q.defer()
@@ -21,6 +23,7 @@ const Search = {
           d.reject(e)
         } else {
           const cards = content.hits.map(card => correctCard(card))
+          AlgoliaFileIndex.search()
           fetchListItemCards(cards)
           .then(function(results) {
             console.log('results', results)
@@ -38,6 +41,78 @@ const Search = {
       return d.promise
     }
 
+    const advancedChunkSearch = function(params) {
+      const d = Q.defer()
+      var cards = []
+      delete params.filters
+      AlgoliaChunkIndex.clearCache()
+      AlgoliaChunkIndex.search(params, function(e, content) {
+        if (e) {
+          log.trace(e)
+          d.reject(e)
+        } else {
+          console.log(111)
+          console.log(content.hits)
+          cards = content.hits.map(card => correctChunkCard(card))
+          console.log(cards)
+          const fileIDs = []
+          cards.forEach(card => {
+            if (fileIDs.indexOf(card.fileID) === -1)
+              fileIDs.push(card.fileID)
+          })
+          console.log(fileIDs)
+          const filePromise = new Promise((resolve, reject) => {
+            AlgoliaFileIndex.getObjects(fileIDs, (err, content) => {
+              if (err)
+                reject(err)
+              else {
+                resolve(content)
+              }
+            })
+          })
+          filePromise
+          .then(function(files) {
+            console.log('files', files)
+            cards.map(card => {
+              card.files = files.results.filter(file => file.objectID === card.fileID)
+              card.files.forEach(file => {
+                file.title = card._highlightResult.fileTitle ? card._highlightResult.fileTitle.value : file.title
+              })
+              return card
+            })
+            cards = combineDuplicateContents(cards)
+            console.log('cards', cards)
+            d.resolve(cards)
+          })
+        }
+      })
+      return d.promise
+    }
+
+    const chunkGet = objectID => new Promise(function(resolve, reject) {
+      AlgoliaChunkIndex.getObject(objectID, (e, content) => {
+        if (e) {
+          log.trace(e)
+          reject(e)
+        } else {
+          const card = correctChunkCard(content)
+          const filePromise = new Promise((resolve, reject) => {
+            AlgoliaFileIndex.getObject(card.fileID, (err, content) => {
+              if (err)
+                reject(err)
+              else
+                resolve(content)
+            })
+          })
+          filePromise
+          .then(function(file) {
+            card.file = file
+            resolve(card)
+          })
+        }
+      })
+    })
+
     const searchCards = function(user, searchText, hitsPerPage) {
       const d = Q.defer()
       log.debug(user)
@@ -47,7 +122,7 @@ const Search = {
         hitsPerPage: hitsPerPage || null
       }
       log.trace(params)
-      advancedSearch(params)
+      advancedChunkSearch(params)
       .then(function(hits) {
         log.trace(hits)
         d.resolve(hits)
@@ -103,6 +178,7 @@ const Search = {
     const correctCard = function(card) {
       if (!card.content)
         card.content = {
+          title: card.title || '',
           description: card.description || card.sentence || card.text,
           listItems: card.listItems || [],
         }
@@ -110,6 +186,28 @@ const Search = {
       if (card.text) delete card.text
       if (card.description) delete card.description
       return card
+    }
+
+    const correctChunkCard = function(card) {
+      card.content = {
+        // title: card.title || '',
+        description: card._highlightResult ? card._highlightResult.content.value : card.content
+      }
+      return card
+    }
+
+    const combineDuplicateContents = cards => {
+      cards.forEach((card2, j) => {
+        cards.slice(0, j).forEach((card1, i) => {
+          if (card1 && card1.content.description === card2.content.description) {
+            if (card1.files.objectID !== card2.files.objectID)
+              card1.files = card1.files.concat(card2.files)
+            cards[j] = null
+          }
+        })
+      })
+      cards = cards.filter(card => card !== null)
+      return cards
     }
 
     const compoundSearch = function(user, searchText) {
@@ -217,6 +315,7 @@ const Search = {
     //   return d.promise
     // }
 
+    this.getCard = chunkGet
     this.advancedSearch = advancedSearch
     this.searchCards = searchCards
     this.compoundSearch = compoundSearch

@@ -310,6 +310,7 @@
       }
       > div > h1, .explorer > .main > .header h1 {
         font-size: 2.2em;
+        margin: 0.8em;
       }
       > div > h2, .explorer > .main > .header h2 {
         font-size: 1.2em;

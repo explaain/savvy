@@ -6,6 +6,7 @@ $grey: #777;
 $dashboardGrey: #888;
 $shadow: hsla(0, 0%, 63%, .95);
 $background: url("/static/images/background1.png"); // #f6f6f6;
+$explaainLink: #eee;
 
 @mixin blockShadow($n: 1, $color: $shadow) {
   box-shadow: 0 0 $n * 17px -5px $color;
@@ -35,7 +36,7 @@ $background: url("/static/images/background1.png"); // #f6f6f6;
   padding: 10px;
 }
 .blockStyle {
-  border-radius: 3px;
+  border-radius: 4px;
   background-color: #fff;
   @include blockShadow(1);
   transition: background-color .3s, box-shadow .3s, border .3s;

@@ -232,8 +232,8 @@ if (allowContinue) {
           case 'getPageResults':
             const user = Auth.getUser()
             user.idToken = user.auth.stsTokenManager.accessToken
-            // axios.post('http://localhost:5000/parse', {
-            axios.post('http://savvy-nlp--staging.herokuapp.com/parse', {
+            axios.post('http://localhost:5000/parse', {
+            // axios.post('http://savvy-nlp--staging.herokuapp.com/parse', {
               organisationID: organisation.id,
               user: user,
               content: request.data.pageText,
