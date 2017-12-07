@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
-    <div uid="main" class="main">
+    <div uid="main" class="main" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain}">
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header" v-if="!$route.query.q">
@@ -13,22 +13,23 @@
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
 
-      <ul class="cards">
+      <ul v-masonry transition-duration="0.3s" item-selector=".card" class="cards">
         <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-for="card in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-for="card in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
       </ul>
     </div>
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
-        <card v-for="card in popupCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].content.title || popupCards[popupCards.length - 2].content.description || '').substring(0, 30)}}...</span>"</div>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
       </ul>
     </div>
   </div>
@@ -44,6 +45,7 @@
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
   import Mixpanel from 'mixpanel-browser'
+  import {VueMasonryPlugin} from 'vue-masonry'
   import Card from './card.vue'
   import IconButton from './ibutton.vue'
   import Modal from './modal.vue'
@@ -79,7 +81,9 @@
         mainCardList: [],
         pingCards: [],
         popupCards: [],
+        popupClicked: false,
         popupTimeout: null,
+        overMain: false,
         loading: false,
         loader: -1,
         loaderCards: 0,
@@ -110,6 +114,7 @@
     },
     created: function () {
       const self = this
+      Vue.use(VueMasonryPlugin)
       Vue.use(ExplaainSearch, self.algoliaParams)
       self.authorParams.plugin = self.plugin
       Vue.use(ExplaainAuthor, self.authorParams)
@@ -166,9 +171,19 @@
         card[property] = value
         Vue.set(self.allCards, objectID, card) // Forces this to be watched - not yet working, at least with 'updating'
       },
+      cardMouseoverFromPopup: function(card) {
+        clearTimeout(this.popupTimeout)
+      },
       cardMouseover: function(card) {
+        clearTimeout(this.popupTimeout)
         if (this.sidebar) {
-          this.openPopup(card)
+          if (this.popupClicked)
+            this.popupTimeout = setTimeout(function () {
+              this.popupClicked = false
+              this.openPopup(card)
+            }, 1000)
+          else
+            this.openPopup(card)
         }
       },
       cardMouseout: function () {
@@ -176,20 +191,25 @@
           this.closePopup()
         }
       },
-      cardClick: function(card) {
+      cardClickFromPopup: function(card) {
+        this.cardClick(card, true)
+      },
+      cardClick: function(card, fromPopup) {
         const self = this
-        if (!this.sidebar) {
-          setTimeout(function () { // Is this timeout stil necessary?
-            self.openPopup(card)
-            Mixpanel.track('Card Clicked', {
-              organisationID: self.organisation.id,
-              userID: self.auth.user.uid,
-              cardID: card.objectID,
-              description: card.content.description,
-              listItems: card.content.listItems
-            })
-          }, 1)
-        }
+        setTimeout(function () { // Is this timeout stil necessary?
+          self.popupClicked = true
+          self.openPopup(card, fromPopup)
+          Mixpanel.track('Card Clicked', {
+            organisationID: self.organisation.id,
+            userID: self.auth.user.uid,
+            cardID: card.objectID,
+            description: card.content.description,
+            listItems: card.content.listItems
+          })
+        }, 1)
+      },
+      popupBack: function() {
+        this.popupCards.pop()
       },
       popupClickaway: function(event) {
         const self = this
@@ -207,24 +227,32 @@
           self.closePopup()
         }
       },
-      openPopup: function(c) {
+      openPopup: function(c, append) {
         ExplaainSearch.getCard(c.objectID)
         .then(card => {
           console.log('ccccc', c)
           if (c._highlightResult) {
             Object.keys(c._highlightResult).forEach(key => {
               console.log(key)
-              card.content[key === 'content' ? 'description' : key] = c._highlightResult[key].value
+              if (key === 'fileTitle' && card.files && card.files.length)
+                card.files[0].title = c._highlightResult[key].value
+              else
+                card.content[key === 'content' ? 'description' : key] = c._highlightResult[key].value
             })
           }
           console.log('card', card)
-          this.popupCards = [card]
+          if (append) {
+            if (!this.popupCards.length || this.popupCards[this.popupCards.length - 1].objectID !== c.objectID)
+              this.popupCards.push(card)
+          } else
+            this.popupCards = [card]
           clearTimeout(this.popupTimeout)
         })
       },
       closePopup: function(instantly) {
         const self = this
         self.editing = false // This should be for every card so currently does nothing
+        this.popupClicked = false
         clearTimeout(self.popupTimeout)
         if (this.sidebar && !instantly) {
           self.popupTimeout = setTimeout(function () {
@@ -568,6 +596,11 @@
       z-index: 1;
       pointer-events: all;
       background: $background;
+      overflow: hidden;
+
+      &.mouseover {
+        overflow: scroll;
+      }
     }
     > .popup {
       position: fixed;
@@ -576,13 +609,25 @@
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 180px 10px 60px;
+      padding: 180px 0 60px;
       text-align: center;
       pointer-events: none;
 
       &.active {
         pointer-events: all;
         overflow: scroll;
+      }
+
+      .popup-back {
+        text-align: left; width: 100%; max-width: 380px; margin: 5px auto;
+        cursor: pointer;
+
+        &:hover {
+          color: $savvy;
+        }
+        .name {
+          font-weight: bold;
+        }
       }
 
       .card {
@@ -624,7 +669,7 @@
 
   .cards {
     margin: 0;
-    padding: 0;
+    padding: 15px;
     text-align: center;
   }
 

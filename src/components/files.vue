@@ -4,8 +4,8 @@
       <ibutton icon="cloud" text="Connect to Your Files" :click="toggleConnect"></ibutton>
       <ibutton icon="refresh" text="Refresh" :click="getFiles"></ibutton>
       <form class="new-user" v-if="showingConnect">
-        <ibutton icon="google" text="Google Drive" :click="inviteNewUser"></ibutton>
-        <ibutton icon="glass" text="Confluence" :click="inviteNewUser"></ibutton>
+        <ibutton icon="google" text="Google Drive" :click="connectSource"></ibutton>
+        <ibutton icon="glass" text="Confluence"></ibutton>
       </form>
     </header>
     <div class="files">
@@ -22,12 +22,19 @@
 </template>
 
 <script>
+/* global Kloudless */
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
+  import axios from 'axios'
+  import '../scripts/kloudless.authenticator.js'
   import IconButton from './explorer/ibutton.vue'
 
   export default {
     name: 'Files',
+    props: [
+      'organisation',
+      'auth'
+    ],
     data () {
       return {
         files: [],
@@ -44,6 +51,28 @@
     methods: {
       toggleConnect: function() {
         this.showingConnect = !this.showingConnect
+      },
+      connectSource: function() {
+        const self = this
+        const params = {
+          'client_id': '245u1N7lejDTHB0VtkNReEIpUItQLEs67I20xL0XD5DN0QDj',
+          'scope': 'gdrive:normal.storage'
+        }
+        const auth = Kloudless.authenticator(null, params, self.addSource)
+        auth.launch()
+      },
+      addSource: function(result) {
+        console.log(result)
+        const self = this
+        axios.post('http://localhost:5000/add-source', {
+          // axios.post('http://savvy-nlp--staging.herokuapp.com/add-source', {
+          organisationID: self.organisation.id,
+          source: result
+        }).then(res => {
+          console.log(res.data.results)
+        }).catch(e => {
+          console.log(e)
+        })
       },
       getFiles: function() {
         // Dummy Data

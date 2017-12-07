@@ -33,14 +33,14 @@
       <h5>📂 {{file.folder || 'Explaain Drive'}}</h5>
     </a>
     <footer v-if="full">
-      <div class="buttons" v-if="!editing">
+      <!-- <div class="buttons" v-if="!editing">
         <ibutton class="left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
         <ibutton class="right edit" icon="pencil" text="Edit" :click="editCard"></ibutton>
       </div>
       <div class="buttons" v-if="editing">
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
-      </div>
+      </div> -->
       <div class="buttons reaction" v-if="!reacted">
         <p>How well did this match what you were looking for?</p>
         <button class="" @click="reaction('great')">😍</button>
@@ -333,7 +333,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     position: relative;
     display: inline-block;
     vertical-align: top;
-    margin: 10px;
+    margin: 10px calc(50% - 203px);
     width: calc(100% - 50px);
     max-width: 380px;
     padding: 0;
@@ -455,7 +455,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         // margin: 5px;
         // padding: 5px;
 
-        em {
+        strong {
           font-weight: 800;
           font-style: normal;
           color: #777;
@@ -476,7 +476,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
             border: 2px solid $savvy;
             background-color: $savvy;
 
-            em {
+            strong {
               color: white;
             }
           }
@@ -535,7 +535,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       h4 {
         font-size: 1em;
 
-        em {
+        strong {
           font-weight: 900;
           color: #555;
           font-style: normal;
@@ -594,6 +594,9 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       color: #aaa;
     }
   }
+  .sidebar .card {
+    margin: 10px;
+  }
   // .card.shadow {
   //   width: calc(100% - 70px);
   //   box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
@@ -601,12 +604,18 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
   // }
   @media (min-width: 600px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
-      width: calc(50% - 50px);
+      width: calc(50% - 35px);
+      margin: 10px;
     }
   }
   @media (min-width: 900px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
-      width: calc(33.3% - 20px);
+      width: calc(33.3% - 40px);
+    }
+  }
+  @media (min-width: 1450px) {
+    .explorer:not(.sidebar) .main .card:not(.cardlet) {
+      width: calc(25% - 30px);
     }
   }
 

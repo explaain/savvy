@@ -32,8 +32,7 @@ export default {
     text: {
       get: function() {
         const text = this.card.content.description || ''
-        // if (!text || !text.length) console.log(text)
-        const snippetLength = 100
+        const snippetLength = 60
         const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
         return this.full ? text : text.trunc(snippetStart, snippetLength, true)
       },

@@ -83,6 +83,8 @@ const Search = {
             cards = combineDuplicateContents(cards)
             console.log('cards', cards)
             d.resolve(cards)
+          }).catch(err => {
+            d.reject(err)
           })
         }
       })
@@ -108,6 +110,8 @@ const Search = {
           .then(function(file) {
             card.file = file
             resolve(card)
+          }).catch(err => {
+            reject(err)
           })
         }
       })

@@ -41,9 +41,9 @@
       <!-- <router-link id="teams" class="option" to="/teams">
         👥&nbsp;&nbsp; Teams
       </router-link> -->
-      <!-- <router-link id="files" class="option" to="/files">
+      <router-link id="files" class="option" to="/files">
         🗂&nbsp;&nbsp; Files
-      </router-link> -->
+      </router-link>
       <!-- <router-link id="help" class="option" to="/help">
         💡&nbsp;&nbsp; Help
       </router-link> -->
