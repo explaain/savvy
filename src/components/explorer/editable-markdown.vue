@@ -1,5 +1,5 @@
 <template lang="html">
-  <vue-markdown :class="{ editable: !(editable === false) }" :contenteditable="!(editable === false)" @input="update" :watches="['content']" :source="content" :linkify="false" :emoji="false" :anchorAttributes="{target: '_blank'}"></vue-markdown>
+  <vue-markdown :class="{ editable: !(editable === false) }" :contenteditable="!(editable === false)" @input="update" :watches="['content']" :source="content" :linkify="false" :emoji="false"></vue-markdown>
 </template>
 
 <script type="text/javascript">

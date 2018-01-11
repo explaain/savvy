@@ -1,5 +1,5 @@
 <template lang="html">
-  <button type="button" @click="clickEvent">
+  <button type="button" @click.stop="clickEvent"> <!-- Have added "stop" so that the popup doesn't close - hopefully this won't have any knock-on effects -->
     <icon :name="icon"></icon>
     {{text}}
   </button>

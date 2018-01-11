@@ -53,14 +53,9 @@
 </template>
 
 <script>
-import Vue from 'vue'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
-import axios from 'axios'
-import VueAxios from 'vue-axios'
 import Chart from './charts/chart'
-
-Vue.use(VueAxios, axios)
 
 export default {
   name: 'Analytics',

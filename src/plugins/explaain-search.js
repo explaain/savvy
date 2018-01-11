@@ -1,18 +1,217 @@
 import log from 'loglevel'
 import Q from 'q'
+import axios from 'axios'
 import Algolia from 'algoliasearch'
 
 log.setLevel('debug')
 
 const Search = {
-  install(Vue, options) {
-    log.trace(options)
-    const AlgoliaClient = Algolia(options.appID, options.apiKey, {
+  install(Vue, algoliaParams, userAuth) {
+    log.debug('algoliaParams', algoliaParams)
+    log.debug('userAuth', userAuth)
+    const AlgoliaClient = Algolia(algoliaParams.appID, userAuth.data.algoliaKey, {
       protocol: 'https:'
     })
-    const AlgoliaIndex = AlgoliaClient.initIndex(options.index)
-    const AlgoliaChunkIndex = AlgoliaClient.initIndex('SavvyChunks')
-    const AlgoliaFileIndex = AlgoliaClient.initIndex('SavvyFiles')
+    const AlgoliaIndex = AlgoliaClient.initIndex(algoliaParams.index)
+    const AlgoliaChunkIndex = AlgoliaClient.initIndex(userAuth.organisation.id + '__Cards')
+    var AlgoliaFileIndex
+    if (!algoliaParams.noFiles)
+      AlgoliaFileIndex = AlgoliaClient.initIndex(userAuth.organisation.id + '__Files')
+
+    // Need to sort this out - only for Explaain currently and probably shouldn't be here!
+    const saveCard = card => new Promise(function(resolve, reject) {
+      console.log('saveCard', card)
+      const cardToSave = JSON.parse(JSON.stringify(card))
+      const keys = ['description', 'title', 'listCards']
+      keys.forEach(key => {
+        if (cardToSave.content[key]) cardToSave[key] = cardToSave.content[key]
+      })
+      delete cardToSave.content
+      AlgoliaChunkIndex.addObject(cardToSave, function(err, content) {
+        if (err) {
+          console.log('Error - Card Not Saved!', err)
+          reject(err)
+        } else {
+          console.log('Card Saved:', content)
+          resolve(content)
+        }
+      })
+    })
+
+    /**
+    * Gets a card, generating and saving it if necessary
+    *
+    * @param  {Object} data - Should have one of [objectID, sameAs, query]
+    * @param  {String} [data.objectID]
+    * @param  {Array} [data.sameAs]
+    * @param  {String} [data.query]
+    * @param  {String} [data.refresh] - Forces refresh if present and true
+    * @return {Object} card
+    */
+    async function yieldCard(data) {
+      console.log('yieldCard', data)
+      var card, retrievedCard
+
+      // Get unique identifyer - objectID, if not then sameAs
+      if (!data.objectID && (!data.sameAs || !data.sameAs[0]) && data.query) {
+        card = await generateFromQuery(data.query)
+        data.sameAs = card.sameAs
+      }
+
+      // Check db, retrieve saved entry (if any)
+      if (data.objectID) retrievedCard = await getCard(data.objectID)
+      else if (data.sameAs && data.sameAs[0]) retrievedCard = await getFromSameAs(data.sameAs)
+
+      if (!retrievedCard || data.refresh) {
+        // If no saved entry, or refresh == true, make sure we've got a generated version, then save it
+        if (!card) card = await generateFromSameAs(data.sameAs)
+        if (retrievedCard) card.objectID = retrievedCard.objectID
+        const savedCard = await saveCard(card)
+        if (!card.objectID) card.objectID = savedCard.objectID
+      } else {
+        // Otherwise, set card to retrieved data
+        card = correctChunkCard(retrievedCard)
+      }
+
+      // Return card
+      console.log('Returning card:', card)
+      return card
+    }
+
+    const generateFromQuery = (query, refresh) => new Promise((resolve, reject) => {
+      console.log('generateFromQuery', query, refresh)
+      axios.get('http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryString=' + encodeURIComponent(query))
+      .then(res => {
+        console.log(res)
+        const card = dbpediaQueryToCards(res.data.results[0])
+        console.log('Generated from Query: ', card)
+        resolve(card)
+      }).catch(err => {
+        console.log(err)
+        reject(err)
+      })
+    })
+
+    const generateFromSameAs = sameAs => new Promise(function(resolve, reject) {
+      console.log('generateFromSameAs', sameAs)
+      const data = []
+      sameAs.forEach(uri => {
+        const type = getSameAsType(uri)
+        switch (type) {
+          case 'dbpedia':
+            data.push({
+              type: 'dbpedia',
+              uri: getDbpediaFetchURI(uri)
+            })
+            break
+        }
+      })
+      Promise.all(data.map(source => axios.get(source.uri)))
+      .then(res => {
+        console.log(res)
+        const cardsToCombine = res.map((sourceResults, i) => {
+          console.log(sourceResults, i)
+          return sourceDataToCard(data[i].type, sourceResults)
+        })
+        const card = combineLinkedData(cardsToCombine) // Should be better than just taking the first one!
+        console.log('Generated from Query: ', card)
+        resolve(card)
+      }).catch(err => {
+        console.log(err)
+        reject(err)
+      })
+    })
+
+    const getFromSameAs = sameAs => new Promise(function(resolve, reject) {
+      console.log('getFromSameAs', sameAs)
+      const filters = 'sameAs: "' + sameAs.join('" OR sameAs: "') + '"'
+      searchCards(userAuth, '', null, false, { filters: filters })
+      .then(hits => {
+        if (hits && hits.length) {
+          console.log('Found from sameAs:', hits[0])
+          resolve(hits[0])
+        } else {
+          console.log('Not found from sameAs.')
+          resolve(null)
+        }
+      })
+    })
+
+    const getSameAsType = uri => {
+      if (uri.indexOf('dbpedia') > -1) { // Not very safe!
+        return 'dbpedia'
+      } else {
+        return null
+      }
+    }
+
+    const sourceDataToCard = (type, sourceData) => {
+      console.log('sourceDataToCard', type, sourceData)
+      var card
+      switch (type) {
+        case 'dbpedia':
+          card = dbpediaToCards(sourceData)
+      }
+      return card
+    }
+
+    const combineLinkedData = data => {
+      return data[0]  // @TODO
+    }
+
+    const getDbpediaFetchURI = uri => {
+      return uri.replace('http://dbpedia.org/resource/', 'http://dbpedia.org/data/') + '.json'
+    }
+
+    const dbpediaQueryToCards = data => {
+      console.log('dbpediaQueryToCards', data)
+      console.log(data.description)
+      console.log(data.description.replace(/ *\([^)]*\) */g, ' '))
+      return {
+        content: {
+          title: data.label,
+          description: data.description.replace(/ *\([^)]*\) */g, ' ').replace(/ \./g, '.')
+        },
+        sameAs: [
+          data.uri
+        ],
+        sources: [
+          {
+            type: 'source',
+            name: 'Wikipedia',
+            url: (data.url || data.uri).replace('http://dbpedia.org/resource/', 'http://en.wikipedia.org/wiki/')
+          }
+        ]
+      }
+    }
+
+    const dbpediaToCards = data => {
+      console.log('dbpediaToCards', data)
+      const resource = data.request.responseURL.replace('http://dbpedia.org/data', 'http://dbpedia.org/resource').replace('.json', '')
+      console.log('resource', resource)
+      const title = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#label'].filter(lang => lang.lang === 'en')[0].value
+      console.log('title', title)
+      const description = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'en')[0].value
+      console.log('description', description)
+      const wiki = data.data[resource]['http://xmlns.com/foaf/0.1/isPrimaryTopicOf'][0].value
+      console.log('description', description)
+      return {
+        content: {
+          title: title,
+          description: description
+        },
+        sameAs: [
+          resource
+        ],
+        sources: [
+          {
+            type: 'source',
+            name: 'Wikipedia',
+            url: wiki
+          }
+        ]
+      }
+    }
 
     const advancedSearch = function(params) {
       const d = Q.defer()
@@ -41,11 +240,15 @@ const Search = {
       return d.promise
     }
 
-    const advancedChunkSearch = function(params) {
+    const advancedChunkSearch = function(params, showHighlights) {
       const d = Q.defer()
       var cards = []
-      delete params.filters
+      if (params.filters.indexOf('teams: ') > -1)
+        delete params.filters // Removing teams as a filter for now
+      if (params.hitsPerPage === null)
+        delete params.hitsPerPage
       AlgoliaChunkIndex.clearCache()
+      console.log(params)
       AlgoliaChunkIndex.search(params, function(e, content) {
         if (e) {
           log.trace(e)
@@ -53,33 +256,41 @@ const Search = {
         } else {
           console.log(111)
           console.log(content.hits)
-          cards = content.hits.map(card => correctChunkCard(card))
+          cards = content.hits.map(card => correctChunkCard(card, showHighlights))
           console.log(cards)
           const fileIDs = []
           cards.forEach(card => {
-            if (fileIDs.indexOf(card.fileID) === -1)
+            if (card.fileID && fileIDs.indexOf(card.fileID) === -1)
               fileIDs.push(card.fileID)
           })
           console.log(fileIDs)
           const filePromise = new Promise((resolve, reject) => {
-            AlgoliaFileIndex.getObjects(fileIDs, (err, content) => {
-              if (err)
-                reject(err)
-              else {
-                resolve(content)
-              }
-            })
+            if (fileIDs.length) {
+              AlgoliaFileIndex.getObjects(fileIDs, (err, content) => {
+                if (err)
+                  reject(err)
+                else {
+                  resolve(content)
+                }
+              })
+            } else {
+              resolve()
+            }
           })
+          console.log(111)
           filePromise
           .then(function(files) {
-            console.log('files', files)
-            cards.map(card => {
-              card.files = files.results.filter(file => file.objectID === card.fileID)
-              card.files.forEach(file => {
-                file.title = card._highlightResult.fileTitle ? card._highlightResult.fileTitle.value : file.title
+            if (files) {
+              console.log('files', files)
+              cards.map(card => {
+                card.files = files.results.filter(file => file.objectID === card.fileID)
+                card.files.forEach(file => {
+                  file.title = card._highlightResult.fileTitle && showHighlights ? card._highlightResult.fileTitle.value : file.title
+                })
+                return card
               })
-              return card
-            })
+            }
+            console.log(222)
             cards = combineDuplicateContents(cards)
             console.log('cards', cards)
             d.resolve(cards)
@@ -91,24 +302,29 @@ const Search = {
       return d.promise
     }
 
-    const chunkGet = objectID => new Promise(function(resolve, reject) {
+    const chunkGet = (objectID, showHighlights) => new Promise(function(resolve, reject) {
       AlgoliaChunkIndex.getObject(objectID, (e, content) => {
         if (e) {
           log.trace(e)
           reject(e)
         } else {
-          const card = correctChunkCard(content)
+          const card = correctChunkCard(content, showHighlights)
           const filePromise = new Promise((resolve, reject) => {
-            AlgoliaFileIndex.getObject(card.fileID, (err, content) => {
-              if (err)
-                reject(err)
-              else
-                resolve(content)
-            })
+            if (card.fileID) {
+              AlgoliaFileIndex.getObject(card.fileID, (err, content) => {
+                if (err)
+                  reject(err)
+                else
+                  resolve(content)
+              })
+            } else {
+              resolve()
+            }
           })
           filePromise
           .then(function(file) {
-            card.file = file
+            if (file)
+              card.file = file
             resolve(card)
           }).catch(err => {
             reject(err)
@@ -117,16 +333,16 @@ const Search = {
       })
     })
 
-    const searchCards = function(user, searchText, hitsPerPage) {
+    const searchCards = function(user, searchText, hitsPerPage, showHighlights, extraParams) {
       const d = Q.defer()
-      log.debug(user)
-      const params = {
+      var params = {
         query: searchText,
         filters: 'teams: "' + user.data.teams.map(team => { return team.team }).join('" OR teams: "') + '"',
         hitsPerPage: hitsPerPage || null
       }
-      log.trace(params)
-      advancedChunkSearch(params)
+      if (extraParams)
+        params = Object.assign(params, extraParams)
+      advancedChunkSearch(params, showHighlights)
       .then(function(hits) {
         log.trace(hits)
         d.resolve(hits)
@@ -164,26 +380,25 @@ const Search = {
       return d.promise
     }
 
-    const getCard = function(objectID) {
-      const d = Q.defer()
-      AlgoliaIndex.getObject(objectID, function(e, content) {
+    const getCard = objectID => new Promise((resolve, reject) => {
+      console.log('getCard', objectID)
+      AlgoliaIndex.getObject(objectID, (e, content) => {
         if (e) {
           log.trace(e)
-          d.reject(e)
+          reject(e)
         } else {
           const card = correctCard(content)
           console.log('gotCard:', card)
-          d.resolve(card)
+          resolve(card)
         }
       })
-      return d.promise
-    }
+    })
 
     const correctCard = function(card) {
-      if (!card.content)
+      if (!card.content || !card.content.description)
         card.content = {
           title: card.title || '',
-          description: card.description || card.sentence || card.text,
+          description: card.description || card.sentence || card.text || card.content,
           listItems: card.listItems || [],
         }
       if (card.sentence) delete card.sentence
@@ -192,10 +407,10 @@ const Search = {
       return card
     }
 
-    const correctChunkCard = function(card) {
+    const correctChunkCard = function(card, showHighlights) {
       card.content = {
-        // title: card.title || '',
-        description: card._highlightResult ? card._highlightResult.content.value : card.content
+        title: showHighlights && card._highlightResult && card._highlightResult.title ? card._highlightResult.title.value : card.title || '',
+        description: (showHighlights && card._highlightResult && card._highlightResult.description ? card._highlightResult.description.value : card.description) || (showHighlights && card._highlightResult && card._highlightResult.content ? card._highlightResult.content.value : card.content) || ''
       }
       return card
     }
@@ -324,6 +539,9 @@ const Search = {
     this.searchCards = searchCards
     this.compoundSearch = compoundSearch
     this.removeDuplicates = removeDuplicates
+    this.saveCard = saveCard
+    this.correctCard = correctCard
+    this.yieldCard = yieldCard
   }
 
 }

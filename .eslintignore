@@ -1,4 +1,5 @@
 build/*.js
+buildExplaain/*.js
 config/*.js
 src/scripts/*.js
 functions/*.js

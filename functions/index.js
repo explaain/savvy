@@ -144,11 +144,13 @@ exports.addUserToOrganisation = functions.https.onRequest((req, res) => {
     }).catch(e => {
       getInvite(data.organisationID, data.verifiedEmails[0]) // For now just takes the first one
       .then(snapshot => {
-        console.log(snapshot.data)
-        console.log(smartIdObj(snapshot.data))
+        console.log(11, snapshot.data)
+        console.log(22, smartIdObj(snapshot.data))
         user = snapshot.data
+        console.log(33)
         return setUser(data.organisationID, data.userID, user)
       }).then(snapshot => {
+        console.log(44)
         res.status(200).json(smartIdObj(user))
       }).catch(e => { console.log('📛 Error!', e); res.status(500).send(e) })
     })
@@ -449,9 +451,9 @@ const getID = function(snapshot) {
 const setDoc = function(organisationID, collectionID, docID, data) {
   return new Promise((resolve, reject) => {
     const ref = getDocRef(organisationID, collectionID, docID)
-    ref.set(data).then(doc => {
-      console.log('🔍 Object from ' + collectionID + ' found:', /* ref, */ doc.data())
-      resolve({ data: doc.data(), ref: ref, objectID: docID })
+    ref.set(data).then(res => {
+      console.log('🔍 Object from ' + collectionID + ' created:', /* ref, */ res)
+      resolve({ data: res, ref: ref, objectID: docID })
     }).catch(function(err) {
       const e = { status: 500, message: '📛 Error setting object ' + docID + ' from ' + collectionID + ': ' + (err.message || err) }
       console.log('📛 Error!', e)

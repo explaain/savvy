@@ -26,7 +26,7 @@
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
   import axios from 'axios'
-  import '../scripts/kloudless.authenticator.js'
+  // import '../scripts/kloudless.authenticator.js'
   import IconButton from './explorer/ibutton.vue'
 
   export default {
@@ -38,7 +38,8 @@
     data () {
       return {
         files: [],
-        showingConnect: false
+        showingConnect: false,
+        addingSource: false
       }
     },
     components: {
@@ -64,15 +65,20 @@
       addSource: function(result) {
         console.log(result)
         const self = this
-        axios.post('http://localhost:5000/add-source', {
-          // axios.post('http://savvy-nlp--staging.herokuapp.com/add-source', {
-          organisationID: self.organisation.id,
-          source: result
-        }).then(res => {
-          console.log(res.data.results)
-        }).catch(e => {
-          console.log(e)
-        })
+        if (!self.addingSource) {
+          self.addingSource = true
+          axios.post('http://localhost:5000/add-source', {
+          // axios.post('//savvy-nlp--staging.herokuapp.com/add-source', {
+            organisationID: self.organisation.id,
+            source: result
+          }).then(res => {
+            self.addingSource = false
+            console.log(res.data.results)
+          }).catch(e => {
+            self.addingSource = false
+            console.log(e)
+          })
+        }
       },
       getFiles: function() {
         // Dummy Data

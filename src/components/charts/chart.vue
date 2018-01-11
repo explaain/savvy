@@ -41,7 +41,7 @@ export default {
   computed: {
     computedQuery: function() {
       const result = this.query
-      result.organisationID = this.base.organisation.id || 'explaain'
+      result.organisationID = this.base.organisation.id  // || 'explaain'
       if (!result.end) result.end = this.todayFormatted
       return result
     },

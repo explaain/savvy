@@ -5,11 +5,12 @@
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header" v-if="!$route.query.q">
         <slot name="header"></slot>
-        <input class="search" autofocus type="text" placeholder="Search for cards..." v-model="query" @keyup.enter="search"><br>
+        <input class="search" autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search"><br>
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
         <ibutton icon="history" text="Recent" :click="searchRecent"></ibutton>
-        <ibutton icon="plus" text="Create" :click="createCard"></ibutton>
+        <ibutton icon="random" text="Random" :click="searchRandom"></ibutton>
+        <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
 
@@ -72,7 +73,8 @@
       'algoliaParams',
       'authorParams',
       'sidebar',
-      'local'
+      'local',
+      'testing'
     ],
     data () {
       return {
@@ -82,7 +84,8 @@
         pingCards: [],
         popupCards: [],
         popupClicked: false,
-        popupTimeout: null,
+        popupShowTimeout: null,
+        popupCloseTimeout: null,
         overMain: false,
         loading: false,
         loader: -1,
@@ -110,12 +113,20 @@
         return self.mainCardList ? self.mainCardList.map(function(objectID) {
           return self.allCards[objectID] || { content: { description: 'Card Not Found' } }
         }) : []
+      },
+      searchPlaceholder: function() {
+        return document.documentElement.clientWidth > 600 ? 'Find anything (like holiday pay, product specs and emojis)...' : 'Find anything...'
       }
     },
     created: function () {
+      console.log('Starting Explorer')
       const self = this
       Vue.use(VueMasonryPlugin)
-      Vue.use(ExplaainSearch, self.algoliaParams)
+      console.log('self.algoliaParams', self.algoliaParams)
+      console.log('self.auth', self.auth)
+      console.log('self.auth.user', self.auth.user)
+      self.auth.user.organisation = self.organisation
+      Vue.use(ExplaainSearch, self.algoliaParams, self.auth.user)
       self.authorParams.plugin = self.plugin
       Vue.use(ExplaainAuthor, self.authorParams)
 
@@ -125,13 +136,21 @@
       self.$parent.$on('updateCards', self.updateCards)
       self.$parent.$on('getCard', self.getCard)
       self.$parent.$on('setLoading', self.setLoading)
+      self.$parent.$on('closingDrawer', function() {
+        self.closePopup(true)
+      })
       self.$parent.$on('search', function(query) {
         self.search(self.$route.query.q)
+        console.log('SEARCHSEARCHSEARCHSEARCHSEARCHSEARCHSEARCHSEARCHSEARCH')
       })
       // SavvyImport.beginImport()
       Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
       setTimeout(() => {
-        self.search(self.$route.query.q)
+        console.log('SEARCHSEARCHSEARCHSEARCHSEARCH')
+        if (self.$route.query.q)
+          self.search(self.$route.query.q)
+        else
+          self.searchRandom()
       }, 200)
     },
     methods: {
@@ -172,18 +191,21 @@
         Vue.set(self.allCards, objectID, card) // Forces this to be watched - not yet working, at least with 'updating'
       },
       cardMouseoverFromPopup: function(card) {
-        clearTimeout(this.popupTimeout)
+        clearTimeout(this.popupCloseTimeout)
+        clearTimeout(this.popupShowTimeout)
       },
       cardMouseover: function(card) {
-        clearTimeout(this.popupTimeout)
-        if (this.sidebar) {
-          if (this.popupClicked)
-            this.popupTimeout = setTimeout(function () {
-              this.popupClicked = false
-              this.openPopup(card)
+        const self = this
+        if (self.sidebar) {
+          clearTimeout(self.popupCloseTimeout)
+          clearTimeout(self.popupShowTimeout)
+          if (self.popupClicked)
+            self.popupShowTimeout = setTimeout(function () {
+              self.popupClicked = false
+              self.openPopup(card)
             }, 1000)
           else
-            this.openPopup(card)
+            self.openPopup(card)
         }
       },
       cardMouseout: function () {
@@ -228,6 +250,7 @@
         }
       },
       openPopup: function(c, append) {
+        console.log('openPopup')
         ExplaainSearch.getCard(c.objectID)
         .then(card => {
           console.log('ccccc', c)
@@ -246,39 +269,43 @@
               this.popupCards.push(card)
           } else
             this.popupCards = [card]
-          clearTimeout(this.popupTimeout)
         })
+        clearTimeout(this.popupCloseTimeout)
       },
       closePopup: function(instantly) {
+        console.log('closePopup')
         const self = this
         self.editing = false // This should be for every card so currently does nothing
-        this.popupClicked = false
-        clearTimeout(self.popupTimeout)
+        clearTimeout(self.popupCloseTimeout)
         if (this.sidebar && !instantly) {
-          self.popupTimeout = setTimeout(function () {
+          self.popupCloseTimeout = setTimeout(function () {
+            self.popupClicked = false
             self.popupCards = []
           }, 1000)
         } else {
+          self.popupClicked = false
           this.popupCards = []
         }
       },
       updateCards: function(data) {
         const self = this
         self.loading = false
-        self.pingCards = data.cards.pings.map(card => card.card)
-        log.debug(1, self.pingCards)
-        // self.cards = data.cards.memories
-        self.mainCardList = data.cards.memories.map(function(card) { return card.card.objectID })
-        log.debug(2, self.mainCardList)
-        // Need to add to allCards?
-        data.cards.memories.forEach(card => {
-          self.allCards[card.card.objectID] = card.card
-        })
-        if (data.cards.hits) data.cards.hits.forEach(card => {
-          self.allCards[card.card.objectID] = card.card
-        })
-        log.debug(3, self.allCards)
-        self.noCardMessage = data.noCardMessage
+        if (data && data.cards) {
+          self.pingCards = data.cards.pings.map(card => card.card)
+          log.debug(1, self.pingCards)
+          // self.cards = data.cards.memories
+          self.mainCardList = data.cards.memories.map(function(card) { return card.card.objectID })
+          log.debug(2, self.mainCardList)
+          // Need to add to allCards?
+          data.cards.memories.forEach(card => {
+            self.allCards[card.card.objectID] = card.card
+          })
+          if (data.cards.hits) data.cards.hits.forEach(card => {
+            self.allCards[card.card.objectID] = card.card
+          })
+          log.debug(3, self.allCards)
+          self.noCardMessage = data.noCardMessage
+        }
       },
       setLoading: function () {
         this.loading = true
@@ -286,12 +313,13 @@
         this.mainCardList = []
       },
       search: function (optionalQuery) {
+        console.log('SEARCHSEARCHSEARCH')
         const self = this
         self.setLoading()
         if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
         const query = self.query
-        ExplaainSearch.searchCards(self.auth.user, self.query, 12)
+        ExplaainSearch.searchCards(self.auth.user, self.query, 12, true)
         .then(function(hits) {
           Mixpanel.track('Searched', {
             organisationID: self.organisation.id,
@@ -318,7 +346,7 @@
         const self = this
         self.setLoading()
         log.debug(self.auth)
-        ExplaainSearch.searchCards(self.auth.user, '', 24)
+        ExplaainSearch.searchCards(self.auth.user, '', 24, false)
         .then(function(hits) {
           Mixpanel.track('Recently Searched', {
             organisationID: self.organisation.id,
@@ -327,6 +355,41 @@
           self.loading = false
           console.log('hits')
           console.log(hits)
+          self.pingCards = []
+          // self.cards = hits
+          self.mainCardList = hits.filter(card => {
+            return card.fetched !== true
+          }).map(function(card) { return card.objectID })
+          self.noCardMessage = 'No recent cards found'
+          hits.forEach(function(hit) {
+            self.setCard(hit.objectID, hit)
+          })
+        }).catch(function(err) {
+          console.log(err)
+        })
+      },
+      searchRandom: function () {
+        const self = this
+        self.setLoading()
+        log.debug(self.auth)
+        var hits = []
+        const randomQuery = () => Math.random().toString(36).substring(7).substring(0, 1)
+        const params = {
+          restrictSearchableAttributes: [
+            'title',
+            'content'
+          ]
+        }
+        const promises = Array.apply(null, Array(4)).map(x => ExplaainSearch.searchCards(self.auth.user, randomQuery(), 10, false, params))
+        console.log(promises)
+        Promise.all(promises)
+        .then(function(samplesOfHits) {
+          hits = [].concat.apply([], samplesOfHits)
+          hits = hits.filter(hit => hit.content.description.length > 10)
+          shuffleArray(hits)
+          console.log('hits')
+          console.log(hits)
+          self.loading = false
           self.pingCards = []
           // self.cards = hits
           self.mainCardList = hits.filter(card => {
@@ -411,7 +474,7 @@
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.auth.user, '', 1 /* 50 */) /* Have set this to be one at a time for now to avoid BAD THINGS */
+        ExplaainSearch.searchCards(self.auth.user, '', 1 /* 50 */, false) /* Have set this to be one at a time for now to avoid BAD THINGS */
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -469,7 +532,8 @@
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.auth.user)
-        data.user = { uid: self.auth.user.uid, idToken: /* self.auth.user.getAccessToken() || */ self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
+        // Should use self.auth.user.refreshUserToken() here!
+        data.user = { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() || self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
         data.organisationID = self.organisation.id
         ExplaainAuthor.saveCard(data)
         .then(function(res) {
@@ -523,6 +587,19 @@
           searchQuery: self.query
         })
       }
+    }
+  }
+
+  /**
+   * Randomize array element order in-place.
+   * Using Durstenfeld shuffle algorithm.
+   */
+  function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1))
+      var temp = array[i]
+      array[i] = array[j]
+      array[j] = temp
     }
   }
 </script>

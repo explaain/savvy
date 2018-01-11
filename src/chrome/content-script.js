@@ -74,7 +74,7 @@ const getPageResults = () => new Promise((resolve, reject) => {
     return sendToFrame({ action: 'updatePageResults', data: { pageResults: response } })
   }).then(res => {
     log.debug(res)
-    if (res.data.pageResults.pings.length & (pingStatus === 'unborn' || pingStatus === 'showing'))
+    if (res.data && res.data.pageResults && res.data.pageResults.pings && res.data.pageResults.pings.length & (pingStatus === 'unborn' || pingStatus === 'showing'))
       showPingAlert(res.data.pageResults.pings.length)
     resolve()
   }).catch(reject)
@@ -226,6 +226,7 @@ const openDrawer = e => {
 const closeDrawer = e => {
   if (drawer.getAttribute('data-opened') === 'true' && (!e || !e.dealtWith)) {
     console.log('Closing Drawer')
+    sendToFrame({ action: 'closingDrawer' })
     drawer.style.right = '-' + drawer.style.width
     drawer.style.boxShadow = 'none'
     drawer.setAttribute('data-opened', 'false')

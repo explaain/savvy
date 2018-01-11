@@ -1,19 +1,17 @@
 /* global chrome */
 /* global firebase */
-import Vue from 'vue'
+// import Vue from 'vue'
 import log from 'loglevel'
 import axios from 'axios'
 import Auth from '../plugins/auth2' // Need to concolidate this + 'auth'
-import CardDetection from '../plugins/card-detection.js'
-import ExplaainSearch from '../plugins/explaain-search.js'
+// import CardDetection from '../plugins/card-detection.js'
+// import ExplaainSearch from '../plugins/explaain-search.js'
 
 log.setLevel('debug')
 
 console.log('STARTING')
 
-const organisation = {
-  name: 'explaain'
-}
+var organisation = {}
 
 var config = {
   apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
@@ -35,13 +33,13 @@ try {
 // var UserCards = []
 // var LastRefresh = 0
 
-const algoliaParams = { // Need to get these from Firebase!
-  appID: 'I2VKMNNAXI',
-  apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-  index: 'Savvy'
-}
-Vue.use(ExplaainSearch, algoliaParams)
-Vue.use(CardDetection, { algolia: algoliaParams })
+// const algoliaParams = { // Need to get these from Firebase!
+//   // appID: 'I2VKMNNAXI',
+//   // apiKey: '2b8406f84cd4cc507da173032c46ee7b',
+//   // index: 'Savvy'
+// }
+// Vue.use(ExplaainSearch, algoliaParams)
+// Vue.use(CardDetection, { algolia: algoliaParams })
 
 // const getCurrentPageResults = (data) => new Promise((resolve, reject) => {
 //   checkRefresh()
@@ -150,7 +148,7 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
       firebase.auth().signInWithCredential(credential)
       .then(res => {
         console.log('Auth starting')
-        Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: { id: 'explaain' }, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
+        Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: organisation, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
         console.log('Auth done')
         resolve(res)
       }).catch(error => {
@@ -177,6 +175,24 @@ const startSignIn = () => new Promise((resolve, reject) => {
     console.log('yo')
     startAuth(true)
     .then(res => {
+      resolve(res)
+    }).catch(e => {
+      console.log(e)
+      reject(e)
+    })
+  } else {
+    console.log('hi')
+    resolve()
+    // firebase.auth().signOut()
+  }
+})
+const selectOrganisation = organisationID => new Promise((resolve, reject) => {
+  console.log('yoyoyo')
+  if (firebase.auth().currentUser) {
+    console.log('yoyo')
+    Auth.selectOrganisation({id: organisationID})
+    .then(res => {
+      console.log(res)
       resolve(res)
     }).catch(e => {
       console.log(e)
@@ -229,25 +245,44 @@ if (allowContinue) {
               sendResponse({ error: e })
             })
             break
-          case 'getPageResults':
-            const user = Auth.getUser()
-            user.idToken = user.auth.stsTokenManager.accessToken
-            axios.post('http://localhost:5000/parse', {
-            // axios.post('http://savvy-nlp--staging.herokuapp.com/parse', {
-              organisationID: organisation.id,
-              user: user,
-              content: request.data.pageText,
-              url: request.data.url
-            })
-            // CardDetection.getPageResults(organisation.id, Auth.getUser(), request.data)
+          case 'selectOrganisation':
+            console.log('Selecting Organisation!')
+            selectOrganisation(request.data.organisationID)
             .then(res => {
-              log.debug(res.data.results)
-              return sendResponse(res.data.results)
+              organisation = {
+                id: request.data.organisationID
+              }
+              res.organisation = organisation
+              sendResponse(res)
             })
             .catch(e => {
               log.error(e)
               sendResponse({ error: e })
             })
+            break
+          case 'getPageResults':
+            // Stopping this from happening for now as we're not including this feature currently!
+            if (false) { // eslint-disable-line
+              const user = Auth.getUser()
+              axios.post('http://localhost:5000/parse', {
+              // axios.post('//savvy-nlp--staging.herokuapp.com/parse', {
+                organisationID: organisation.id,
+                user: user,
+                content: request.data.pageText,
+                url: request.data.url
+              })
+              // CardDetection.getPageResults(organisation.id, Auth.getUser(), request.data)
+              .then(res => {
+                log.debug(res.data.results)
+                return sendResponse(res.data.results)
+              })
+              .catch(e => {
+                log.error(e)
+                sendResponse({ error: e })
+              })
+            } else {
+              sendResponse({ error: 'The "getPageResults" feature is turned off!' })
+            }
             break
           // case 'getCurrentPageResults':
           //   getCurrentPageResults(request.data)

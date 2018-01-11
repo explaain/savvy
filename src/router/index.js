@@ -25,9 +25,9 @@ var firebaseConfig = {
   messagingSenderId: '400087312665'
 }
 var algoliaParams = { // Need to fetch these from app.vue to avoid duplication!
-  appID: 'I2VKMNNAXI',
-  apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-  index: 'Savvy'
+  appID: 'D3AE3TSULH',
+  // apiKey: '2b8406f84cd4cc507da173032c46ee7b',
+  // index: 'Savvy'
 }
 var authorParams = {
   // url: 'https://forget-me-not--app.herokuapp.com/api/memories',

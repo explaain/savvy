@@ -1,6 +1,6 @@
 <template>
   <div class="join">
-    <span v-if="noOrg"><input autofocus type="text" v-model="organisationID" placeholder="myorg">.heysavvy.com</span>
+    <span v-if="noOrg"><input autofocus type="text" v-model="organisationID" placeholder="myorg" @keyup.enter="joinOrg">.heysavvy.com</span>
     <button :disabled="auth.authState == 'pending'" @click="joinOrg">Join <b>{{organisationID}}</b> organisation</button>
     <div class="error" v-if="errorMessage.length">{{errorMessage}}</div>
   </div>

@@ -7,6 +7,8 @@ $dashboardGrey: #888;
 $shadow: hsla(0, 0%, 63%, .95);
 $background: url("/static/images/background1.png"); // #f6f6f6;
 $explaainLink: #eee;
+$radiusSmall: 4px;
+$radiusLarge: 6px;
 
 @mixin blockShadow($n: 1, $color: $shadow) {
   box-shadow: 0 0 $n * 17px -5px $color;
@@ -52,12 +54,25 @@ $explaainLink: #eee;
 .emoji {
   font-size: 0.8em;
 }
+body {
+  @extend .defaultFont;
+}
 button, input, textarea, select {
   @extend .block;
   @extend .defaultFont;
   border: 1px solid #ddd;
   padding: 10px 20px;
   border-radius: 6px;
+
+  &.highlight {
+    background: $savvy;
+    color: white;
+    @include blockShadow(1, $savvy);
+
+    &:hover {
+      @include blockShadow(2, $savvy);
+    }
+  }
 }
 button {
   cursor: pointer;

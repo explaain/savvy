@@ -2,12 +2,19 @@
 
 <template lang="html">
   <div class="app" :class="{'sidebar-true': sidebar}">
-    <explorer :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth">
+    <section class="chooseOrg" v-if="!organisation || !organisation.id">
+      <h3>Hello! 👋 Please enter your organisation:</h3>
+      <input v-model="organisationID" type="text" placeholder="organisation_id" @keyup.enter="selectOrganisation">.heysavvy.com
+      <button class="highlight" type="button" name="button" @click="selectOrganisation">Select Organisation</button>
+      <div class="spinner-div" v-if="orgLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
+      <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
+    </section>
+    <explorer v-if="organisation && organisation.id" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth" :testing="testing">
       <div class="chrome-header" slot="header">
         <!-- <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button> -->
         <img src="/images/logo.png" class="savvy-logo" alt="">
       </div>
-      <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton>
+      <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
   </div>
 </template>
@@ -16,6 +23,8 @@
   /* global chrome */
   import log from 'loglevel'
   // import Vue from 'vue'
+  import 'vue-awesome/icons'
+  import Icon from 'vue-awesome/components/Icon.vue'
   import Explorer from '../explorer/explorer.vue'
   import IconButton from '../explorer/ibutton.vue'
 
@@ -24,7 +33,8 @@
   export default {
     props: [
       'sidebar',
-      'local'
+      'local',
+      'testing'
     ],
     data() {
       return {
@@ -36,6 +46,9 @@
             data: {}
           }
         },
+        organisationID: '',
+        orgLoading: false,
+        errorMessage: '',
         signInButton: {
           text: 'Sign in with Google',
           disabled: true
@@ -49,9 +62,7 @@
           messagingSenderId: '400087312665'
         },
         algoliaParams: { // Need to fetch these from app.vue to avoid duplication!
-          appID: 'I2VKMNNAXI',
-          apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-          index: 'Savvy'
+          appID: 'D3AE3TSULH'
         },
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
@@ -67,16 +78,38 @@
       }
     },
     components: {
-      explorer: Explorer,
+      Explorer,
+      Icon,
       ibutton: IconButton
     },
     created: function(a) {
       const self = this
       // self.getUser()
-      if (self.plugin)
-        self.fromPage()
-
-      self.organisation = { id: 'explaain' } // Should get this from subdomain
+      if (self.testing) {
+        self.organisation = {
+          id: 'explaain'
+        }
+        self.auth = {
+          user: {
+            auth: {},
+            data: {
+              algoliaKey: '88bd0a77faff65d4ace510fbf172a4e1',
+              name: {
+                first: 'Jeremy',
+                last: 'Evans'
+              },
+              teams: []
+            }
+          },
+          uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2'
+        }
+      } else if (self.plugin) {
+        this.refreshUser()
+        .then(res => {
+          console.log('self.organisation:', self.organisation)
+        })
+        // self.fromPage()
+      }
 
       // Vue.use(Auth, {
       //   organisation: self.organisation,
@@ -97,17 +130,44 @@
             log.info(self.pageCards)
             self.updateCards(self.pageCards, 'No cards found from page')
             break
+          case 'closingDrawer':
+            log.info('[frame] Closing Drawer!')
+            window.scrollTo(0, 0)
+            self.$emit('closingDrawer')
+            break
         }
       }, false)
       self.refreshUser()
     },
     methods: {
+      selectOrganisation: function() {
+        const self = this
+        return new Promise(function(resolve, reject) {
+          self.orgLoading = true
+          chrome.runtime.sendMessage({action: 'selectOrganisation', data: { organisationID: self.organisationID }}, response => {
+            console.log('response', response)
+            self.orgLoading = false
+            if (response.error) {
+              self.errorMessage = 'Sorry, we can\'t sign you in to that organisation!'
+              reject(response.error)
+            } else {
+              self.organisation = response.organisation
+              self.algoliaParams.apiKey = response.data.algoliaKey
+              self.algoliaParams.organisationID = response.organisation.id
+              self.auth.user = response // Includes organisation
+              resolve(response)
+            }
+          })
+        })
+      },
       refreshUser: function() {
         const self = this
         return new Promise(function(resolve, reject) {
           chrome.runtime.sendMessage({action: 'getUser'}, response => {
             console.log('response user', response)
             self.auth.user = response
+            if (response.organisation)
+              self.organisation = response.organisation
             resolve(response)
           })
         })
@@ -199,9 +259,38 @@
     margin: 40px 0 -10px;
   }
 
-  .chrome-login {
+  section.chooseOrg {
     display: block;
-    margin: 30px auto -10px;
+    margin: 120px auto -10px;
+
+    input {
+      max-width: 300px;
+    }
+    p.error {
+      color: red;
+    }
+  }
+  .sidebar-true section.chooseOrg {
+    width: 50%;
+    position: absolute;
+    right: 0
+  }
+  .spinner-div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 100px 0;
+    font-size: 80px;
+    background: rgba(255,255,255,0.5);
+
+    svg {
+      width: auto;
+      height: 1em;
+      /* The following two lines make this work in Safari */
+      max-width: 100%;
+      max-height: 100%;
+    }
   }
 
 </style>

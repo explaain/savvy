@@ -29,7 +29,8 @@ const Auth = {
       console.log('🔐  Toggling Sign in')
       if (!firebase.auth().currentUser) {
         var provider = new firebase.auth.GoogleAuthProvider()
-        provider.addScope('https://www.googleapis.com/auth/plus.login')
+        provider.addScope('https://www.googleapis.com/auth/userinfo.email')
+        provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
         firebase.auth().signInWithRedirect(provider)
       } else {
         firebase.auth().signOut()
@@ -89,7 +90,7 @@ const Auth = {
             uid: userAuth.uid,
             lastRefreshed: new Date(),
             auth: userAuth,
-            getAccessToken: () => userAuth.stsTokenManager.accessToken
+            getAccessToken: getAccessToken
           }
           if (self.organisation.id) {
             getUserData(self.organisation.id, userAuth)
@@ -121,8 +122,8 @@ const Auth = {
 
     const refreshUserToken = () => {
       return new Promise(function(resolve, reject) {
-        firebase.auth().currentUser.getToken(/* forceRefresh */ true).then((idToken) => {
-          console.log('New User Token!', idToken)
+        firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then((idToken) => {
+          console.log('New User Token!')
           resolve(idToken)
         }).catch((error) => {
           console.log(error)
@@ -133,9 +134,12 @@ const Auth = {
 
     const getUserData = function (organisationID, userAuth) {
       return new Promise(function(resolve, reject) {
-        axios.post(options.getUserDataUrl, {
-          organisationID: organisationID,
-          user: { uid: userAuth.uid, idToken: userAuth.stsTokenManager.accessToken }
+        self.refreshUserToken()
+        .then(idToken => {
+          return axios.post(options.getUserDataUrl, {
+            organisationID: organisationID,
+            user: { uid: userAuth.uid, idToken: idToken }
+          })
         }).then((response) => {
           console.log('📪  The response data!', response.data)
           resolve(response.data)
@@ -160,7 +164,7 @@ const Auth = {
           console.log(e)
         })
       }
-      user.getAccessToken = () => user.auth.stsTokenManager.accessToken
+      user.getAccessToken = getAccessToken
       self.user = user
       return user
     }
@@ -170,10 +174,13 @@ const Auth = {
       console.log('Joining Org!')
       try {
         updateAuthState('pending')
-        axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
-          organisationID: self.organisation.id,
-          user: { uid: self.user.auth.uid, idToken: self.user.auth.stsTokenManager.accessToken },
-          verifiedEmails: [ self.user.auth.email ] // Only working for Google Auth for now
+        self.refreshUserToken()
+        .then(idToken => {
+          return axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
+            organisationID: self.organisation.id,
+            user: { uid: self.user.auth.uid, idToken: idToken },
+            verifiedEmails: [ self.user.auth.email ] // Only working for Google Auth for now
+          })
         }).then(res => {
           console.log(res)
           self.user.data = res.data
@@ -189,8 +196,13 @@ const Auth = {
       }
     })
 
+    const getAccessToken = () => {
+      return self.user.auth.stsTokenManager.accessToken
+    }
+
     this.toggleSignIn = toggleSignIn
     this.initApp = initApp
+    this.getAccessToken = getAccessToken
     this.refreshUserToken = refreshUserToken
     this.getUser = getUser
     this.joinOrg = joinOrg

@@ -61,9 +61,19 @@ export default {
     },
   }
 }
+
+String.prototype.trunc = function(start, length, useWordBoundary) {
+  if (this.length <= length) return this
+  var subString = this.substr(start, length - 1)
+  return (start > 0 ? '...' : '') + (useWordBoundary
+    ? subString.substr(0, subString.lastIndexOf(' '))
+    : subString) + '...'
+}
 </script>
 
 <style lang="scss">
+  @import '../../styles/main.scss';
+
   .cardlet {
     margin: 0 8px -1px;
     min-height: unset;
@@ -80,12 +90,12 @@ export default {
     }
   }
   .cardlet:first-of-type {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+    border-top-left-radius: $radiusLarge;
+    border-top-right-radius: $radiusLarge;
   }
   .cardlet:last-of-type {
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: $radiusLarge;
+    border-bottom-right-radius: $radiusLarge;
   }
   .card:not(.editing) .cardlet:hover, .card .cardlet.non-editable:hover {
     background: #eee;

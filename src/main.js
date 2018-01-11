@@ -21,9 +21,9 @@ const GlobalConfig = { // eslint-disable-line
     messagingSenderId: '400087312665'
   },
   algolia: {
-    appID: 'I2VKMNNAXI',
-    apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-    index: 'Savvy'
+    // appID: 'I2VKMNNAXI',
+    // apiKey: '2b8406f84cd4cc507da173032c46ee7b',
+    // index: 'Savvy'
   },
   author: {
     url: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/memories',
@@ -33,7 +33,7 @@ const GlobalConfig = { // eslint-disable-line
 
   },
   auth: {
-
+    // Hi
   }
 }
 
@@ -42,9 +42,11 @@ new Vue({
   el: '#dashboard',
   router,
   render: h => h(Dashboard, {
+  // render: h => h(Popup, {
     props: {
       GlobalConfig: GlobalConfig,
-      sidebar: true
+      sidebar: true,
+      // testing: true
     }
   })
 })

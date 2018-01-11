@@ -9,12 +9,13 @@
     "live": "BACKEND_URL=forget-me-not--staging.herokuapp.com node build/dev-server.js",
     "start": "npm run dev",
     "build": "node build/build.js",
-    "build-explaain": "node build/buildExplaain.js",
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
-    "firebase-test": "node functions/test.js"
+    "firebase-test": "node functions/test.js",
+    "dev-explaain": "NODE_ENV=123 BACKEND_URL=localhost:3000 node buildExplaain/dev-server.js",
+    "build-explaain": "node buildExplaain/build.js"
   },
   "dependencies": {
     "algoliasearch": "^3.24.3",

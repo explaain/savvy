@@ -105,7 +105,8 @@
         const self = this
         axios.post('http://localhost:3000/api/user/getTeams', {
           organisationID: self.organisation.id,
-          user: { uid: self.auth.user.uid, idToken: self.auth.user.auth.stsTokenManager.accessToken }
+          // Should use self.auth.user.refreshUserToken() here!
+          user: { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() }
         }).then(res => {
           console.log(res)
         }).catch(e => {

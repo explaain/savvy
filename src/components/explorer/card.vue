@@ -1,11 +1,11 @@
 <template lang="html">
-  <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
+  <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description">
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <div class="content" @click="linkClick">
-        <editable v-if="card.content.title || editing" :content="card.content.title || ''" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable>
+        <editable-markdown v-if="card.content.title || editing" :content="card.content.title" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable-markdown>
         <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable-markdown>
         <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
           <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
@@ -30,9 +30,12 @@
     <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <img :src="fileIcons[i]" alt="">
       <h4><vue-markdown :watches="['card.files']" :source="file.title" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
-      <h5>📂 {{file.folder || 'Explaain Drive'}}</h5>
+      <h5>📂 {{file.folder || auth && auth.user && auth.user.data && auth.user.data.organisation && auth.user.data.organisation.id + ' Drive' || 'Explaain Drive'}}</h5>
     </a>
     <footer v-if="full">
+      <div class="sources" v-if="card.sources && card.sources.length">
+        Source{{card.sources.length > 1 ? 's' : ''}}: <a v-for="source in card.sources" :href="source.url" target="_blank">{{source.name}}</a>
+      </div>
       <!-- <div class="buttons" v-if="!editing">
         <ibutton class="left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
         <ibutton class="right edit" icon="pencil" text="Edit" :click="editCard"></ibutton>
@@ -41,16 +44,16 @@
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
       </div> -->
-      <div class="buttons reaction" v-if="!reacted">
+      <div class="buttons reaction" v-if="!reacted && !explaain">
         <p>How well did this match what you were looking for?</p>
         <button class="" @click="reaction('great')">😍</button>
         <button class="" @click="reaction('ok')">😐</button>
         <button class="" @click="reaction('bad')">😢</button>
       </div>
-      <div class="buttons reaction" v-if="reacted">
+      <div class="buttons reaction" v-if="reacted && !explaain">
         <p>Thanks for letting us know! Our AI uses this feedback to get smarter 😎</p>
       </div>
-      <div class="footer-logo">Savvy</div>
+      <div class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
     </footer>
     <ibutton class="approve" v-if="pendingApproval" icon="check" text="Approve"></ibutton>
   </div>
@@ -75,6 +78,7 @@ Vue.use(Clipboards)
 
 export default {
   props: [
+    'explaain',
     'plugin',
     'data',
     'full',
@@ -161,6 +165,13 @@ export default {
           case 'application/vnd.google-apps.presentation':
           case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
             return 'http://cliparting.com/wp-content/uploads/2017/07/Google-slides-icon-free-download-at-icons8-clipart.png'
+          case 'application/pdf':
+            return 'https://cdn1.iconfinder.com/data/icons/adobe-acrobat-pdf/154/adobe-acrobat-pdf-file-512.png'
+          case 'image/png':
+          case 'image/jpg':
+          case 'image/jpeg':
+          case 'image/gif':
+            return 'https://cdn3.iconfinder.com/data/icons/faticons/32/picture-01-512.png'
           default:
             return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
         }
@@ -216,10 +227,9 @@ export default {
           match = myRegexp.exec(self.text)
         }
         const data = {
-          type: 'link',
+          // type: 'link',
           toURI: event.srcElement.hash.replace('#', ''),
           fromPos: self.position,
-          // fromDOM: getCardDOM(triggerTarget),
           toLayerKeys: toLayerKeys
         }
         data.toPos = [ data.fromPos[0] + 1, data.toLayerKeys.indexOf(data.toURI) ]
@@ -240,7 +250,7 @@ export default {
       if (!this.editing) this.$emit('cardClick', self.card)
 
       const data = {
-        type: 'select',
+        // type: 'select',
         // toURI: event.srcElement.hash.replace('#', ''),
         fromPos: self.position,
         toPos: self.position,
@@ -436,9 +446,16 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       margin: 0 4px -1px 0px;
       padding: 0;
     }
-    p, img, .editable {
+    p, img, ol, .editable {
       margin: 5px;
       padding: 5px;
+    }
+    ol {
+      padding-left: 20px;
+
+      li {
+        padding-left: 5px;
+      }
     }
     .editing.editable.editing {
       margin: 3px;
@@ -488,8 +505,6 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         .title {
           font-weight: bold;
           font-size: 1.2em;
-          margin: 5px;
-          padding: 5px;
         }
       }
     }
@@ -547,31 +562,50 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
     footer {
-      min-height: 60px;
+      margin: 5px;
+      padding: 5px;
+      min-height: 20px;
+
+      .sources {
+        margin: 5px;
+        padding: 5px;
+        font-size: 14px;
+
+        a {
+          color: inherit;
+          text-decoration: none;
+          font-weight: bold;
+
+          &:hover {
+            color: $savvy;
+          }
+        }
+      }
+
+      .buttons {
+        // position: absolute;
+        bottom: 15px;
+        left: 20px;
+        margin: 10px 20px -15px 2px;
+        padding: 6px 12px;
+
+        &.reaction {
+          position: relative;
+          left: auto;
+          margin: 30px 0 10px;
+          text-align: center;
+          font-size: 14px;
+
+          button {
+            margin: 5px 5px 10px;
+            font-size: 24px;
+            padding: 4px 10px 0;
+          }
+        }
+      }
     }
     .list section.buttons {
       margin: 10px 0;
-    }
-    footer .buttons {
-      // position: absolute;
-      bottom: 15px;
-      left: 20px;
-      margin: 10px 20px -15px 2px;
-      padding: 6px 12px;
-
-      &.reaction {
-        position: relative;
-        left: auto;
-        margin: 30px 0 10px;
-        text-align: center;
-        font-size: 14px;
-
-        button {
-          margin: 5px 5px 10px;
-          font-size: 24px;
-          padding: 4px 10px 0;
-        }
-      }
     }
     .buttons button {
       padding: 6px 12px;
@@ -587,8 +621,10 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
     .footer-logo {
       position: absolute;
-      bottom: 15px;
-      right: 20px;
+      margin: 5px;
+      padding: 5px;
+      bottom: 10px;
+      right: 15px;
       font-size: 14px;
       font-weight: bold;
       color: #aaa;

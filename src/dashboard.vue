@@ -32,17 +32,17 @@
       </router-link> -->
       <router-link id="analytics" class="option" to="/analytics">
         <!-- <icon name="line-chart"></icon> -->
-        📈&nbsp;&nbsp; Analytics
+        📈&nbsp;&nbsp; Analytics <span style="color: #bb6666; font-size: 14px; font-style: italic;">&nbsp;&nbsp;Coming Soon</span>
       </router-link>
       <router-link id="card-manager" class="option" to="/card-manager">
         <!-- <icon name="clone"></icon> -->
-        🗳&nbsp;&nbsp; Card Manager
+        🗳&nbsp;&nbsp; Card Manager <span style="color: #bb6666; font-size: 14px; font-style: italic;">&nbsp;&nbsp;Coming Soon</span>
       </router-link>
       <!-- <router-link id="teams" class="option" to="/teams">
         👥&nbsp;&nbsp; Teams
       </router-link> -->
       <router-link id="files" class="option" to="/files">
-        🗂&nbsp;&nbsp; Files
+        🗂&nbsp;&nbsp; Files <span style="color: #bb6666; font-size: 14px; font-style: italic;">&nbsp;&nbsp;Coming Soon</span>
       </router-link>
       <!-- <router-link id="help" class="option" to="/help">
         💡&nbsp;&nbsp; Help
@@ -89,7 +89,8 @@
           user: {
             uid: '',
             auth: {},
-            data: {}
+            data: {},
+            organisation: this.organisation,
           },
           authState: Auth.authState || 'pending',
           toggleSignIn: this.toggleSignIn,
@@ -180,7 +181,7 @@
   body {
     @extend .defaultFont;
     margin: 0;
-    background: $background;
+    // background: $background;
   }
 
   #dashboard {
@@ -224,13 +225,13 @@
   .sidebar {
     @extend .block;
     padding: 0 0 20px;
-    width: 20%;
+    width: 25%;
     flex: 0 0 auto;
 
     &.disabled .option {
       cursor: default;
       color: #aaa;
-      filter: grayscale(100%);
+      // filter: grayscale(100%);
 
       &:hover {
         background: #fafafa;

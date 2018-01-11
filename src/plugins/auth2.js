@@ -94,17 +94,21 @@ const Auth = {
           lastRefreshed: new Date(),
           auth: userAuth
         }
+        self.user.getAccessToken = self.getAccessToken
+        self.user.refreshUserToken = self.refreshUserToken
         console.log(self.organisation)
 
-        self.getUserData(self.organisation.id, userAuth)
-        .then(userData => {
-          self.user.data = userData
-          console.log('👤  User data!', userData)
-          self.user.getAccessToken = () => userAuth.stsTokenManager.accessToken
+        if (self.organisation && self.organisation.id)
+          self.getUserData(self.organisation.id, userAuth)
+          .then(userData => {
+            self.user.data = userData
+            console.log('👤  User data!', userData)
+            stateChangeCallback(self.user)
+          }).catch(e => {
+            console.log(e)
+          })
+        else
           stateChangeCallback(self.user)
-        }).catch(e => {
-          console.log(e)
-        })
       } else {
         console.log('Calling back but with no user')
         stateChangeCallback()
@@ -113,8 +117,8 @@ const Auth = {
   },
   refreshUserToken: function() {
     return new Promise(function(resolve, reject) {
-      firebase.auth().currentUser.getToken(/* forceRefresh */ true).then((idToken) => {
-        console.log('New User Token!', idToken)
+      firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then((idToken) => {
+        console.log('New User Token!')
         resolve(idToken)
       }).catch((error) => {
         console.log(error)
@@ -123,11 +127,15 @@ const Auth = {
     })
   },
   getUserData: function (organisationID, userAuth) {
+    const self = this
     return new Promise(function(resolve, reject) {
       console.log('globalOptions', globalOptions)
-      axios.post(globalOptions.getUserDataUrl, { // Need to allow this in manifest.json
-        organisationID: organisationID,
-        user: { uid: userAuth.uid, idToken: userAuth.stsTokenManager.accessToken }
+      self.refreshUserToken()
+      .then(idToken => {
+        return axios.post(globalOptions.getUserDataUrl, { // Need to allow this in manifest.json
+          organisationID: organisationID,
+          user: { uid: userAuth.uid, idToken: idToken }
+        })
       }).then((response) => {
         console.log('📪  The response data!', response.data)
         resolve(response.data)
@@ -153,8 +161,28 @@ const Auth = {
         console.log(e)
       })
     }
-    user.getAccessToken = () => user.auth.stsTokenManager.accessToken
+    user.getAccessToken = self.getAccessToken
+    user.refreshUserToken = self.refreshUserToken
     return user
+  },
+  selectOrganisation: function(organisation) {
+    const self = this
+    return new Promise(function(resolve, reject) {
+      self.organisation = organisation
+      self.getUserData(self.organisation.id, self.user.auth)
+      .then(userData => {
+        self.user.data = userData
+        console.log('👤  User data!', userData)
+        resolve(self.user)
+      }).catch(e => {
+        console.log(e)
+        reject(e)
+      })
+    })
+  },
+  getAccessToken: function() {
+    const self = this
+    return self.user.auth.stsTokenManager.accessToken
   }
 }
 
