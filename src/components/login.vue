@@ -12,7 +12,10 @@
       "Where is the privacy policy?"&nbsp;&nbsp;●&nbsp;&nbsp;
       "How do we issue a refund?"
     </p>
-    <button class="connect" @click="connectSource"><img src="../assets/gdrive.png" alt=""><span>Google Drive</span></button>
+    <div class="done-message" v-if="doneMessage">
+      Thanks for connecting up your Google Drive! We're indexing your content right now and it'll be ready for you on Slack within a few minutes.
+    </div>
+    <button class="connect" v-if="!doneMessage" @click="connectSource"><img src="../assets/gdrive.png" alt=""><span>Google Drive</span></button>
     <img class="compliance" src="../assets/aicpa.png" alt="">
     <img class="compliance" src="../assets/pci.png" alt="">
   </div>
@@ -32,7 +35,8 @@
     ],
     data () {
       return {
-        noOrg: true
+        noOrg: true,
+        doneMessage: false
       }
     },
     components: {
@@ -81,11 +85,12 @@
       addSource: function(result) {
         console.log(result)
         const self = this
+        self.doneMessage = true
         if (!self.addingSource) {
           self.addingSource = true
-          // axios.post('http://localhost:5000/add-source', {
+          // axios.post('http://localhost:5050/add-source', {
           axios.post('//savvy-nlp--staging.herokuapp.com/add-source', {
-            organisationID: self.organisation.id,
+            organisationID: self.organisation.id === 'connect' ? getParameterByName('org') : self.organisation.id,
             source: result
           }).then(res => {
             self.addingSource = false
@@ -97,6 +102,16 @@
         }
       },
     }
+  }
+
+  function getParameterByName(name, url) {
+    if (!url) url = window.location.href
+    name = name.replace(/[[\]]/g, '\\$&')
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)')
+    var results = regex.exec(url)
+    if (!results) return null
+    if (!results[2]) return ''
+    return decodeURIComponent(results[2].replace(/\+/g, ' '))
   }
 </script>
 
@@ -131,6 +146,11 @@
         display: block;
         padding: 10px 5px 10px 52px;
       }
+    }
+    .done-message {
+      background: #ccffcc;
+      border-radius: 10px;
+      color: #006600;
     }
     button.connect {
       margin-top: 40px;
