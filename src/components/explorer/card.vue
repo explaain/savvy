@@ -2,10 +2,10 @@
   <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <div class="buttons-top-right">
-      <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
+      <!-- <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
       <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
       <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
-      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
+      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton> -->
       <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description">
@@ -281,6 +281,9 @@ export default {
       this.syncData()
       this.editing = false
       // self.tempListCards = {} ????
+      setTimeout(function() {
+        self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
+      }, 10)
     },
     saveEdit: function() {
       const self = this
@@ -288,18 +291,20 @@ export default {
       setTimeout(function() {
         console.log('self.card.content.title')
         console.log(self.card.content.title)
+        self.card.title = self.card.content.title
+        console.log(self.card.title)
         self.card.content.listCards = self.listCards
         self.listCards.forEach(function(listCard) {
           self.tempListCards[listCard.objectID] = listCard
         })
         self.$emit('updateCard', self.card, function(data) {
           self.tempListCards = {}
-          self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
+          // self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
         }, function(e) {
           console.log(e)
           self.tempListCards = {}
         })
-      }, 1)
+      }, 5)
     },
     addListItem: function(card) {
       console.log(card)

@@ -80,10 +80,11 @@ const Search = {
 
     const generateFromQuery = query => new Promise((resolve, reject) => {
       console.log('generateFromQuery', query)
-      axios.get('//lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryString=' + encodeURIComponent(query))
+      // axios.get('//lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryString=' + encodeURIComponent(query))
+      axios.post('//savvy-nlp--staging.herokuapp.com/generate-card-data', { query: query })
       .then(res => {
         console.log(res)
-        const card = dbpediaQueryToCards(res.data.results[0])
+        const card = dbpediaQueryToCards(res.data.results.ArrayOfResult.Result[0])
         console.log('Generated from Query: ', card)
         resolve(card)
       }).catch(err => {
@@ -176,21 +177,21 @@ const Search = {
 
     const dbpediaQueryToCards = data => {
       console.log('dbpediaQueryToCards', data)
-      console.log(data.description)
-      console.log(data.description.replace(/ *\([^)]*\) */g, ' '))
+      console.log(data.Description)
+      console.log(data.Description.replace(/ *\([^)]*\) */g, ' '))
       return {
         content: {
-          title: data.label,
-          description: tailorDescription(data.description)
+          title: data.Label,
+          description: tailorDescription(data.Description)
         },
         sameAs: [
-          data.uri
+          data.URI
         ],
         sources: [
           {
             type: 'source',
             name: 'Wikipedia',
-            url: (data.url || data.uri).replace('//dbpedia.org/resource/', '//en.wikipedia.org/wiki/')
+            url: (data.URL || data.URI).replace('//dbpedia.org/resource/', '//en.wikipedia.org/wiki/')
           }
         ]
       }
