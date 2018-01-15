@@ -24,7 +24,7 @@ const Search = {
       const cardToSave = JSON.parse(JSON.stringify(card))
       const keys = ['description', 'title', 'listCards']
       keys.forEach(key => {
-        if (cardToSave.content[key]) cardToSave[key] = cardToSave.content[key]
+        if (cardToSave.content[key] && !cardToSave[key]) cardToSave[key] = cardToSave.content[key]
       })
       delete cardToSave.content
       AlgoliaChunkIndex.addObject(cardToSave, function(err, content) {
@@ -78,9 +78,9 @@ const Search = {
       return card
     }
 
-    const generateFromQuery = (query, refresh) => new Promise((resolve, reject) => {
-      console.log('generateFromQuery', query, refresh)
-      axios.get('http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryString=' + encodeURIComponent(query))
+    const generateFromQuery = query => new Promise((resolve, reject) => {
+      console.log('generateFromQuery', query)
+      axios.get('//lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryString=' + encodeURIComponent(query))
       .then(res => {
         console.log(res)
         const card = dbpediaQueryToCards(res.data.results[0])
@@ -160,7 +160,18 @@ const Search = {
     }
 
     const getDbpediaFetchURI = uri => {
-      return uri.replace('http://dbpedia.org/resource/', 'http://dbpedia.org/data/') + '.json'
+      return uri.replace('//dbpedia.org/resource/', '//dbpedia.org/data/') + '.json'
+    }
+
+    const tailorDescription = description => {
+      const maxChars = 300
+      description = description.replace(/ *\([^)]*\) */g, ' ').replace(/ \./g, '.')
+      var sentences = description.split(/\. (?=[A-Z])/).map(s => s + '.')
+      while (sentences.join(' ').length > maxChars && sentences.length > 1) {
+        sentences.pop()
+      }
+      description = sentences.join(' ')
+      return description
     }
 
     const dbpediaQueryToCards = data => {
@@ -170,7 +181,7 @@ const Search = {
       return {
         content: {
           title: data.label,
-          description: data.description.replace(/ *\([^)]*\) */g, ' ').replace(/ \./g, '.')
+          description: tailorDescription(data.description)
         },
         sameAs: [
           data.uri
@@ -179,7 +190,7 @@ const Search = {
           {
             type: 'source',
             name: 'Wikipedia',
-            url: (data.url || data.uri).replace('http://dbpedia.org/resource/', 'http://en.wikipedia.org/wiki/')
+            url: (data.url || data.uri).replace('//dbpedia.org/resource/', '//en.wikipedia.org/wiki/')
           }
         ]
       }
@@ -187,14 +198,14 @@ const Search = {
 
     const dbpediaToCards = data => {
       console.log('dbpediaToCards', data)
-      const resource = data.request.responseURL.replace('http://dbpedia.org/data', 'http://dbpedia.org/resource').replace('.json', '')
+      const resource = data.request.responseURL.replace('//dbpedia.org/data', '//dbpedia.org/resource').replace('.json', '')
       console.log('resource', resource)
       const title = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#label'].filter(lang => lang.lang === 'en')[0].value
       console.log('title', title)
-      const description = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'en')[0].value
+      const description = tailorDescription(data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'en')[0].value)
       console.log('description', description)
       const wiki = data.data[resource]['http://xmlns.com/foaf/0.1/isPrimaryTopicOf'][0].value
-      console.log('description', description)
+      console.log('wiki', wiki)
       return {
         content: {
           title: title,

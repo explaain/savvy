@@ -1,7 +1,13 @@
 <template lang="html">
   <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
-    <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
+    <div class="buttons-top-right">
+      <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
+      <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
+      <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
+      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
+      <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
+    </div>
     <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description">
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <div class="content" @click="linkClick">
@@ -10,8 +16,8 @@
         <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
           <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
           <section class="buttons" v-if="editing">
-            <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
-            <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton>
+            <!-- <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
+            <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton> -->
             <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
           </section>
         </draggable>
@@ -178,7 +184,7 @@ export default {
       })
     },
     fullText: function() {
-      return this.text + this.listCards.map(function(listCard) {
+      return (this.card.content.title ? this.card.content.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
         return '\n- ' + listCard.content.description
       })
     },
@@ -262,6 +268,9 @@ export default {
     cardletClick: function(card) {
       if (!this.editing) this.$emit('cardClick', card)
     },
+    createCard: function() {
+      // Hi
+    },
     editCard: function() {
       this.editing = true
     },
@@ -275,18 +284,22 @@ export default {
     },
     saveEdit: function() {
       const self = this
-      self.card.content.listCards = self.listCards
-      self.listCards.forEach(function(listCard) {
-        self.tempListCards[listCard.objectID] = listCard
-      })
-      self.$emit('updateCard', self.card, function(data) {
-        self.tempListCards = {}
-        self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
-      }, function(e) {
-        console.log(e)
-        self.tempListCards = {}
-      })
       self.editing = false
+      setTimeout(function() {
+        console.log('self.card.content.title')
+        console.log(self.card.content.title)
+        self.card.content.listCards = self.listCards
+        self.listCards.forEach(function(listCard) {
+          self.tempListCards[listCard.objectID] = listCard
+        })
+        self.$emit('updateCard', self.card, function(data) {
+          self.tempListCards = {}
+          self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
+        }, function(e) {
+          console.log(e)
+          self.tempListCards = {}
+        })
+      }, 1)
     },
     addListItem: function(card) {
       console.log(card)
@@ -357,13 +370,8 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     &:hover {
       @include blockShadow(2);
 
-      button.copy {
+      .buttons-top-right {
         display: block;
-        opacity: 0.5;
-
-        &:hover {
-          opacity: 1
-        }
       }
     }
 
@@ -382,27 +390,38 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     .updating {
       opacity: 0.5;
     }
-    button {
-      &.copy {
-        display: none;
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        // margin: -5px -5px 10px 20px;
+    .buttons-top-right {
+      display: none;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      // margin: -5px -5px 10px 20px;
+      button {
         padding: 6px 12px;
+        margin: 2px;
         font-size: 12px;
         box-shadow: none;
+        opacity: 0.7;
+        display: inline-block;
 
         &:hover {
+          opacity: 1;
           box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+          img {
+            opacity: 1;
+          }
         }
         img {
+          opacity: 0.5;
           display: inline-block;
         }
       }
+    }
+    button {
       &.left {
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
+        margin-right: -2px;
       }
       &.delete:hover {
         background: #ffaaaa;
@@ -410,6 +429,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       &.right {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
+        margin-left: -2px;
       }
       &.cancel {
         background: #ffb6c9;

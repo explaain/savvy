@@ -1,5 +1,5 @@
 <template lang="html">
-  <vue-markdown :class="{ editable: !(editable === false) }" :contenteditable="!(editable === false)" @input="update" :watches="['content']" :source="content" :linkify="false" :emoji="false"></vue-markdown>
+  <vue-markdown :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" @input="update" :watches="['myContent']" :source="myContent" :linkify="false" :emoji="false"></vue-markdown>
 </template>
 
 <script type="text/javascript">
@@ -9,25 +9,33 @@
       'content',
       'editable'
     ],
+    data: function() {
+      return {
+        myContent: this.content,
+        myClass: String(Math.floor(Math.random() * 10000000000))
+      }
+    },
     components: {
       VueMarkdown
     },
-    mounted: function () {
-      // this.$el.innerText = this.content
-    },
     watch: {
       editable: function (val) {
-        this.$el.innerText = this.content
-      },
-      content: function (val) {
-        if (!this.editable) this.$el.innerText = this.content
+        const self = this
+        const innerText = document.getElementsByClassName(self.myClass)[0].innerText
+        console.log('innerText')
+        console.log(innerText)
+        if (!self.editable) {
+          self.myContent = ''
+          this.$emit('update', innerText)
+          setTimeout(function() {
+            self.myContent = self.content
+          }, 1)
+        }
       }
-    },
-    created: function() {
-
     },
     methods: {
       update: function(event) {
+        console.log('update')
         this.$emit('update', event.target.innerText)
       }
     }

@@ -277,11 +277,12 @@
         if (data.content && data.content.listCards) delete data.content.listCards
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
-        console.log(self.auth.user)
-        // Should use self.auth.user.refreshUserToken() here!
-        data.user = { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() || self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
-        data.organisationID = self.organisation.id
-        ExplaainAuthor.saveCard(data)
+        console.log('data', data)
+        // Should use self.GlobalConfig.auth.user.refreshUserToken() here!
+        // data.user = { uid: self.GlobalConfig.auth.user.uid, idToken: self.GlobalConfig.auth.user.getAccessToken() || self.GlobalConfig.auth.user.GlobalConfig.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
+        // data.organisationID = self.organisation.id
+        ExplaainSearch.saveCard(data)
+        // ExplaainAuthor.saveCard(data)
         .then(function(res) {
           const returnedCard = res.data.memories[0]
           data.objectID = returnedCard.objectID
