@@ -2,7 +2,7 @@
 // import Vue from 'vue'
 import log from 'loglevel'
 import axios from 'axios'
-import Auth from '../plugins/auth2' // Need to concolidate this + 'auth'
+import Auth from '../plugins/auth' // Need to concolidate this + 'auth'
 // import CardDetection from '../plugins/card-detection.js'
 // import ExplaainSearch from '../plugins/explaain-search.js'
 
@@ -24,25 +24,6 @@ const initApp = () => { // eslint-disable-line
     console.log(user)
   })
 }
-
-const selectOrganisation = organisationID => new Promise((resolve, reject) => {
-  console.log('yoyoyo')
-  if (firebase.auth().currentUser) {
-    console.log('yoyo')
-    Auth.selectOrganisation({id: organisationID})
-    .then(res => {
-      console.log(res)
-      resolve(res)
-    }).catch(e => {
-      console.log(e)
-      reject(e)
-    })
-  } else {
-    console.log('hi')
-    resolve()
-    // firebase.auth().signOut()
-  }
-})
 
 const onAuthStateChanged = (user) => {
   console.log('user', user)
