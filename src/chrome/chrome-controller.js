@@ -71,21 +71,6 @@ const Controller = {
               sendResponse({ error: e })
             })
             break
-          case 'selectOrganisation':
-            console.log('Selecting Organisation!')
-            selectOrganisation(request.data.organisationID)
-            .then(res => {
-              organisation = {
-                id: request.data.organisationID
-              }
-              res.organisation = organisation
-              sendResponse(res)
-            })
-            .catch(e => {
-              log.error(e)
-              sendResponse({ error: e })
-            })
-            break
           case 'getPageResults':
             // Stopping this from happening for now as we're not including this feature currently!
             if (false) { // eslint-disable-line
