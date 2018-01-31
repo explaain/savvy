@@ -87,7 +87,7 @@ const Auth = {
 
     firebase.auth().onAuthStateChanged(function(userAuth) {
       if (userAuth) {
-        userAuth = JSON.parse(JSON.stringify(userAuth))
+        userAuth = userAuth ? JSON.parse(JSON.stringify(userAuth)) : {}
         console.log('🖌👤  Setting user', userAuth)
         self.user = {
           uid: userAuth.uid,
@@ -148,7 +148,7 @@ const Auth = {
   },
   getUser: function() {
     const self = this
-    const user = JSON.parse(JSON.stringify(self.user))
+    const user = self.user ? JSON.parse(JSON.stringify(self.user)) : {}
     console.log(user)
     if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
       console.log('♻️  Refreshing User Token!')

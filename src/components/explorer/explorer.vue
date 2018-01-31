@@ -150,7 +150,7 @@
         if (self.$route.query.q)
           self.search(self.$route.query.q)
         else
-          self.searchRandom()
+          self.searchRecent()
       }, 200)
     },
     methods: {

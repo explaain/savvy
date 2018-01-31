@@ -2,17 +2,15 @@
 
 <template lang="html">
   <div class="app" :class="{'sidebar-true': sidebar}">
-    <section class="chooseOrg" v-if="!organisation || !organisation.id">
-      <h3>Hello! 👋 Please enter your organisation:</h3>
-      <input v-model="organisationID" type="text" placeholder="organisation_id" @keyup.enter="selectOrganisation">.heysavvy.com
-      <button class="highlight" type="button" name="button" @click="selectOrganisation">Select Organisation</button>
+    <section class="chooseOrg" v-if="authState !== 'loggedIn'">
+      <h3>Hello! 👋 Please sign in below:</h3>
+      <button class="login" :disabled="authState === 'pending'" @click="toggleSignIn">Sign In</button>
       <div class="spinner-div" v-if="orgLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
-    <explorer v-if="organisation && organisation.id" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="auth" :testing="testing">
+    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="GlobalConfig.firebase" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
       <div class="chrome-header" slot="header">
-        <!-- <button class="chrome-login" :disabled="signInButton.disabled" id="quickstart-sign-in" @click="toggleSignIn">{{signInButton.text}}</button> -->
-        <img src="/images/logo.png" class="savvy-logo" alt="">
+        <img src="/static/images/logo.png" class="savvy-logo" alt="">
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
@@ -20,7 +18,6 @@
 </template>
 
 <script>
-  /* global chrome */
   import log from 'loglevel'
   // import Vue from 'vue'
   import 'vue-awesome/icons'
@@ -28,42 +25,25 @@
   import Explorer from '../explorer/explorer.vue'
   import IconButton from '../explorer/ibutton.vue'
 
+  console.log('chrome.vue running')
+
   log.setLevel('debug')
 
   export default {
     props: [
       'sidebar',
       'local',
-      'testing'
+      'testing',
+      'GlobalConfig',
+      'Controller',
+      'authState'
     ],
     data() {
       return {
         organisation: {},
-        auth: {
-          user: {
-            uid: '',
-            auth: {},
-            data: {}
-          }
-        },
         organisationID: '',
         orgLoading: false,
         errorMessage: '',
-        signInButton: {
-          text: 'Sign in with Google',
-          disabled: true
-        },
-        firebaseConfig: {
-          apiKey: 'AIzaSyBU0SEu3orHAoJ5eqxIJXS2VfyqXm1HoMU',
-          authDomain: 'forgetmenot-1491065404838.firebaseapp.com',
-          databaseURL: 'https://forgetmenot-1491065404838.firebaseio.com',
-          projectId: 'forgetmenot-1491065404838',
-          storageBucket: '',
-          messagingSenderId: '400087312665'
-        },
-        algoliaParams: { // Need to fetch these from app.vue to avoid duplication!
-          appID: 'D3AE3TSULH'
-        },
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
           url: 'https://forget-me-not--staging.herokuapp.com/api/memories',
@@ -74,7 +54,21 @@
         logo: '../images/logo.png',
         pageCards: [], // ???
         cards: [], // ???
-        // sidebar: true
+        // sidebar: true,
+        chromeRuntime: {
+          sendMessage: data => new Promise((resolve, reject) => {
+            // @TODO: Sort this so it rejects when error in actual chrome extension
+            console.log(this.GlobalConfig)
+            console.log(this.Controller)
+            this.Controller.sendMessage(data, response => resolve(response))
+            // try {
+            // } catch (e) {
+            //   console.log('catching')
+            //   if (data.action === 'signIn')
+            //     this.GlobalConfig.auth.toggleSignIn().then(resolve)
+            // }
+          }),
+        },
       }
     },
     components: {
@@ -84,12 +78,15 @@
     },
     created: function(a) {
       const self = this
+      console.log('chrome.vue created')
+      console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
       // self.getUser()
       if (self.testing) {
+        console.log('In Testing Mode!')
         self.organisation = {
           id: 'explaain'
         }
-        self.auth = {
+        self.GlobalConfig.auth = {
           user: {
             auth: {},
             data: {
@@ -104,6 +101,7 @@
           uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2'
         }
       } else if (self.plugin) {
+        console.log('chrome.vue plugin')
         this.refreshUser()
         .then(res => {
           console.log('self.organisation:', self.organisation)
@@ -140,57 +138,45 @@
       self.refreshUser()
     },
     methods: {
-      selectOrganisation: function() {
-        const self = this
-        return new Promise(function(resolve, reject) {
-          self.orgLoading = true
-          chrome.runtime.sendMessage({action: 'selectOrganisation', data: { organisationID: self.organisationID }}, response => {
-            console.log('response', response)
-            self.orgLoading = false
-            if (response.error) {
-              self.errorMessage = 'Sorry, we can\'t sign you in to that organisation!'
-              reject(response.error)
-            } else {
-              self.organisation = response.organisation
-              self.algoliaParams.apiKey = response.data.algoliaKey
-              self.algoliaParams.organisationID = response.organisation.id
-              self.auth.user = response // Includes organisation
-              resolve(response)
-            }
-          })
-        })
-      },
       refreshUser: function() {
         const self = this
+        console.log('refreshUser')
+        console.log(self)
+        console.log(self.GlobalConfig)
+        console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
+        console.log('self.authState', self.authState)
         return new Promise(function(resolve, reject) {
-          chrome.runtime.sendMessage({action: 'getUser'}, response => {
+          console.log('refreshUser Promise')
+          console.log(self)
+          console.log(self.GlobalConfig)
+          console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
+          self.chromeRuntime.sendMessage({action: 'getUser'})
+          .then(response => {
             console.log('response user', response)
-            self.auth.user = response
+            self.GlobalConfig.auth.user = response
             if (response.organisation)
               self.organisation = response.organisation
             resolve(response)
           })
         })
       },
-      // toggleSignIn: function() {
-      //   const self = this
-      //   if (this.sidebar) {
-      //     console.log('sidebar')
-      //   } else {
-      //     console.log('not sidebar')
-      //     chrome.runtime.sendMessage({action: 'signIn'}, response => {
-      //       console.log('response user', response)
-      //       self.auth.user = response
-      //     })
-      //   }
-      //   // Auth.toggleSignIn()
-      //   this.signInButton.disabled = true
-      // },
+      toggleSignIn: function() {
+        const self = this
+        if (this.sidebar) {
+          console.log('sidebar')
+        } else {
+          console.log('not sidebar')
+          self.chromeRuntime.sendMessage({action: 'signIn'})
+          .then(response => {
+            console.log('response user', response)
+            self.GlobalConfig.auth.user = response
+          })
+        }
+      },
       // onAuthStateChanged: function(user) {
       //   console.log('onAuthStateChanged')
       //   console.log(user)
       //   this.auth.user = user
-      //   this.auth.authState = Auth.authState
       // },
       // onAuthStateChanged: function(user) {
       //   console.log('user', user)
@@ -201,7 +187,8 @@
       // getUser: function() {
       //   const self = this
       //   try {
-      //     chrome.runtime.sendMessage({action: 'getUser'}, function(userID) {
+      //     self.chromeRuntime.sendMessage({action: 'getUser'})
+      //     .then(userID => {
       //       self.userID = userID || self.userID
       //       console.log('userID', self.userID)
       //     })

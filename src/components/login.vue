@@ -25,7 +25,7 @@
 /* global Kloudless */
   import IconButton from './explorer/ibutton.vue'
   import axios from 'axios'
-  import '../scripts/kloudless.authenticator.js'
+  // import '../scripts/kloudless.authenticator.js'
 
   export default {
     name: 'Login',
@@ -91,6 +91,7 @@
           // axios.post('http://localhost:5050/add-source', {
           axios.post('//savvy-nlp--staging.herokuapp.com/add-source', {
             organisationID: self.organisation.id === 'connect' ? getParameterByName('org') : self.organisation.id,
+            superService: 'kloudless',
             source: result
           }).then(res => {
             self.addingSource = false

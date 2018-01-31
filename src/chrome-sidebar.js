@@ -1,21 +1,10 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import Vue from 'vue'
-import router from './router'
-import Chrome from './components/chrome/chrome'
+import Main from './main.js'
 
-require('./styles/index.css')
+const props = {
+  plugin: true,
+  sidebar: true
+}
 
-Vue.config.productionTip = false
+const main = new Main(props)
 
-if (document.getElementById('chrome'))
-  /* eslint-disable no-new */
-  new Vue({
-    el: '#chrome',
-    router,
-    render: h => h(Chrome, {
-      props: {
-        sidebar: true
-      }
-    })
-  })
+console.log('main:', main)

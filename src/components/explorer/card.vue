@@ -6,7 +6,7 @@
       <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
       <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
       <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton> -->
-      <button class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
+      <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description">
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
@@ -40,7 +40,7 @@
     </a>
     <footer v-if="full">
       <div class="sources" v-if="card.sources && card.sources.length">
-        Source{{card.sources.length > 1 ? 's' : ''}}: <a v-for="source in card.sources" :href="source.url" target="_blank">{{source.name}}</a>
+        Source{{card.sources.length > 1 ? 's' : ''}}: <span v-for="source, i in card.sources"><a :href="source.url" target="_blank">{{source.name}}</a>{{i < card.sources.length - 1 ? ', ' : '' }}</span>
       </div>
       <!-- <div class="buttons" v-if="!editing">
         <ibutton class="left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
@@ -110,7 +110,7 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: this.plugin ? './images/clipboard.svg' : './static/images/clipboard.svg',
+      copyIcon: this.plugin ? './static/images/clipboard.svg' : './static/images/clipboard.svg',
       showListSearch: false,
       showPending: false,
       reacted: false
@@ -292,6 +292,12 @@ export default {
         console.log('self.card.content.title')
         console.log(self.card.content.title)
         self.card.title = self.card.content.title
+        self.card.modified = new Date()
+        if (self.card.sources.filter(source => source.name === 'Journalist').length === 0)
+          self.card.sources.push({
+            type: 'author',
+            name: 'Journalist'
+          })
         console.log(self.card.title)
         self.card.content.listCards = self.listCards
         self.listCards.forEach(function(listCard) {
@@ -491,6 +497,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     .main {
       margin: 5px;
       padding: 5px;
+      min-height: 60px;
 
       .content {
         // @extend .blockSpacing;

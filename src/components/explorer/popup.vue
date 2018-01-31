@@ -2,7 +2,7 @@
   <div class="popup" @click="close" :class="{frame: frameID}">
     <header>
       <ibutton icon="close" text="Close" :click="close"></ibutton>
-      <ibutton icon="plus" text="Create" :click="createCard"></ibutton>
+      <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
     </header>
     <!-- <div style="width: 50%;">
         <img src="http://placehold.it/2000x1000" alt="">
@@ -10,12 +10,12 @@
         <img src="http://placehold.it/2000x1000" alt="">
         <img src="http://placehold.it/2000x1000" alt="">
     </div> -->
-    <slick :options="{ focusOnSelect: true, slidesToShow: 1, infinite: false, adaptiveHeight: true, centerPadding: '15px', centerMode: true, initialSlide: positions[rowIndex] }" class="cards" v-for="(row, rowIndex) in cards" key="rowIndex" ref="slick">
-    <!-- <ul class="cards" v-for="(row, rowIndex) in cards"> -->
-      <card v-for="(card, cardIndex) in row" :highlight="positions[rowIndex] === cardIndex" @cardClick="cardClick" @showCard="showCard" @updateCard="updateCard" @deleteCard="deleteCard" :data="card" :explaain="explaain" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="GlobalConfig.auth" :position="[rowIndex, cardIndex]" @copy="copyAlert"></card>
-      <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
-    <!-- </ul> -->
-    </slick>
+    <transition-group name="fade" appear>
+      <slick :options="{ focusOnSelect: true, slidesToShow: 1, infinite: false, adaptiveHeight: true, centerPadding: '15px', centerMode: true, initialSlide: positions[rowIndex] }" class="cards" v-for="(row, rowIndex) in cards" key="rowIndex" ref="slick">
+        <card v-for="(card, cardIndex) in row" :highlight="positions[rowIndex] === cardIndex" @cardClick="cardClick" @showCard="showCard" @updateCard="updateCard" @deleteCard="deleteCard" :data="card" :explaain="explaain" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="GlobalConfig.auth" :position="[rowIndex, cardIndex]" @copy="copyAlert"></card>
+        <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
+      </slick>
+    </transition-group>
   </div>
 </template>
 
@@ -302,7 +302,7 @@
         log.debug('showCard', data)
         const self = this
 
-        self.fetchCard(data.objectID)
+        self.fetchCard(data.objectID || data.toURI)
         .then(card => {
           self.allCards[card.objectID] = card
           const positions = JSON.parse(JSON.stringify(self.positions))
@@ -386,6 +386,13 @@
   }
   body div:not(.popup), body button {
     pointer-events: all;
+  }
+
+  .fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+  }
+  .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
   }
 
   .spinner {

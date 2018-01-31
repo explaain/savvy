@@ -9,14 +9,14 @@ const Search = {
   install(Vue, algoliaParams, userAuth) {
     log.debug('algoliaParams', algoliaParams)
     log.debug('userAuth', userAuth)
-    const AlgoliaClient = Algolia(algoliaParams.appID, userAuth.data.algoliaKey, {
+    const AlgoliaClient = Algolia(algoliaParams.appID, userAuth.data.algoliaApiKey, {
       protocol: 'https:'
     })
     const AlgoliaIndex = AlgoliaClient.initIndex(algoliaParams.index)
-    const AlgoliaChunkIndex = AlgoliaClient.initIndex(userAuth.organisation.id + '__Cards')
+    const AlgoliaChunkIndex = AlgoliaClient.initIndex(userAuth.data.organisationID + '__Cards')
     var AlgoliaFileIndex
     if (!algoliaParams.noFiles)
-      AlgoliaFileIndex = AlgoliaClient.initIndex(userAuth.organisation.id + '__Files')
+      AlgoliaFileIndex = AlgoliaClient.initIndex(userAuth.data.organisationID + '__Files')
 
     // Need to sort this out - only for Explaain currently and probably shouldn't be here!
     const saveCard = card => new Promise(function(resolve, reject) {
@@ -37,6 +37,11 @@ const Search = {
         }
       })
     })
+
+    const calculateUniqueID = card => {
+      const splitBySlash = card.sameAs[0].split('/')
+      return splitBySlash[splitBySlash.length - 1]
+    }
 
     /**
     * Gets a card, generating and saving it if necessary
@@ -65,7 +70,10 @@ const Search = {
       if (!retrievedCard || data.refresh) {
         // If no saved entry, or refresh == true, make sure we've got a generated version, then save it
         if (!card) card = await generateFromSameAs(data.sameAs)
-        if (retrievedCard) card.objectID = retrievedCard.objectID
+        if (retrievedCard)
+          card.objectID = retrievedCard.objectID
+        else
+          card.objectID = calculateUniqueID(card)
         const savedCard = await saveCard(card)
         if (!card.objectID) card.objectID = savedCard.objectID
       } else {
@@ -84,7 +92,7 @@ const Search = {
       axios.post('//savvy-nlp--staging.herokuapp.com/generate-card-data', { query: query })
       .then(res => {
         console.log(res)
-        const card = dbpediaQueryToCards(res.data.results.ArrayOfResult.Result[0])
+        const card = dbpediaQueryToCards(res.data.results.ArrayOfResult.Result[0] || res.data.results.ArrayOfResult.Result)
         console.log('Generated from Query: ', card)
         resolve(card)
       }).catch(err => {
@@ -201,9 +209,9 @@ const Search = {
       console.log('dbpediaToCards', data)
       const resource = data.request.responseURL.replace('//dbpedia.org/data', '//dbpedia.org/resource').replace('.json', '')
       console.log('resource', resource)
-      const title = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#label'].filter(lang => lang.lang === 'en')[0].value
+      const title = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#label'].filter(lang => lang.lang === 'fr')[0].value
       console.log('title', title)
-      const description = tailorDescription(data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'en')[0].value)
+      const description = tailorDescription(data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'fr')[0].value)
       console.log('description', description)
       const wiki = data.data[resource]['http://xmlns.com/foaf/0.1/isPrimaryTopicOf'][0].value
       console.log('wiki', wiki)
@@ -255,7 +263,7 @@ const Search = {
     const advancedChunkSearch = function(params, showHighlights) {
       const d = Q.defer()
       var cards = []
-      if (params.filters.indexOf('teams: ') > -1)
+      if (params.filters && params.filters.indexOf('teams: ') > -1)
         delete params.filters // Removing teams as a filter for now
       if (params.hitsPerPage === null)
         delete params.hitsPerPage
@@ -349,7 +357,7 @@ const Search = {
       const d = Q.defer()
       var params = {
         query: searchText,
-        filters: 'teams: "' + user.data.teams.map(team => { return team.team }).join('" OR teams: "') + '"',
+        // filters: 'teams: "' + user.data.teams.map(team => { return team.team }).join('" OR teams: "') + '"',
         hitsPerPage: hitsPerPage || null
       }
       if (extraParams)
@@ -431,7 +439,7 @@ const Search = {
       cards.forEach((card2, j) => {
         cards.slice(0, j).forEach((card1, i) => {
           if (card1 && card1.content.description === card2.content.description) {
-            if (card1.files.objectID !== card2.files.objectID)
+            if (card1.files && card2.files && card1.files.objectID !== card2.files.objectID)
               card1.files = card1.files.concat(card2.files)
             cards[j] = null
           }

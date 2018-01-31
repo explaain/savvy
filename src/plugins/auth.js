@@ -5,84 +5,90 @@ import axios from 'axios'
 
 // Vue.use(VueAxios, axios)
 
-const Auth = {
-  install(Vue, options) {
+class Auth {
+  constructor(callback) {
     const self = this
-    self.organisation = options.organisation
+    self.firebase = {}
+    self.options = {} // ???
+    self.organisation = {}
     self.user = {}
-    var stateChangeCallback = () => {}
-    console.log('🖌  Auth running!')
-    // console.log('globalvar:', Vue.globalvar)
-    // console.log('Vue.prototype.$appName:', Vue.prototype.$appName)
-    /**
-     * Function called when clicking the Login/Logout button.
-     */
-    // [START buttoncallback]
-
-    const updateAuthState = state => {
+    self.stateChangeCallback = callback || function() {}
+    self.updateAuthState = function(state) {
+      console.log('self.updateAuthState', state)
       self.authState = state
-      stateChangeCallback(self.user)
+      self.stateChangeCallback(state, self.user)
     }
-    updateAuthState('pending')
-
-    const toggleSignIn = function() {
-      console.log('🔐  Toggling Sign in')
-      if (!firebase.auth().currentUser) {
-        var provider = new firebase.auth.GoogleAuthProvider()
-        provider.addScope('https://www.googleapis.com/auth/userinfo.email')
-        provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
-        firebase.auth().signInWithRedirect(provider)
-      } else {
-        firebase.auth().signOut()
-      }
-      updateAuthState('pending')
-    }
-    // [END buttoncallback]
-
     /**
-     * initApp handles setting up UI event listeners and registering Firebase auth listeners:
-     *  - firebase.auth().onAuthStateChanged: This listener is called when the user is signed in or
-     *    out, and that is where we update the UI.
-     *  - firebase.auth().getRedirectResult(): This promise completes when the user gets back from
-     *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
-     */
-    const initApp = function(init, callback) {
-      console.log('🔏⛏  Initialising Auth')
-      stateChangeCallback = callback
-      var config = {
-        apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
-        authDomain: 'savvy-96d8b.firebaseapp.com',
-      }
-      if (init)
-        firebase.initializeApp(config)
+    * initApp handles setting up UI event listeners and registering Firebase auth listeners:
+    *  - firebase.auth().onAuthStateChanged: This listener is called when the user is signed in or
+    *    out, and that is where we update the UI.
+    *  - firebase.auth().getRedirectResult(): This promise completes when the user gets back from
+    *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
+    */
+    console.log('🔏⛏  Initialising Auth')
+    var config = {
+      apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
+      authDomain: 'savvy-96d8b.firebaseapp.com',
+    }
+    if (!firebase.apps.length)
+      firebase.initializeApp(config)
 
-      // Result from Redirect auth flow.
-      // [START getidptoken]
-      firebase.auth().getRedirectResult().then(function(result) {
-        // if (result.credential) {
-        //   // This gives you a Google Access Token. You can use it to access the Google API.
-        //   var token = result.credential.accessToken
-        // }
-        console.log('redirectResult', result)
-      }).catch(function(error) {
-        // Handle Errors here.
-        var errorCode = error.code
-        // var errorMessage = error.message
-        // // The email of the user's account used.
-        // var email = error.email
-        // // The firebase.auth.AuthCredential type that was used.
-        // var credential = error.credential
-        // [START_EXCLUDE]
-        if (errorCode === 'auth/account-exists-with-different-credential')
-          alert('You have already signed up with a different auth provider for that email.')
-          // If you are using multiple auth providers on your app you should handle linking
-          // the user's accounts here.
-        else
-          console.error(error)
+    // this.updateAuthState(firebase.auth().currentUser ? 'loggedIn' : 'pending') // Is this correct?
+
+    // Result from Redirect auth flow.
+    // [START getidptoken]
+    firebase.auth().getRedirectResult().then(function(result) {
+      // if (result.credential) {
+      //   // This gives you a Google Access Token. You can use it to access the Google API.
+      //   var token = result.credential.accessToken
+      // }
+      console.log('redirectResult', result)
+    }).catch(function(error) {
+      // Handle Errors here.
+      var errorCode = error.code
+      // var errorMessage = error.message
+      // // The email of the user's account used.
+      // var email = error.email
+      // // The firebase.auth.AuthCredential type that was used.
+      // var credential = error.credential
+      // [START_EXCLUDE]
+      if (errorCode === 'auth/account-exists-with-different-credential')
+        alert('You have already signed up with a different auth provider for that email.')
+      // If you are using multiple auth providers on your app you should handle linking
+      // the user's accounts here.
+      else
+      console.error(error)
+    })
+    // [END getidptoken]
+
+    firebase.auth().onAuthStateChanged(function(userAuth) {
+      self.onFirebaseAuthStateChange(userAuth)
+    })
+
+    self.toggleSignIn = () => {
+      return new Promise((resolve, reject) => { // Maybe should separate this into signIn() and signOut() to avoid accidentally double taetc
+        console.log('🔐  Toggling Sign in')
+        self.updateAuthState('pending')
+        if (!firebase.auth().currentUser) {
+          var provider = new firebase.auth.GoogleAuthProvider()
+          // provider.addScope('https://www.googleapis.com/auth/userinfo.email') // Experimenting with Gmail API
+          // provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
+          firebase.auth().signInWithRedirect(provider)
+        } else {
+          firebase.auth().signOut()
+        }
+        firebase.auth().onAuthStateChanged(userAuth => {
+          self.onFirebaseAuthStateChange(userAuth)
+          .then(user => {
+            resolve(user)
+          }).catch(user => {
+            reject(user)
+          })
+        })
       })
-      // [END getidptoken]
-
-      firebase.auth().onAuthStateChanged(function(userAuth) {
+    }
+    self.onFirebaseAuthStateChange = userAuth => {
+      return new Promise((resolve, reject) => {
         if (userAuth) {
           userAuth = JSON.parse(JSON.stringify(userAuth))
           console.log('🖌👤  Setting user', userAuth)
@@ -90,68 +96,50 @@ const Auth = {
             uid: userAuth.uid,
             lastRefreshed: new Date(),
             auth: userAuth,
-            getAccessToken: getAccessToken
+            getAccessToken: self.getAccessToken
           }
-          if (self.organisation.id) {
-            getUserData(self.organisation.id, userAuth)
-            .then(userData => {
-              console.log('👤  User data!', userData)
-              self.user.data = userData
-              updateAuthState('loggedIn')
-              console.log('self.authState', self.authState)
-              stateChangeCallback(self.user)
-            }).catch(e => {
-              // updateAuthState('loggedOut') // ???
-              // console.log(e)
-              updateAuthState('readyToJoinOrg') // Logged in but not yet joined organisation
-              console.log('self.authState', self.authState)
-              stateChangeCallback(self.user)
-            })
-          } else {
-            updateAuthState('readyToChooseOrg') // Logged in but not yet chosen (or joined) organisation
-            console.log('self.authState', self.authState)
-            stateChangeCallback(self.user)
-          }
+          self.getUserData(userAuth)
+          .then(userData => {
+            console.log('👤  User data!', userData)
+            self.user.data = userData
+            self.updateAuthState('loggedIn')
+            resolve(self.user)
+          }).catch(e => {
+            self.updateAuthState('loggedOut') // Could have another state for this scenario?
+            resolve(self.user)
+          })
         } else {
           console.log('Calling back but with no user')
-          updateAuthState('loggedOut')
-          stateChangeCallback()
+          self.updateAuthState('loggedOut')
+          resolve()
         }
       })
     }
-
-    const refreshUserToken = () => {
-      return new Promise(function(resolve, reject) {
-        firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then((idToken) => {
-          console.log('New User Token!')
-          resolve(idToken)
-        }).catch((error) => {
-          console.log(error)
-          reject(error)
-        })
-      })
+    self.refreshUserToken = async () => {
+      var idToken
+      try {
+        idToken = await firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
+      } catch (e) {
+        console.log(e)
+        return null
+      }
+      console.log('New User Token!')
+      return idToken
     }
-
-    const getUserData = function (organisationID, userAuth) {
-      return new Promise(function(resolve, reject) {
-        self.refreshUserToken()
-        .then(idToken => {
-          return axios.post(options.getUserDataUrl, {
-            organisationID: organisationID,
-            user: { uid: userAuth.uid, idToken: idToken }
-          })
-        }).then((response) => {
-          console.log('📪  The response data!', response.data)
-          resolve(response.data)
-        }).catch(function(e) {
-          console.log(e)
-          console.log('📛  Error!', e)
-          reject(e)
-        })
-      })
+    self.getUserData = async userAuth => {
+      console.log('getUserData')
+      const idToken = await self.refreshUserToken()
+      if (idToken) {
+        const response = await axios.post('//savvy-nlp--staging.herokuapp.com/get-user', { idToken: idToken })
+        console.log('📪  The response data!', response.data)
+        return response.data.results
+      } else {
+        console.log('📛  Error! Couldn\'t get user data')
+        return false
+      }
     }
-
-    const getUser = () => { // Not often used now!
+    self.getUser = () => { // Not often used now!
+      console.log('self.getUser', self.user)
       const user = JSON.parse(JSON.stringify(self.user))
       if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
         console.log('♻️  Refreshing User Token!')
@@ -164,48 +152,39 @@ const Auth = {
           console.log(e)
         })
       }
-      user.getAccessToken = getAccessToken
+      user.getAccessToken = this.getAccessToken
+      user.refreshUserToken = this.refreshUserToken
       self.user = user
       return user
     }
-
-    const joinOrg = organisationID => new Promise(function(resolve, reject) {
-      console.log('Joining Org!')
-      console.log('Joining Org!')
-      try {
-        updateAuthState('pending')
-        self.refreshUserToken()
-        .then(idToken => {
-          return axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
-            organisationID: self.organisation.id,
-            user: { uid: self.user.auth.uid, idToken: idToken },
-            verifiedEmails: [ self.user.auth.email ] // Only working for Google Auth for now
+    self.joinOrg = organisationID => {
+      return new Promise(function(resolve, reject) {
+        console.log('Joining Org!')
+        try {
+          self.updateAuthState('pending')
+          self.refreshUserToken()
+          .then(idToken => {
+            return axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
+              organisationID: self.organisation.id,
+              user: { uid: self.user.auth.uid, idToken: idToken },
+              verifiedEmails: [ self.user.auth.email ] // Only working for Google Auth for now
+            })
+          }).then(res => {
+            console.log(res)
+            self.user.data = res.data
+            self.updateAuthState('loggedIn')
+            resolve(self.user)
+          }).catch(e => {
+            self.updateAuthState('readyToJoinOrg')
+            console.log(e)
+            reject(e)
           })
-        }).then(res => {
-          console.log(res)
-          self.user.data = res.data
-          updateAuthState('loggedIn')
-          resolve(self.user)
-        }).catch(e => {
-          updateAuthState('readyToJoinOrg')
+        } catch (e) {
           console.log(e)
-          reject(e)
-        })
-      } catch (e) {
-        console.log(e)
-      }
-    })
-
-    const getAccessToken = () => {
-      return self.user.auth.stsTokenManager.accessToken
+        }
+      })
     }
-
-    this.toggleSignIn = toggleSignIn
-    this.initApp = initApp
-    this.getAccessToken = getAccessToken
-    this.refreshUserToken = refreshUserToken
-    this.getUser = getUser
-    this.joinOrg = joinOrg
+    self.getAccessToken = () => self.user.auth.stsTokenManager.accessToken
   }
 }
 

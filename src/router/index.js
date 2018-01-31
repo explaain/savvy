@@ -102,7 +102,7 @@ const router = new Router({
   ]
 })
 
-console.log(router.currentRoute.path)
+console.log('Current router path:', router.currentRoute.path)
 router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // this route requires auth, check if logged in
@@ -113,8 +113,6 @@ router.beforeEach((to, from, next) => {
     } catch (e) {
       user = null
     }
-    console.log(user)
-    console.log('from', from)
     if (!user || !user.auth) { // Needs to actually check auth.loggedIn() or something
       next({
         path: '/login',

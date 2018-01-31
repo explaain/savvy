@@ -79,6 +79,7 @@ window.addEventListener('message', function(event) {
       if (data.key) data.objectID = getObjectIdFromKey(data.key)
       data.toURI = data.objectID
       data.toLayerKeys = [data.objectID]
+      if (data.sameAs && typeof data.sameAs === 'string') data.sameAs = [data.sameAs]
       console.log('yieldAndShowCard', data)
       log.trace('yieldAndShowCard', data)
       App.$emit('yieldAndShowCard', data)

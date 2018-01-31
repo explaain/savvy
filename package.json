@@ -5,8 +5,8 @@
   "author": "Jeremy Evans <jeremy.n.evans@gmail.com>",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=123 BACKEND_URL=localhost:3000 node build/dev-server.js",
-    "live": "BACKEND_URL=forget-me-not--staging.herokuapp.com node build/dev-server.js",
+    "dev": "NODE_ENV=123 BACKEND_URL='localhost:3000' node build/dev-server.js",
+    "live": "BACKEND_URL='forget-me-not--staging.herokuapp.com' node build/dev-server.js",
     "start": "npm run dev",
     "build": "node build/build.js",
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
@@ -14,10 +14,12 @@
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
     "firebase-test": "node functions/test.js",
-    "dev-explaain": "NODE_ENV=123 BACKEND_URL=localhost:3000 node buildExplaain/dev-server.js",
+    "dev-chrome": "CHROME=true BACKEND_URL='localhost:3000' node build/dev-server.js",
+    "dev-explaain": "BACKEND_URL='localhost:3000' node buildExplaain/dev-server.js",
     "build-explaain": "node buildExplaain/build.js"
   },
   "dependencies": {
+    "101": "^1.6.2",
     "algoliasearch": "^3.24.3",
     "apiai": "^4.0.3",
     "autoprefixer": "^7.1.2",

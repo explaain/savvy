@@ -5,3 +5,4 @@ src/scripts/*.js
 functions/*.js
 api/*
 /test/unit/apiTest.js
+/cypress/integration/example_spec.js
