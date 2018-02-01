@@ -8,6 +8,7 @@ import axios from 'axios'
 class Auth {
   constructor(callback, config) {
     const self = this
+    self.Testing = config.testing || false
     self.firebase = config.firebase
     self.options = {}
     self.organisation = {}
@@ -57,7 +58,7 @@ class Auth {
     })
     // [END getidptoken]
 
-    firebase.auth().onAuthStateChanged(function(userAuth) {
+    firebase.auth().onAuthStateChanged((userAuth) => {
       self.onFirebaseAuthStateChange(userAuth)
     })
 
@@ -69,7 +70,13 @@ class Auth {
           var provider = new firebase.auth.GoogleAuthProvider()
           // provider.addScope('https://www.googleapis.com/auth/userinfo.email') // Experimenting with Gmail API
           // provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
-          firebase.auth().signInWithRedirect(provider)
+          console.log('provider')
+          console.log(provider)
+          if (self.Testing) {
+            self.onFirebaseAuthStateChange(testUserAuth)
+          } else {
+            firebase.auth().signInWithRedirect(provider)
+          }
         } else {
           firebase.auth().signOut()
         }
@@ -128,7 +135,7 @@ class Auth {
       })
     })
     self.signedIn = () => {
-      return !!firebase.auth().currentUser
+      return self.Testing ? self.user.uid : !!firebase.auth().currentUser
     }
     self.refreshUserToken = async () => {
       var idToken
@@ -142,15 +149,19 @@ class Auth {
       return idToken
     }
     self.getUserData = async userAuth => {
-      console.log('getUserData')
+      console.log('getUserData', userAuth)
       const idToken = await self.refreshUserToken()
       if (idToken) {
         const response = await axios.post('//savvy-nlp--staging.herokuapp.com/get-user', { idToken: idToken })
         console.log('📪  The response data!', response.data)
         return response.data.results
       } else {
-        console.log('📛  Error! Couldn\'t get user data')
-        return false
+        if (self.Testing) {
+          return testUserData
+        } else {
+          console.log('📛  Error! Couldn\'t get user data')
+          return false
+        }
       }
     }
     self.getUser = () => { // Not often used now!
@@ -204,3 +215,44 @@ class Auth {
 }
 
 export default Auth
+
+const testUserAuth = {
+  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
+  appName: '[DEFAULT]',
+  authDomain: 'savvy-96d8b.firebaseapp.com',
+  createdAt: '1509293764000',
+  displayName: 'Jeremy Evans',
+  email: 'jeremy@explaain.com',
+  emailVerified: true,
+  isAnonymous: false,
+  lastLoginAt: '1517500086000',
+  photoURL: 'https://lh4.googleusercontent.com/-1K9EhRUQf8c/AAAAAAAAAAI/AAAAAAAAAC0/1fqqBt0FcFw/photo.jpg',
+  providerData: [
+    {
+      displayName: 'Jeremy Evans',
+      email: 'jeremy@explaain.com',
+      phoneNumber: null,
+      photoURL: 'https://lh4.googleusercontent.com/-1K9EhRUQf8c/AAAAAAAAAAI/AAAAAAAAAC0/1fqqBt0FcFw/photo.jpg',
+      providerId: 'google.com',
+      uid: '104380110279658920175',
+    }
+  ],
+  redirectEventId: null,
+  stsTokenManager: {
+    accessToken: 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImNhNDYwYWY5NTFhY2NjMmRlNDc0NTAwZjc5NDk4OWE0M2RlNzMwNjMifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc2F2dnktOTZkOGIiLCJuYW1lIjoiSmVyZW15IEV2YW5zIiwicGljdHVyZSI6Imh0dHBzOi8vbGg0Lmdvb2dsZXVzZXJjb250ZW50LmNvbS8tMUs5RWhSVVFmOGMvQUFBQUFBQUFBQUkvQUFBQUFBQUFBQzAvMWZxcUJ0MEZjRncvcGhvdG8uanBnIiwiYXVkIjoic2F2dnktOTZkOGIiLCJhdXRoX3RpbWUiOjE1MTc1MDAwODYsInVzZXJfaWQiOiJ2WndlQ2FaRVdsWlB4MGdwUW4yYjFCN0RGQVoyIiwic3ViIjoidlp3ZUNhWkVXbFpQeDBncFFuMmIxQjdERkFaMiIsImlhdCI6MT,UxNzUwMDA4NiwiZXhwIjoxNTE3NTAzNjg2LCJlbWFpbCI6ImplcmVteUBleHBsYWFpbi5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6eyJnb29nbGUuY29tIjpbIjEwNDM4MDExMDI3OTY1ODkyMDE3NSJdLCJlbWFpbCI6WyJqZXJlbXlAZXhwbGFhaW4uY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoiZ29vZ2xlLmNvbSJ9fQ.fNDOB9ZuvTRN9hxpYQX8BlPSVoXmcV4DrlTVNksKgjloZeCjxXNQqhqDYJ9uc5YHTPOlFI-YPj7B8NZk2bzVDlb3-huLRmciB0QtQz9Siz7RVDGVE8NV9WrSuXAY0jwBNKPIA7o8WnDQOh_wuhMYv0pe6gPDDMZ-bDyvEgHwFY7guONg0RrITifKOJirpWNqBEnSHSOrwbThrvPHZTedDgFmAmJ_dSnRYJ1kLeBniaIDpRS2lOvcdSsakd9dsTWbkM9gUEg_UXs8LOMITtTUVkn562tLYTfoMuL34YtA9o4ed3Eo9tpICz62Y8v22zG1BylsDaEwraf32go8izHAxQ',
+    apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
+    expirationTime: 1517503685194,
+    refreshToken: 'AEoYo8vHrM_cCtIeb9QXC3ani4BxKNv6Hkv4NEDn6sm0cdALXuqqCiv7X8vcFWzosv1spHmuv57amtV4mnPbLSKrJHQ32NnUZQcm3Lz6C3zV_oN2NBGoDD45b9wmnPrj-IzwUImGQU7HYdj_sLnPed86fWBvaz6awDTQaPvnZfCBuPxKjcsSRO739leq3np2XFzCI0ty6NdnOrUfaftD1zsa9XCE3ZMk9aV0hTb0bqwrQxAV5mQF8kjM_Cj74bi9WAaq_Cbl6JlhVfwgXzKbhj5UdhJrlEQhW2ytDK_WpzvFBriNFfxJBqI8d43FsF0yXSRAkWdDduGIgOsklSPsRUvy6pj40BHtsyEgrqou-uocnnLUQHXjFBE',
+  },
+  uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
+}
+
+const testUserData = {
+  algoliaApiKey: '88bd0a77faff65d4ace510fbf172a4e1',
+  firebase: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
+  first: 'Jeremy',
+  last: 'Evans',
+  objectID: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
+  organisationID: 'explaain',
+  slack: 'U04NVHJFD',
+}

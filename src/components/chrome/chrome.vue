@@ -58,14 +58,8 @@
         chromeRuntime: {
           sendMessage: data => {
             const self = this
-            console.log('self.GlobalConfig')
-            console.log(self.GlobalConfig)
-            console.log('self.Controller')
-            console.log(self.Controller)
             return new Promise((resolve, reject) => {
               // @TODO: Sort this so it rejects when error in actual chrome extension
-              console.log(self.GlobalConfig)
-              console.log(self.Controller)
               self.Controller.sendMessage(data, response => resolve(response))
               // try {
               // } catch (e) {
@@ -164,6 +158,7 @@
         const self = this
         if (this.sidebar) {
           console.log('sidebar')
+          // Why don't we allow it here?
         } else {
           console.log('not sidebar')
           self.chromeRuntime.sendMessage({action: 'signIn'})

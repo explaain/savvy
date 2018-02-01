@@ -2,6 +2,7 @@ import Controller from './controller'
 
 class ControllerWrapper {
   constructor(config) {
+    config.testing = true
     this.Controller = new Controller(config)
     this.authState = this.Controller.authState
   }
@@ -12,19 +13,13 @@ class ControllerWrapper {
     return this.Controller.addStateChangeListener(listenerFunction)
   }
   sendMessage(data, resFunction) {
+    const self = this
     console.log('sendMessage in Controller')
-    if (data && data.action === 'signIn1') {
-      console.log('SIGN IN1')
-    } else {
-      console.log('MESSAGE')
-      const extraFunctions = { // Need to sort these!
-        startSignIn: this.Controller.toggleSignIn,
-        // startSignIn: () => { console.log('startSignInstartSignIn') },
-        // startSignIn: null,
-        sendMessageToCurrentTab: null
-      }
-      this.Controller.onMessage(data, resFunction, extraFunctions)
+    const extraFunctions = {
+      startSignIn: self.Controller.startSignIn,
+      sendMessageToCurrentTab: null // Need to sort these!
     }
+    this.Controller.onMessage(data, resFunction, extraFunctions)
     // const extraFunctions = { // Need to sort these!
     //   startSignIn: null,
     //   sendMessageToCurrentTab: null

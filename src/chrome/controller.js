@@ -13,10 +13,10 @@ var organisation = {}
 
 const stateChangeListeners = []
 
-const onAuthStateChanged = user => {
+const onAuthStateChanged = (state, user) => {
   console.log('user', user)
   stateChangeListeners.forEach(listenerFunction => {
-    listenerFunction(user)
+    listenerFunction(state, user)
   })
 }
 
@@ -31,10 +31,8 @@ class Controller {
     setTimeout(function() {
       console.log('3 myAuth')
       console.log(myAuth)
-      console.log(myAuth)
     }, 2)
     console.log('2 myAuth')
-    console.log(myAuth)
     console.log(myAuth)
   }
   addStateChangeListener(listenerFunction) {
@@ -47,10 +45,15 @@ class Controller {
   }
   toggleSignIn() {
     console.log('AAA toggleSignIn')
-    console.log('myAuth')
-    console.log('myAuth')
     console.log(myAuth)
     return myAuth.toggleSignIn()
+  }
+  startSignIn() {
+    console.log('AAA startSignIn')
+    if (!myAuth.signedIn()) {
+      console.log('not yet signed in so toggling')
+      return myAuth.toggleSignIn()
+    }
   }
   signedIn() {
     console.log('AAA signedIn')
@@ -72,6 +75,7 @@ class Controller {
         switch (request.action) {
           case 'signIn':
             console.log('Signing in!')
+            console.log(extraFunctions)
             extraFunctions.startSignIn()
             .then(sendResponse)
             .catch(e => {

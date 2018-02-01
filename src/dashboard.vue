@@ -138,7 +138,7 @@
       toggleSignIn: () => {
         this.Controller.toggleSignIn()
       },
-      onAuthStateChanged: function(user) {
+      onAuthStateChanged: function(state, user) {
         const self = this
         console.log('onAuthStateChanged')
         console.log(user)
