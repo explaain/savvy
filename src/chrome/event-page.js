@@ -63,6 +63,7 @@ const startSignIn = () => new Promise((resolve, reject) => {
 
 if (allowContinue) {
   console.log('Allow signin')
+  // Not sure whether this should be in or not!
   // startSignIn()
   // .then(res => {
   //   log.info(res)

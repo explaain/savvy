@@ -111,6 +111,25 @@ class Auth {
         }
       })
     }
+    self.authSignIn = token => new Promise((resolve, reject) => {
+      var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
+      console.log('firebase')
+      console.log(firebase)
+      console.log('credential')
+      console.log(credential)
+      firebase.auth().signInWithCredential(credential)
+      .then(res => {
+        // console.log('Auth starting')
+        // myAuth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: organisation })
+        // console.log('Auth done')
+        resolve(res)
+      }).catch(e => {
+        reject(e)
+      })
+    })
+    self.signedIn = () => {
+      return !!firebase.auth().currentUser
+    }
     self.refreshUserToken = async () => {
       var idToken
       try {

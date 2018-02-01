@@ -1,4 +1,3 @@
-/* global firebase */
 // import Vue from 'vue'
 import log from 'loglevel'
 import axios from 'axios'
@@ -21,27 +20,22 @@ const onAuthStateChanged = user => {
   })
 }
 
+var myAuth
+
 class Controller {
   constructor(config) {
-    this.Auth = new Auth(onAuthStateChanged, config)
-    this.authState = this.Auth.authState
-    console.log('this.Auth')
-    console.log(this.Auth)
+    myAuth = new Auth(onAuthStateChanged, config)
+    this.authState = myAuth.authState
+    console.log('myAuth')
+    console.log(myAuth)
     setTimeout(function() {
-      console.log('this.Auth')
-      console.log(this.Auth)
+      console.log('3 myAuth')
+      console.log(myAuth)
+      console.log(myAuth)
     }, 2)
-    try {
-      if (firebase && firebase.apps && firebase.apps.length) {
-        console.log('initialising')
-        firebase.initializeApp(config.firebase)
-      }
-    } catch (e) {
-      console.log('1 this.Auth')
-      console.log(this.Auth)
-    }
-    console.log('2 this.Auth')
-    console.log(this.Auth)
+    console.log('2 myAuth')
+    console.log(myAuth)
+    console.log(myAuth)
   }
   addStateChangeListener(listenerFunction) {
     console.log('AAA addStateChangeListener', listenerFunction)
@@ -49,33 +43,22 @@ class Controller {
   }
   authSignIn(token) {
     console.log('AAA authSignIn', token)
-    return new Promise((resolve, reject) => {
-      var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
-      firebase.auth().signInWithCredential(credential)
-      .then(res => {
-        // console.log('Auth starting')
-        // this.Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: organisation })
-        // console.log('Auth done')
-        resolve(res)
-      }).catch(e => {
-        reject(e)
-      })
-    })
+    return myAuth.authSignIn()
   }
   toggleSignIn() {
     console.log('AAA toggleSignIn')
-    console.log('this.Auth')
-    console.log('this.Auth')
-    console.log(this.Auth)
-    return this.Auth.toggleSignIn()
+    console.log('myAuth')
+    console.log('myAuth')
+    console.log(myAuth)
+    return myAuth.toggleSignIn()
   }
   signedIn() {
     console.log('AAA signedIn')
-    return !!firebase.auth().currentUser
+    return myAuth.signedIn()
   }
   getUser() {
     console.log('AAA getUser')
-    return this.Auth.getUser()
+    return myAuth.getUser()
   }
 
   /* ----------------------- */
@@ -99,7 +82,7 @@ class Controller {
           case 'getPageResults':
             // Stopping this from happening for now as we're not including this feature currently!
             if (false) { // eslint-disable-line
-              const user = this.Auth.getUser()
+              const user = myAuth.getUser()
               axios.post('http://localhost:5000/parse', {
                 // axios.post('//savvy-nlp--staging.herokuapp.com/parse', {
                 organisationID: organisation.id,
@@ -107,7 +90,7 @@ class Controller {
                 content: request.data.pageText,
                 url: request.data.url
               })
-              // CardDetection.getPageResults(organisation.id, this.Auth.getUser(), request.data)
+              // CardDetection.getPageResults(organisation.id, myAuth.getUser(), request.data)
               .then(res => {
                 log.debug(res.data.results)
                 return sendResponse(res.data.results)
@@ -121,8 +104,8 @@ class Controller {
             }
             break
           case 'getUser':
-            console.log(this.Auth)
-            sendResponse(this.Auth.getUser())
+            console.log(myAuth)
+            sendResponse(myAuth.getUser())
             break
           case 'saveCard':
             axios.post(request.url, request.data)
