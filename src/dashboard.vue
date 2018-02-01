@@ -74,7 +74,6 @@
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
   import IconButton from './components/explorer/ibutton.vue'
-  import Auth from './plugins/auth.js'
 
   export default {
     name: 'dashboard',
@@ -82,6 +81,9 @@
       icon: Icon,
       ibutton: IconButton,
     },
+    props: [
+      'Controller'
+    ],
     data () {
       return {
         organisation: {},
@@ -92,7 +94,7 @@
             data: {},
             organisation: this.organisation,
           },
-          authState: Auth.authState || 'pending',
+          authState: this.Controller.authState || 'pending',
           toggleSignIn: this.toggleSignIn,
           joinOrg: this.joinOrg
         },
@@ -126,31 +128,22 @@
       if (window.location.host.split('.')[2])
         self.organisation.id = window.location.host.split('.')[0]
       console.log('self.organisation', self.organisation)
-      Vue.use(Auth, {
-        organisation: self.organisation,
-        // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-        getUserDataUrl: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/user'
-        // getUserDataUrl: '//localhost:3000/api/user',
-      })
-      Auth.initApp(true, self.onAuthStateChanged)
-      Vue.globalGetUser = () => Auth.getUser()
-      // Vue.globalSetUser = (user) => Auth.setUser()
+      self.Controller.addStateChangeListener(self.onAuthStateChanged)
+      Vue.globalGetUser = () => self.Controller.getUser()
       window.Intercom('boot', {
         app_id: 'et2ha1z8'
       })
     },
     methods: {
       toggleSignIn: () => {
-        Auth.toggleSignIn()
+        this.Controller.toggleSignIn()
       },
-      joinOrg: () => Auth.joinOrg(),
       onAuthStateChanged: function(user) {
         const self = this
         console.log('onAuthStateChanged')
         console.log(user)
         this.auth.user = user
-        this.auth.authState = Auth.authState
-        console.log(Auth.authState)
+        this.auth.authState = self.Controller.authState
         if (this.auth.authState === 'loggedIn')
           this.$router.push(this.$route.query.redirect || '/')
         else if (this.auth.authState === 'readyToJoinOrg' || this.auth.authState === 'readyToChooseOrg')

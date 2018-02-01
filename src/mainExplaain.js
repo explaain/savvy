@@ -4,7 +4,6 @@ import Vue from 'vue'
 import log from 'loglevel'
 // import router from './router'
 // import Dashboard from './dashboard'
-// import Auth from './plugins/auth.js'
 // import Chrome from './components/chrome/chrome'
 import Popup from './components/explorer/popup'
 

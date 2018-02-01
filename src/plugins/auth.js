@@ -6,10 +6,10 @@ import axios from 'axios'
 // Vue.use(VueAxios, axios)
 
 class Auth {
-  constructor(callback) {
+  constructor(callback, config) {
     const self = this
-    self.firebase = {}
-    self.options = {} // ???
+    self.firebase = config.firebase
+    self.options = {}
     self.organisation = {}
     self.user = {}
     self.stateChangeCallback = callback || function() {}
@@ -26,12 +26,8 @@ class Auth {
     *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
     */
     console.log('🔏⛏  Initialising Auth')
-    var config = {
-      apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
-      authDomain: 'savvy-96d8b.firebaseapp.com',
-    }
     if (!firebase.apps.length)
-      firebase.initializeApp(config)
+      firebase.initializeApp(self.firebase)
 
     // this.updateAuthState(firebase.auth().currentUser ? 'loggedIn' : 'pending') // Is this correct?
 

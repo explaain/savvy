@@ -4,10 +4,9 @@ import put from '101/put'
 import Vue from 'vue'
 import router from './router'
 import Dashboard from './dashboard'
-import Auth from './plugins/auth.js'
 import Chrome from './components/chrome/chrome'
-import chromeControllerInterface from './chrome/chrome-controller-interface'
-import chromeControllerTestingInterface from './chrome/chrome-controller-testing-interface' // Ideally this is only imported if we're testing
+import ChromeControllerInterface from './chrome/chrome-controller-interface'
+import ChromeControllerTestingInterface from './chrome/chrome-controller-testing-interface' // Ideally this is only imported if we're testing
 
 // import Popup from './components/explorer/popup'
 
@@ -16,12 +15,8 @@ require('./styles/index.css')
 Vue.config.productionTip = false
 
 const firebase = {
-  apiKey: 'AIzaSyBU0SEu3orHAoJ5eqxIJXS2VfyqXm1HoMU',
-  authDomain: 'forgetmenot-1491065404838.firebaseapp.com',
-  databaseURL: 'https://forgetmenot-1491065404838.firebaseio.com',
-  projectId: 'forgetmenot-1491065404838',
-  storageBucket: '',
-  messagingSenderId: '400087312665'
+  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
+  authDomain: 'savvy-96d8b.firebaseapp.com',
 }
 const algolia = {
   appID: 'D3AE3TSULH'
@@ -30,13 +25,15 @@ const algolia = {
 console.log('main.js running')
 console.log('Chrome')
 console.log(Chrome)
-console.log('chromeControllerTestingInterface')
-console.log(chromeControllerTestingInterface)
-console.log('chromeControllerInterface')
-console.log(chromeControllerInterface)
+console.log('ChromeControllerTestingInterface')
+console.log(ChromeControllerTestingInterface)
+console.log('ChromeControllerInterface')
+console.log(ChromeControllerInterface)
 
 class Main {
   constructor(props) {
+    const mainSelf = this
+    mainSelf.Controller = props.env === 'testing' ? new ChromeControllerTestingInterface({ firebase: firebase }) : new ChromeControllerInterface({ firebase: firebase })
     console.log('props')
     console.log(props)
     /* eslint-disable no-new */
@@ -47,8 +44,7 @@ class Main {
         return h(props.plugin ? Chrome : Dashboard, {
           props: {
             GlobalConfig: this.GlobalConfig,
-            Controller: props.env === 'testing' ? chromeControllerTestingInterface : chromeControllerInterface,
-            // Controller: chromeControllerInterface,
+            Controller: mainSelf.Controller,
             authState: this.authState,
             sidebar: props.sidebar
           }
@@ -89,9 +85,9 @@ class Main {
       v.GlobalConfig = put(v.GlobalConfig, key, val)
     }
 
-    const myAuth = new Auth(onAuthStateChanged) //, { firebase: firebase, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
-    console.log('myAuth', myAuth)
-    updateGlobalConfig('auth.toggleSignIn', myAuth.toggleSignIn)
+    this.Controller.addStateChangeListener(onAuthStateChanged)
+
+    updateGlobalConfig('auth.toggleSignIn', this.Controller.toggleSignIn)
   }
 }
 

@@ -12,53 +12,78 @@ console.log('STARTING')
 
 var organisation = {}
 
-var config = {
-  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
-  authDomain: 'savvy-96d8b.firebaseapp.com',
-  databaseURL: 'https://chrometest-5cd53.firebaseio.com', // Should delete this?
-  storageBucket: ''
-}
+const stateChangeListeners = []
 
-const initApp = () => { // eslint-disable-line
-  firebase.auth().onAuthStateChanged(user => {
-    console.log(user)
+const onAuthStateChanged = user => {
+  console.log('user', user)
+  stateChangeListeners.forEach(listenerFunction => {
+    listenerFunction(user)
   })
 }
 
-const onAuthStateChanged = (user) => {
-  console.log('user', user)
-}
-
-const Controller = {
-  initialise: () => {
+class Controller {
+  constructor(config) {
+    this.Auth = new Auth(onAuthStateChanged, config)
+    this.authState = this.Auth.authState
+    console.log('this.Auth')
+    console.log(this.Auth)
+    setTimeout(function() {
+      console.log('this.Auth')
+      console.log(this.Auth)
+    }, 2)
     try {
-      console.log('initialising')
-      firebase.initializeApp(config)
-      return true
+      if (firebase && firebase.apps && firebase.apps.length) {
+        console.log('initialising')
+        firebase.initializeApp(config.firebase)
+      }
     } catch (e) {
-      console.log(e)
-      return false
+      console.log('1 this.Auth')
+      console.log(this.Auth)
     }
-  },
-  authSignIn: token => new Promise((resolve, reject) => {
-    var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
-    firebase.auth().signInWithCredential(credential)
-    .then(res => {
-      console.log('Auth starting')
-      Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: organisation, getUserDataUrl: 'https://forget-me-not--staging.herokuapp.com/api/user' })
-      console.log('Auth done')
-      resolve(res)
-    }).catch(e => {
-      reject(e)
+    console.log('2 this.Auth')
+    console.log(this.Auth)
+  }
+  addStateChangeListener(listenerFunction) {
+    console.log('AAA addStateChangeListener', listenerFunction)
+    stateChangeListeners.push(listenerFunction)
+  }
+  authSignIn(token) {
+    console.log('AAA authSignIn', token)
+    return new Promise((resolve, reject) => {
+      var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
+      firebase.auth().signInWithCredential(credential)
+      .then(res => {
+        // console.log('Auth starting')
+        // this.Auth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: organisation })
+        // console.log('Auth done')
+        resolve(res)
+      }).catch(e => {
+        reject(e)
+      })
     })
-  }),
-  signedIn: () => !!firebase.auth().currentUser,
+  }
+  toggleSignIn() {
+    console.log('AAA toggleSignIn')
+    console.log('this.Auth')
+    console.log('this.Auth')
+    console.log(this.Auth)
+    return this.Auth.toggleSignIn()
+  }
+  signedIn() {
+    console.log('AAA signedIn')
+    return !!firebase.auth().currentUser
+  }
+  getUser() {
+    console.log('AAA getUser')
+    return this.Auth.getUser()
+  }
 
   /* ----------------------- */
   /* ----------------------- */
   /* --- Event Listeners --- */
 
-  onMessage: (request, sendResponse, extraFunctions) => {
+  onMessage(request, sendResponse, extraFunctions) {
+    console.log('AAA onMessage', request, sendResponse, extraFunctions)
     try {
       if (request.action)
         switch (request.action) {
@@ -74,7 +99,7 @@ const Controller = {
           case 'getPageResults':
             // Stopping this from happening for now as we're not including this feature currently!
             if (false) { // eslint-disable-line
-              const user = Auth.getUser()
+              const user = this.Auth.getUser()
               axios.post('http://localhost:5000/parse', {
                 // axios.post('//savvy-nlp--staging.herokuapp.com/parse', {
                 organisationID: organisation.id,
@@ -82,7 +107,7 @@ const Controller = {
                 content: request.data.pageText,
                 url: request.data.url
               })
-              // CardDetection.getPageResults(organisation.id, Auth.getUser(), request.data)
+              // CardDetection.getPageResults(organisation.id, this.Auth.getUser(), request.data)
               .then(res => {
                 log.debug(res.data.results)
                 return sendResponse(res.data.results)
@@ -96,7 +121,8 @@ const Controller = {
             }
             break
           case 'getUser':
-            sendResponse(Auth.getUser())
+            console.log(this.Auth)
+            sendResponse(this.Auth.getUser())
             break
           case 'saveCard':
             axios.post(request.url, request.data)

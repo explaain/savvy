@@ -1,7 +1,7 @@
 /* global chrome */
 
 import log from 'loglevel'
-import Controller from './chrome/chrome-controller'
+import Controller from './chrome/controller'
 
 log.setLevel('debug')
 
@@ -63,12 +63,12 @@ const startSignIn = () => new Promise((resolve, reject) => {
 
 if (allowContinue) {
   console.log('Allow signin')
-  startSignIn()
-  .then(res => {
-    log.info(res)
-  }).catch(e => {
-    log.info(e)
-  })
+  // startSignIn()
+  // .then(res => {
+  //   log.info(res)
+  // }).catch(e => {
+  //   log.info(e)
+  // })
 
   /* ----------------------- */
   /* ----------------------- */

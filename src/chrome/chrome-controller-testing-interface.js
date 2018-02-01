@@ -1,26 +1,35 @@
-import ChromeController from './chrome-controller'
+import Controller from './controller'
 
-console.log('ChromeController')
-console.log(ChromeController)
-
-const ControllerWrapper = {
-  testMe: 'tester',
-  sendMessage: (data, resFunction) => {
+class ControllerWrapper {
+  constructor(config) {
+    this.Controller = new Controller(config)
+    this.authState = this.Controller.authState
+  }
+  toggleSignIn() {
+    return this.Controller.toggleSignIn()
+  }
+  addStateChangeListener(listenerFunction) {
+    return this.Controller.addStateChangeListener(listenerFunction)
+  }
+  sendMessage(data, resFunction) {
     console.log('sendMessage in Controller')
     if (data && data.action === 'signIn1') {
-      console.log('SIGN IN')
+      console.log('SIGN IN1')
     } else {
+      console.log('MESSAGE')
       const extraFunctions = { // Need to sort these!
-        startSignIn: null,
+        startSignIn: this.Controller.toggleSignIn,
+        // startSignIn: () => { console.log('startSignInstartSignIn') },
+        // startSignIn: null,
         sendMessageToCurrentTab: null
       }
-      ChromeController.onMessage(data, resFunction, extraFunctions)
+      this.Controller.onMessage(data, resFunction, extraFunctions)
     }
     // const extraFunctions = { // Need to sort these!
     //   startSignIn: null,
     //   sendMessageToCurrentTab: null
     // }
-    // ChromeController.onMessage(data, resFunction, extraFunctions)
+    // this.Controller.onMessage(data, resFunction, extraFunctions)
   }
 }
 export default ControllerWrapper

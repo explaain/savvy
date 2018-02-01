@@ -56,18 +56,25 @@
         cards: [], // ???
         // sidebar: true,
         chromeRuntime: {
-          sendMessage: data => new Promise((resolve, reject) => {
-            // @TODO: Sort this so it rejects when error in actual chrome extension
-            console.log(this.GlobalConfig)
-            console.log(this.Controller)
-            this.Controller.sendMessage(data, response => resolve(response))
-            // try {
-            // } catch (e) {
-            //   console.log('catching')
-            //   if (data.action === 'signIn')
-            //     this.GlobalConfig.auth.toggleSignIn().then(resolve)
-            // }
-          }),
+          sendMessage: data => {
+            const self = this
+            console.log('self.GlobalConfig')
+            console.log(self.GlobalConfig)
+            console.log('self.Controller')
+            console.log(self.Controller)
+            return new Promise((resolve, reject) => {
+              // @TODO: Sort this so it rejects when error in actual chrome extension
+              console.log(self.GlobalConfig)
+              console.log(self.Controller)
+              self.Controller.sendMessage(data, response => resolve(response))
+              // try {
+              // } catch (e) {
+              //   console.log('catching')
+              //   if (data.action === 'signIn')
+              //     self.GlobalConfig.auth.toggleSignIn().then(resolve)
+              // }
+            })
+          },
         },
       }
     },
@@ -108,13 +115,6 @@
         })
         // self.fromPage()
       }
-
-      // Vue.use(Auth, {
-      //   organisation: self.organisation,
-      //   // getUserDataUrl: '//forget-me-not--staging.herokuapp.com/api/user',
-      //   getUserDataUrl: '//localhost:3000/api/user',
-      // })
-      // Auth.initApp(false, self.onAuthStateChanged)
 
       window.addEventListener('message', function(event) {
         // log.info(event.data.action)
