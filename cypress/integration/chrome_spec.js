@@ -1,6 +1,6 @@
 /* global describe it cy */
 
-const sidebar = true
+const sidebar = false
 
 describe('Booting up', () => {
   it('.should() - load the page', () => {
@@ -53,6 +53,9 @@ describe('Logged In', () => {
     it('The first card has some content', function() {
       cy.get('.main > ul.cards .card').find('.content').contains('p', /\w/)
     })
+    it('The first card has a Date Modified', function() {
+      cy.get('.main > ul.cards .card').find('.modified').contains('p', /Last Modified: \w/)
+    })
     it(`Search results label appears, containing "${query}"`, () => {
       cy.get('.search-results .results-label').should('contain', query)
     })
@@ -63,47 +66,34 @@ describe('Logged In', () => {
       cy.get('.main > ul.cards .card').find('.file').contains('p', 'Brand Guidelines')
     })
   })
-  if (sidebar) { // eslint-disable-line no-constant-condition
-    describe('Hovering on cards works', () => {
+  describe('Popup works', () => {
+    if (sidebar) {
       it(`Hover over first card`, () => {
         cy.get('.main > ul.cards .card').first().trigger('mouseover')
       })
-      it('.popup > .cards should have one card', function() {
-        cy.get('.popup > .cards > .card').should('have.length', 1)
-      })
-      it('The popup card has some content', function() {
-        cy.get('.popup > .cards .card').find('.content').contains('p', /\w/)
-      })
-      it(`It should contain "${correctSnippet}"`, () => {
-        cy.get('.main > ul.cards .card').find('.content').contains('p', correctSnippet)
-      })
-      it(`It should contain three quick reply buttons`, () => {
-        cy.get('.popup > .cards > .card > footer > .buttons').children('button').should('have.length', 3)
-      })
-    })
-  } else {
-    describe('Clicking on cards works', () => {
+    } else {
       it(`Click on first card`, () => {
-        cy.get('.main > ul.cards .card').first().click()
+        cy.get('.main > ul.cards .card').first().click('top')
       })
-      it('.popup > .cards should have one card', function() {
-        cy.get('.popup > .cards > .card').should('have.length', 1)
-      })
-      it('The popup card has some content', function() {
-        cy.get('.popup > .cards .card').find('.content').contains('p', /\w/)
-      })
-      it(`It should contain "${correctSnippet}"`, () => {
-        cy.get('.main > ul.cards .card').find('.content').contains('p', correctSnippet)
-      })
-      it(`It should contain three quick reply buttons`, () => {
-        cy.get('.popup > .cards > .card > footer > .buttons').children('button').should('have.length', 3)
-      })
-      it(`Clicking elsewhere closes popup`, () => {
-        // For some reason trigger doesn't work, so click manually!
-        cy.get('.popup').trigger('mouseup', 'top').should('not.have.class', 'active')
-      })
+    }
+    it('.popup > .cards should have one card', function() {
+      cy.get('.popup > .cards > .card').should('have.length', 1)
     })
-  }
+    it('The popup card has some content', function() {
+      cy.get('.popup > .cards .card').find('.content').contains('p', /\w/)
+    })
+    it(`It should contain "${correctSnippet}"`, () => {
+      cy.get('.popup > ul.cards .card').find('.content').contains('p', correctSnippet)
+    })
+    it(`It should contain the positive feedback button`, () => {
+      cy.get('.popup > .cards > .card > footer > .buttons').children('button').should('have.length', 1)
+    })
+    if (!sidebar) {
+      it(`Clicking elsewhere closes popup`, () => {
+        cy.get('.popup').click('top').should('not.have.class', 'active')
+      })
+    }
+  })
   describe('Closing search works', () => {
     it(`Click on close button`, () => {
       cy.get('.search .closeSearch').click()

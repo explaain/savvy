@@ -30,6 +30,7 @@
           {{card.pending[0].description}}
         </div>
       </div>
+      <p class="modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Last Modified: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}}</span></p>
       <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
       <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     </div>
@@ -51,13 +52,13 @@
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
       </div> -->
       <div class="buttons reaction" v-if="!reacted && !explaain">
-        <p>How well did this match what you were looking for?</p>
-        <button class="" @click="reaction('great')">😍</button>
-        <button class="" @click="reaction('ok')">😐</button>
-        <button class="" @click="reaction('bad')">😢</button>
+        <!-- <p>How well did this match what you were looking for?</p> -->
+        <button class="" @click="reaction('great')">😍&nbsp;&nbsp; That's what I needed</button>
+        <!-- <button class="" @click="reaction('ok')">😐</button>
+        <button class="" @click="reaction('bad')">😢</button> -->
       </div>
       <div class="buttons reaction" v-if="reacted && !explaain">
-        <p>Thanks for letting us know! Our AI uses this feedback to get smarter 😎</p>
+        <p>Thanks for your feedback! Savvy uses this to learn and get smarter over time 🤖</p>
       </div>
       <div class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
     </footer>
@@ -556,6 +557,20 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     .extractedFrom a:hover {
       border-bottom: 4px solid rgb(255,211,35);
     }
+    .modified {
+      font-size: 14px;
+      // font-style: italic;
+      text-align: right;
+      color: #999;
+      margin: 0;
+
+      svg {
+        color: #00cc00;
+      }
+      span {
+        font-weight: bold;
+      }
+    }
     a.file {
       display: block;
       margin: 0;
@@ -630,8 +645,9 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 
           button {
             margin: 5px 5px 10px;
-            font-size: 24px;
-            padding: 4px 10px 0;
+            font-size: 16px;
+            padding: 10px 20px;
+            // padding: 4px 10px 0;
           }
         }
       }
