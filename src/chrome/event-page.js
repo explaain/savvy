@@ -1,7 +1,7 @@
 /* global chrome */
 
 import log from 'loglevel'
-import Controller from './chrome/controller'
+import Controller from './controller'
 
 log.setLevel('debug')
 
