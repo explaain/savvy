@@ -1,18 +1,22 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
-    <div uid="main" class="main" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain}">
+    <div uid="main" class="main" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header" v-if="!$route.query.q">
         <slot name="header"></slot>
-        <input class="search" autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search"><br>
+        <!-- <ibutton icon="history" text="" :click="searchRecent"></ibutton> -->
+        <div class="search">
+          <input autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search">
+          <a href="#" class="closeSearch" @click="closeSearch"><icon name="close"></icon></a>
+        </div>
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
-        <ibutton icon="history" text="Recent" :click="searchRecent"></ibutton>
-        <ibutton icon="random" text="Random" :click="searchRandom"></ibutton>
+        <!-- <ibutton icon="random" text="Random" :click="searchRandom"></ibutton> -->
         <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
+      <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
 
       <ul v-masonry transition-duration="0.3s" item-selector=".card" class="cards">
         <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
@@ -23,7 +27,10 @@
         <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
         <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
-        <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
+        <div class="no-cards" v-if="!cards.length">
+          <p>{{noCardMessage}}</p>
+          <img src="/static/images/search-graphic.png" alt="">
+        </div>
       </ul>
     </div>
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
@@ -57,12 +64,12 @@
 
   export default {
     components: {
-      card: Card,
-      icon: Icon,
+      Card,
+      Icon,
       ibutton: IconButton,
-      modal: Modal,
-      alert: Alert,
-      draggable: Draggable
+      Modal,
+      Alert,
+      Draggable
     },
     props: [
       'plugin',
@@ -115,7 +122,7 @@
         }) : []
       },
       searchPlaceholder: function() {
-        return document.documentElement.clientWidth > 600 ? 'Find anything (like holiday pay, product specs and emojis)...' : 'Find anything...'
+        return document.documentElement.clientWidth > 850 ? 'Find anything (like holiday pay, product specs and emojis)...' : 'Find anything...'
       }
     },
     created: function () {
@@ -149,8 +156,8 @@
         console.log('SEARCHSEARCHSEARCHSEARCHSEARCH')
         if (self.$route.query.q)
           self.search(self.$route.query.q)
-        else
-          self.searchRecent()
+        // else if (!self.sidebar)
+        //   self.searchRecent()
       }, 200)
     },
     methods: {
@@ -311,6 +318,12 @@
         this.loading = true
         this.pingCards = []
         this.mainCardList = []
+      },
+      closeSearch: function() {
+        console.log('closing search!')
+        this.query = ''
+        this.mainCardList = []
+        this.popupCards = []
       },
       search: function (optionalQuery) {
         console.log('SEARCHSEARCHSEARCH')
@@ -660,13 +673,6 @@
     padding: 20px;
   }
 
-  .header img.savvy-logo {
-    max-width: 60%;
-    width: 280px;
-    display: block;
-    margin: 20px auto 0;
-  }
-
   .explorer {
     > .main {
       // position: absolute;
@@ -729,13 +735,64 @@
   input, .card {
     text-align: left;
   }
-  input {
-    margin: 20px;
-    width: calc(100% - 82px);
-    max-width: 500px;
+  .search {
+    margin: 180px auto 20px;
+    // width: calc(100% - 77px);
+    transition: margin .5s;
+
+    input {
+      @include blockShadow(2);
+      max-width: 480px;
+      margin: 0;
+      padding: 20px 20px 20px 45px;
+      background: url('/static/images/search-icon-1.png');
+      background-repeat: no-repeat;
+      background-position: center left;
+      background-size: 40px;
+      width: calc(100% - 67px);
+      transition:  padding .5s, box-shadow .5s, filter .5s;
+    }
   }
   input:focus {
     outline:none;
+  }
+  .closeSearch {
+    display: inline-block;
+    position: absolute;
+    right: 35px;
+    top: auto;
+    margin-top: -31px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .5s;
+    color: #999;
+  }
+  .search-results {
+    .search {
+      margin-top: 60px;
+
+      input {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        @include blockShadow(0.5);
+        filter: grayscale(100%);
+      }
+      .closeSearch {
+        pointer-events: all;
+        opacity: 1;
+        cursor: pointer;
+
+        &:hover {
+          color: $savvy;
+        }
+      }
+    }
+  }
+  p.results-label {
+    margin: 0 25px 0;
+    text-align: left;
+    font-style: italic;
+    color: #999;
   }
 
   p.cards-label {
@@ -750,11 +807,17 @@
     text-align: center;
   }
 
-  p.no-cards {
-    text-align: center;
-    margin: 50px 20px;
-    color: #bbb;
-    font-style: italic;
+  .no-cards {
+    p {
+      text-align: center;
+      margin: 50px 20px;
+      color: #bbb;
+      font-style: italic;
+    }
+    img {
+      width: calc(100% - 80px);
+      max-width: 300px;
+    }
   }
 
   .explorer.sidebar {
@@ -776,6 +839,16 @@
   }
 
   .explorer:not(.sidebar) {
+    .search .closeSearch {
+      position: relative;
+      top: -1px;
+      right: 32px;
+    }
+    .no-cards {
+      img {
+        opacity: 0.6;
+      }
+    }
     > .main {
       // width: calc(100% - 20px);
     }

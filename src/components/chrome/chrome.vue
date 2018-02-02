@@ -11,6 +11,7 @@
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="GlobalConfig.firebase" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
       <div class="chrome-header" slot="header">
         <img src="/static/images/logo.png" class="savvy-logo" alt="">
+        <img :src="profileImage" class="profile">
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
@@ -54,6 +55,7 @@
         logo: '../images/logo.png',
         pageCards: [], // ???
         cards: [], // ???
+        profileImage: this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '/static/images/profile.jpg',
         // sidebar: true,
         chromeRuntime: {
           sendMessage: data => {
@@ -156,17 +158,17 @@
       },
       toggleSignIn: function() {
         const self = this
-        if (this.sidebar) {
-          console.log('sidebar')
-          // Why don't we allow it here?
-        } else {
-          console.log('not sidebar')
-          self.chromeRuntime.sendMessage({action: 'signIn'})
-          .then(response => {
-            console.log('response user', response)
-            self.GlobalConfig.auth.user = response
-          })
-        }
+        self.chromeRuntime.sendMessage({action: 'signIn'})
+        .then(response => {
+          console.log('response user', response)
+          self.GlobalConfig.auth.user = response
+        })
+        // if (this.sidebar) {
+        //   console.log('sidebar')
+        //   // Why don't we allow it here?
+        // } else {
+        //   console.log('not sidebar')
+        // }
       },
       // onAuthStateChanged: function(user) {
       //   console.log('onAuthStateChanged')
@@ -236,10 +238,22 @@
     }
   }
 
-  .savvy-logo {
-    max-width: 240px;
-    margin: 40px 0 -10px;
+  .chrome-header {
+    img.savvy-logo {
+      position: absolute;
+      left: 20px;
+      max-width: 120px;
+    }
+    img.profile {
+      position: absolute;
+      right: 20px;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      max-width: 120px;
+    }
   }
+
 
   section.chooseOrg {
     display: block;
