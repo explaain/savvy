@@ -209,9 +209,9 @@ const Search = {
       console.log('dbpediaToCards', data)
       const resource = data.request.responseURL.replace('//dbpedia.org/data', '//dbpedia.org/resource').replace('.json', '')
       console.log('resource', resource)
-      const title = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#label'].filter(lang => lang.lang === 'fr')[0].value
+      const title = data.data[resource]['http://www.w3.org/2000/01/rdf-schema#label'].filter(lang => lang.lang === 'en')[0].value
       console.log('title', title)
-      const description = tailorDescription(data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'fr')[0].value)
+      const description = tailorDescription(data.data[resource]['http://www.w3.org/2000/01/rdf-schema#comment'].filter(lang => lang.lang === 'en')[0].value)
       console.log('description', description)
       const wiki = data.data[resource]['http://xmlns.com/foaf/0.1/isPrimaryTopicOf'][0].value
       console.log('wiki', wiki)

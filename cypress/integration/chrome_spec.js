@@ -3,6 +3,7 @@
 const sidebar = false
 
 describe('Booting up', () => {
+  cy.viewport(800, 800)
   it('.should() - load the page', () => {
     cy.visit('http://localhost:8080/#/login')
   })
