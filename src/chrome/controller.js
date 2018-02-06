@@ -13,9 +13,10 @@ var organisation = {}
 
 const stateChangeListeners = []
 
-const onAuthStateChanged = (state, user) => {
-  console.log('user', user)
+const stateChangeCallback = (state, user) => {
+  console.log('stateChangeCallback (controller.js)', state, user)
   stateChangeListeners.forEach(listenerFunction => {
+    console.log('a listener function')
     listenerFunction(state, user)
   })
 }
@@ -24,7 +25,8 @@ var myAuth
 
 class Controller {
   constructor(config) {
-    myAuth = new Auth(onAuthStateChanged, config)
+    console.log('controller config', config)
+    myAuth = new Auth(stateChangeCallback, config)
     this.authState = myAuth.authState
     console.log('myAuth')
     console.log(myAuth)
@@ -36,8 +38,9 @@ class Controller {
     console.log(myAuth)
   }
   addStateChangeListener(listenerFunction) {
-    console.log('AAA addStateChangeListener', listenerFunction)
+    console.log('AAA addStateChangeListener (controller.js)', listenerFunction)
     stateChangeListeners.push(listenerFunction)
+    console.log('stateChangeListeners (controller.js):', stateChangeListeners)
   }
   authSignIn(token) {
     console.log('AAA authSignIn', token)

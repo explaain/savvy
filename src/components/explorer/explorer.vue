@@ -7,6 +7,7 @@
         <slot name="header"></slot>
         <!-- <ibutton icon="history" text="" :click="searchRecent"></ibutton> -->
         <div class="search">
+          <slot name="greeting"></slot>
           <input autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search">
           <a href="#" class="closeSearch" @click="closeSearch"><icon name="close"></icon></a>
         </div>
@@ -29,7 +30,7 @@
         <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <div class="no-cards" v-if="!cards.length">
           <p>{{noCardMessage}}</p>
-          <img src="/static/images/search-graphic.png" alt="">
+          <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
         </div>
       </ul>
     </div>
@@ -109,7 +110,7 @@
           type: '',
           title: ''
         },
-        noCardMessage: 'Type above to search for cards',
+        noCardMessage: '' // 'Type above to search for cards',
       }
     },
     computed: {
@@ -122,7 +123,7 @@
         }) : []
       },
       searchPlaceholder: function() {
-        return document.documentElement.clientWidth > 850 ? 'Find anything (like holiday pay, product specs and emojis)...' : 'Find anything...'
+        return document.documentElement.clientWidth > 850 ? 'Find anything (like holiday pay, product specs and brand colours)' : 'Find anything...'
       }
     },
     created: function () {
@@ -298,13 +299,13 @@
         const self = this
         self.loading = false
         if (data && data.cards) {
-          self.pingCards = data.cards.pings.map(card => card.card)
+          self.pingCards = data.cards.pings ? data.cards.pings.map(card => card.card) : []
           log.debug(1, self.pingCards)
           // self.cards = data.cards.memories
-          self.mainCardList = data.cards.memories.map(function(card) { return card.card.objectID })
+          self.mainCardList = data.cards.memories ? data.cards.memories.map(function(card) { return card.card.objectID }) : []
           log.debug(2, self.mainCardList)
           // Need to add to allCards?
-          data.cards.memories.forEach(card => {
+          if (data.cards.memories) data.cards.memories.forEach(card => {
             self.allCards[card.card.objectID] = card.card
           })
           if (data.cards.hits) data.cards.hits.forEach(card => {
@@ -740,17 +741,29 @@
     // width: calc(100% - 77px);
     transition: margin .5s;
 
+    .greeting h3 {
+      margin: -40px 20px 30px;
+      font-size: 40px;
+      color: #999;
+      transition: opacity .5s, font-size .5s;
+
+      span {
+        color: $savvy;
+      }
+    }
     input {
       @include blockShadow(2);
-      max-width: 480px;
+      max-width: 560px;
       margin: 0;
       padding: 20px 20px 20px 45px;
-      background: url('/static/images/search-icon-1.png');
+      font-size: 18px;
+      background: url('/static/images/search-icon-1.png'); // //static//
       background-repeat: no-repeat;
       background-position: center left;
       background-size: 40px;
+      background-color: white;
       width: calc(100% - 67px);
-      transition:  padding .5s, box-shadow .5s, filter .5s;
+      transition: padding .5s, box-shadow .5s, filter .5s, max-width .5s;
     }
   }
   input:focus {
@@ -771,7 +784,12 @@
     .search {
       margin-top: 60px;
 
+      .greeting h3 {
+        opacity: 0;
+        font-size: 28px;
+      }
       input {
+        max-width: 400px;
         padding-top: 10px;
         padding-bottom: 10px;
         @include blockShadow(0.5);
@@ -830,6 +848,10 @@
 
       .header > button {
         margin: 10px 2px;
+      }
+
+      .greeting h3 {
+        display: none;
       }
     }
     > .popup {

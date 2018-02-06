@@ -1,10 +1,10 @@
 /* global describe it cy */
 
-const sidebar = false
+const sidebar = true
 
 describe('Booting up', () => {
-  cy.viewport(800, 800)
   it('.should() - load the page', () => {
+    cy.viewport(800, 800)
     cy.visit('http://localhost:8080/#/login')
   })
 })

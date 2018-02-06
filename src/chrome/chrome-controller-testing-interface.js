@@ -1,13 +1,18 @@
+import * as firebase from 'firebase'
 import Controller from './controller'
 
 class ControllerWrapper {
   constructor(config) {
     config.testing = true
+    config.firebaseInstance = firebase
     this.Controller = new Controller(config)
     this.authState = this.Controller.authState
   }
   toggleSignIn() {
     return this.Controller.toggleSignIn()
+  }
+  getUser() {
+    return this.Controller.getUser()
   }
   addStateChangeListener(listenerFunction) {
     return this.Controller.addStateChangeListener(listenerFunction)

@@ -145,7 +145,7 @@ const createDrawer = () => {
       + 'background: white;'
       + 'box-shadow: rgba(0, 0, 0, 0.4) -1px 3px 50px 0px;'
       + 'transition: right 0.6s ease 0s;'
-    drawer.setAttribute('data-opened', 'false')
+    drawer.setAttribute('data-status', 'closed')
 
     iframe.src = chrome.runtime.getURL('./sidebar.html')
     iframe.id = 'forgetmenot-frame'
@@ -210,41 +210,48 @@ const createDrawer = () => {
   }
 }
 const openDrawer = e => {
-  if (drawer.getAttribute('data-opened') !== 'true' && (!e || !e.dealtWith)) {
+  if (drawer.getAttribute('data-status') === 'closed' && (!e || !e.dealtWith)) {
     console.log('Opening Drawer')
     getPageResults()
     drawer.style.right = '0px'
     drawer.style.marginRight = '0px'
     drawer.style.boxShadow = 'rgba(0, 0, 0, 0.4) -1px 3px 50px 0px'
-    drawer.setAttribute('data-opened', 'true')
+    drawer.setAttribute('data-status', 'opening')
     iframe.style.pointerEvents = 'all'
     iframe.style.display = 'block'
-    log.info(drawer.getAttribute('data-opened'))
+    log.info(drawer.getAttribute('data-status'))
+    setTimeout(() => {
+      if (drawer.getAttribute('data-status') === 'opening') {
+        drawer.setAttribute('data-status', 'opened')
+        iframe.style.display = 'block'
+      }
+    }, 1000)
   }
   if (e) e.dealtWith = true
 }
 const closeDrawer = e => {
-  if (drawer.getAttribute('data-opened') === 'true' && (!e || !e.dealtWith)) {
+  if (drawer.getAttribute('data-status') === 'opened' && (!e || !e.dealtWith)) {
     console.log('Closing Drawer')
     sendToFrame({ action: 'closingDrawer' })
     drawer.style.right = '-' + drawer.style.width
     drawer.style.boxShadow = 'none'
-    drawer.setAttribute('data-opened', 'false')
+    drawer.setAttribute('data-status', 'closing')
     iframe.style.pointerEvents = 'none'
     setTimeout(() => {
-      if (drawer.getAttribute('data-opened') !== 'true') {
+      if (drawer.getAttribute('data-status') === 'closing') {
+        drawer.setAttribute('data-status', 'closed')
         drawer.style.marginRight = '-' + drawer.style.width
         iframe.style.display = 'none'
       }
     }, 1000)
   }
-  // log.info(drawer.getAttribute('data-opened'))
+  // log.info(drawer.getAttribute('data-status'))
   if (e) e.dealtWith = true
 }
 const toggleDrawer = e => {
-  if (drawer.getAttribute('data-opened') === 'true') {
+  if (drawer.getAttribute('data-status') === 'opened') {
     closeDrawer(e)
-  } else {
+  } else if (drawer.getAttribute('data-status') === 'closed') {
     openDrawer(e)
   }
 }

@@ -22,7 +22,7 @@
   clear: both; /* drops down rest of page below top banner */
 }
 
-.sidebar {
+.container > .sidebar {
   float: left;
   background-color: pink;
   width: 10%;

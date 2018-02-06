@@ -5,7 +5,44 @@ import Controller from './controller'
 
 log.setLevel('debug')
 
-var allowContinue = Controller.initializeApp()
+const firebaseConfig = {
+  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
+  authDomain: 'savvy-96d8b.firebaseapp.com',
+}
+
+const myController = new Controller({ firebaseConfig: firebaseConfig })
+
+var allowContinue = true // Controller.initialise()
+
+const stateChangeListener = (state, user) => {
+  console.log('stateChangeListener (event-page.js)', state, user)
+  sendMessageToAllTabs({
+    action: 'onAuthStateChanged',
+    data: {
+      state: state,
+      // user: user // @TODO: Figure out whether we can include this or not (might not be a stringifyable object so may mess up the sendMessage sending)
+    }
+  })
+}
+
+const sendMessageToCurrentTab = messageData => {
+  chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+    chrome.tabs.sendMessage(tabs[0].id, messageData, response => {})
+  })
+}
+
+const sendMessageToAllTabs = messageData => {
+  console.log('sendMessageToAllTabs (event-page.js):', messageData)
+  chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+    tabs.forEach(tab => {
+      console.log('sending message to tab ' + tab.id + ' (event-page.js):', messageData)
+      chrome.tabs.sendMessage(tab.id, messageData, response => {})
+    })
+  })
+}
+
+console.log('adding the state change listener')
+myController.addStateChangeListener(stateChangeListener)
 
 /**
  * Start the auth flow and authorizes to Firebase.
@@ -22,7 +59,8 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
       console.error(chrome.runtime.lastError)
       reject(chrome.runtime.lastError)
     } else if (token) {
-      Controller.authSignIn(token)
+      console.log('signing in')
+      myController.authSignIn(token)
       .then(res => {
         resolve(res)
       }).catch(error => {
@@ -45,7 +83,7 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
  * Starts the sign-in process.
  */
 const startSignIn = () => new Promise((resolve, reject) => {
-  if (!Controller.signedIn()) {
+  if (!myController.signedIn()) {
     console.log('yo')
     startAuth(true)
     .then(res => {
@@ -87,12 +125,8 @@ if (allowContinue) {
     log.debug((sender.tab ? '📬 🖌  Event from a content script: ' + sender.tab.url : '📬 ⛓  Event from the extension'), request)
     const extraFunctions = {
       startSignIn: startSignIn,
-      sendMessageToCurrentTab: messageData => {
-        chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-          chrome.tabs.sendMessage(tabs[0].id, messageData, response => {})
-        })
-      }
+      sendMessageToCurrentTab: sendMessageToCurrentTab
     }
-    return Controller.onMessage(request, sendResponse, extraFunctions)
+    return myController.onMessage(request, sendResponse, extraFunctions)
   })
 }

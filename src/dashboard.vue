@@ -19,7 +19,7 @@
   <section class="container">
     <div id="navigation-sidebar" class="sidebar" :class="{disabled: !auth.user || !auth.user.data}">
       <div class="option-profile">
-        <img :src="auth.authState == 'loggedIn' && auth.user.data.name ? auth.user.auth.photoURL : '/static/images/profile.jpg'" alt="">
+        <img :src="auth.authState == 'loggedIn' && auth.user.data.name ? auth.user.auth.photoURL : '/images/profile.jpg'" alt="">
         <h3>Hey {{auth.authState == 'loggedIn' && auth.user.data.name ? auth.user.data.name.first : 'there'}}!</h3>
         <p>{{auth.authState == 'loggedIn' && auth.user.data.name ? organisation.id + ' Team' : 'Team Member'}}</p>
       </div>
@@ -215,7 +215,7 @@
     }
   }
 
-  .sidebar {
+  .container > .sidebar {
     @extend .block;
     padding: 0 0 20px;
     width: 25%;

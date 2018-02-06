@@ -1,8 +1,8 @@
 {
   "name": "Savvy",
   "short_name": "Savvy",
-  "description": "Remember anything",
-  "version": "0.4.0",
+  "description": "Smart team knowledge management",
+  "version": "1.0.0",
   "manifest_version": 2,
   "icons": {
     "16": "chrome/images/icon16.png",
@@ -33,12 +33,12 @@
     "default_icon": {
       "48": "chrome/images/icon48.png"
     },
-    "default_title": "__MSG_browserActionTitle__"
+    "default_title": "Savvy"
   },
   "chrome_url_overrides" : {
     "newtab": "index.html"
   },
-  "content_security_policy": "script-src 'self' https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://*.logrocket.io https://savvy-nlp--staging.herokuapp.com/ https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com; object-src 'self'; child-src 'self' blob:; worker-src 'self' blob:;",
   "web_accessible_resources": [
     "index.html",
     "sidebar.html"

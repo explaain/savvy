@@ -111,7 +111,7 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: this.plugin ? './static/images/clipboard.svg' : './static/images/clipboard.svg',
+      copyIcon: this.plugin ? './static/images/clipboard.svg' : './static/images/clipboard.svg', // //static//
       showListSearch: false,
       showPending: false,
       reacted: false

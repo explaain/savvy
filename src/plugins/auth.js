@@ -1,5 +1,6 @@
+/* global firebase */
 // import Vue from 'vue'
-import * as firebase from 'firebase'
+// import * as firebase from 'firebase'
 import axios from 'axios'
 // import VueAxios from 'vue-axios'
 
@@ -9,13 +10,23 @@ class Auth {
   constructor(callback, config) {
     const self = this
     self.Testing = config.testing || false
-    self.firebase = config.firebase
+    console.log(config)
+    self.firebase = config.firebaseInstance
+    try {
+      if (!self.firebase)
+        self.firebase = firebase
+    } catch (e) {
+      console.log('Caught:', e)
+    }
+    self.firebaseConfig = config.firebaseConfig
     self.options = {}
     self.organisation = {}
     self.user = {}
-    self.stateChangeCallback = callback || function() {}
+    self.stateChangeCallback = callback || function() {
+      console.log('no state change callback defined!')
+    }
     self.updateAuthState = function(state) {
-      console.log('self.updateAuthState', state)
+      console.log('self.updateAuthState (auth.js)', state)
       self.authState = state
       self.stateChangeCallback(state, self.user)
     }
@@ -27,14 +38,15 @@ class Auth {
     *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
     */
     console.log('🔏⛏  Initialising Auth')
-    if (!firebase.apps.length)
-      firebase.initializeApp(self.firebase)
+    console.log(self.firebaseConfig)
+    if (!self.firebase.apps.length)
+      self.firebase.initializeApp(self.firebaseConfig)
 
-    // this.updateAuthState(firebase.auth().currentUser ? 'loggedIn' : 'pending') // Is this correct?
+    // this.updateAuthState(self.firebase.auth().currentUser ? 'loggedIn' : 'pending') // Is this correct?
 
     // Result from Redirect auth flow.
     // [START getidptoken]
-    firebase.auth().getRedirectResult().then(function(result) {
+    self.firebase.auth().getRedirectResult().then(function(result) {
       // if (result.credential) {
       //   // This gives you a Google Access Token. You can use it to access the Google API.
       //   var token = result.credential.accessToken
@@ -46,7 +58,7 @@ class Auth {
       // var errorMessage = error.message
       // // The email of the user's account used.
       // var email = error.email
-      // // The firebase.auth.AuthCredential type that was used.
+      // // The self.firebase.auth.AuthCredential type that was used.
       // var credential = error.credential
       // [START_EXCLUDE]
       if (errorCode === 'auth/account-exists-with-different-credential')
@@ -58,7 +70,7 @@ class Auth {
     })
     // [END getidptoken]
 
-    firebase.auth().onAuthStateChanged((userAuth) => {
+    self.firebase.auth().onAuthStateChanged((userAuth) => {
       self.onFirebaseAuthStateChange(userAuth)
     })
 
@@ -66,8 +78,8 @@ class Auth {
       return new Promise((resolve, reject) => { // Maybe should separate this into signIn() and signOut() to avoid accidentally double taetc
         console.log('🔐  Toggling Sign in')
         self.updateAuthState('pending')
-        if (!firebase.auth().currentUser) {
-          var provider = new firebase.auth.GoogleAuthProvider()
+        if (!self.firebase.auth().currentUser) {
+          var provider = new self.firebase.auth.GoogleAuthProvider()
           // provider.addScope('https://www.googleapis.com/auth/userinfo.email') // Experimenting with Gmail API
           // provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
           console.log('provider')
@@ -75,12 +87,12 @@ class Auth {
           if (self.Testing) {
             self.onFirebaseAuthStateChange(testUserAuth)
           } else {
-            firebase.auth().signInWithRedirect(provider)
+            self.firebase.auth().signInWithRedirect(provider)
           }
         } else {
-          firebase.auth().signOut()
+          self.firebase.auth().signOut()
         }
-        firebase.auth().onAuthStateChanged(userAuth => {
+        self.firebase.auth().onAuthStateChanged(userAuth => {
           self.onFirebaseAuthStateChange(userAuth)
           .then(user => {
             resolve(user)
@@ -119,15 +131,15 @@ class Auth {
       })
     }
     self.authSignIn = token => new Promise((resolve, reject) => {
-      var credential = firebase.auth.GoogleAuthProvider.credential(null, token)
-      console.log('firebase')
-      console.log(firebase)
+      var credential = self.firebase.auth.GoogleAuthProvider.credential(null, token)
+      console.log('self.firebase')
+      console.log(self.firebase)
       console.log('credential')
       console.log(credential)
-      firebase.auth().signInWithCredential(credential)
+      self.firebase.auth().signInWithCredential(credential)
       .then(res => {
         // console.log('Auth starting')
-        // myAuth.initApp(false, onAuthStateChanged, { firebase: firebase, organisation: organisation })
+        // myAuth.initApp(false, onAuthStateChanged, { firebaseConfig: self.firebaseConfig, organisation: organisation })
         // console.log('Auth done')
         resolve(res)
       }).catch(e => {
@@ -135,38 +147,44 @@ class Auth {
       })
     })
     self.signedIn = () => {
-      return self.Testing ? self.user.uid : !!firebase.auth().currentUser
+      return self.Testing ? self.user.uid : !!self.firebase.auth().currentUser
     }
     self.refreshUserToken = async () => {
       var idToken
       try {
-        idToken = await firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
+        idToken = await self.user.getAccessToken(/* forceRefresh */ true)
+        // idToken = await self.firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
       } catch (e) {
         console.log(e)
         return null
       }
-      console.log('New User Token!')
+      console.log('New User Token!', idToken.substring(0, 100) + '...')
       return idToken
     }
     self.getUserData = async userAuth => {
       console.log('getUserData', userAuth)
       const idToken = await self.refreshUserToken()
-      if (idToken) {
-        const response = await axios.post('//savvy-nlp--staging.herokuapp.com/get-user', { idToken: idToken })
-        console.log('📪  The response data!', response.data)
-        return response.data.results
-      } else {
-        if (self.Testing) {
-          return testUserData
-        } else {
-          console.log('📛  Error! Couldn\'t get user data')
-          return false
+      console.log('idToken', idToken)
+      if (self.Testing) {
+        return testUserData
+      } else if (idToken) {
+        var response
+        try {
+          response = await axios.post('https://savvy-nlp--staging.herokuapp.com/get-user', { idToken: idToken })
+          console.log('📪  The response data!', response.data)
+          return response.data.results
+        } catch (e) {
+          console.log('Couldn\'t get user data', e)
+          return null
         }
+      } else {
+        console.log('📛  Error! Couldn\'t get user data')
+        return null
       }
     }
     self.getUser = () => { // Not often used now!
       console.log('self.getUser', self.user)
-      const user = JSON.parse(JSON.stringify(self.user))
+      const user = self.user ? JSON.parse(JSON.stringify(self.user)) : null
       if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
         console.log('♻️  Refreshing User Token!')
         Auth.refreshUserToken()

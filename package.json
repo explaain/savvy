@@ -90,6 +90,7 @@
     "less-loader": "^4.0.5",
     "lodash": "^4.17.4",
     "loglevel": "^1.5.0",
+    "logrocket": "^0.6.3",
     "merge": "^1.2.0",
     "mixpanel-browser": "^2.14.0",
     "mocha": "^3.2.0",

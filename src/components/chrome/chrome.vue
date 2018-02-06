@@ -10,8 +10,11 @@
     </section>
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="GlobalConfig.firebase" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
       <div class="chrome-header" slot="header">
-        <img src="/static/images/logo.png" class="savvy-logo" alt="">
+        <img src="/static/images/logo.png" class="savvy-logo" alt=""> <!-- //static// -->
         <img :src="profileImage" class="profile">
+      </div>
+      <div class="greeting" slot="greeting">
+        <h3><span>Hi.</span> What are we looking for?</h3>
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
@@ -55,14 +58,17 @@
         logo: '../images/logo.png',
         pageCards: [], // ???
         cards: [], // ???
-        profileImage: this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '/static/images/profile.jpg',
         // sidebar: true,
         chromeRuntime: {
           sendMessage: data => {
+            console.log('sendMessage (chrome.js):', data)
             const self = this
             return new Promise((resolve, reject) => {
               // @TODO: Sort this so it rejects when error in actual chrome extension
-              self.Controller.sendMessage(data, response => resolve(response))
+              self.Controller.sendMessage(data, response => {
+                console.log('Response received!', response)
+                resolve(response)
+              })
               // try {
               // } catch (e) {
               //   console.log('catching')
@@ -72,6 +78,11 @@
             })
           },
         },
+      }
+    },
+    computed: {
+      profileImage: function() {
+        return this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '/static/images/profile.jpg' // //static//
       }
     },
     components: {
@@ -108,6 +119,7 @@
         this.refreshUser()
         .then(res => {
           console.log('self.organisation:', self.organisation)
+          console.log('self.authState', self.authState)
         })
         // self.fromPage()
       }
@@ -152,6 +164,8 @@
             self.GlobalConfig.auth.user = response
             if (response.organisation)
               self.organisation = response.organisation
+            if (response.data && response.data.organisationID)
+              self.organisation = { id: response.data.organisationID }
             resolve(response)
           })
         })
@@ -234,7 +248,7 @@
     text-align: center;
 
     > .explorer > .main {
-      background: url("/images/background1.png");
+      background: $background;
     }
   }
 
