@@ -9,6 +9,7 @@ Vue.use(VueAxios, axios)
 
 const Author = {
   install(Vue, options) {
+    console.log('options')
     console.log(options)
     var url = options.url
     this.plugin = options.plugin
@@ -26,22 +27,28 @@ const Author = {
       return d.promise
     }
 
-    const saveCard = function(data) {
-      const d = Q.defer()
-      if (this.plugin)
-        chrome.runtime.sendMessage({action: 'saveCard', url: url, data: data}, response => {
-          d.resolve(response)
+    const saveCard = data => new Promise((resolve, reject) => {
+      console.log('url', url)
+      console.log('data', data)
+      if (data.content) {
+        Object.keys(data.content).forEach(key => {
+          if (!data[key]) data[key] = data.content[key]
+          delete data.content[key]
         })
-      else
-        Vue.axios.post(url, data)
-        .then((response) => {
-          console.log(response)
-          d.resolve(response)
-        }).catch(function(e) {
-          d.reject(e)
-        })
-      return d.promise
-    }
+      }
+      delete data.content
+      data.service = 'sifter'
+      if (this.plugin && chrome && chrome.runtime) {
+        try {
+          chrome.runtime.sendMessage({action: 'saveCard', url: url, data: data}, response => {
+            resolve(response)
+          })
+        } catch (e) {
+          Vue.axios.post(url, data).then(resolve).catch(reject)
+        }
+      } else
+        Vue.axios.post(url, data).then(resolve).catch(reject)
+    })
 
     /* To Remove -- START */
     const createCard = function(data) {

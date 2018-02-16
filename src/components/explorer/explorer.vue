@@ -14,7 +14,7 @@
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
         <!-- <ibutton icon="random" text="Random" :click="searchRandom"></ibutton> -->
-        <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
+        <ibutton icon="plus" text="Create" :click="createCard"></ibutton>
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
       <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
@@ -29,7 +29,7 @@
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
         <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <div class="no-cards" v-if="!cards.length">
-          <p>{{noCardMessage}}</p>
+          <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
         </div>
       </ul>
@@ -262,6 +262,7 @@
         ExplaainSearch.getCard(c.objectID)
         .then(card => {
           console.log('ccccc', c)
+          card.files = [card.file] // @TODO: Sort this out! Currently just a hack
           if (c._highlightResult) {
             Object.keys(c._highlightResult).forEach(key => {
               console.log(key)
@@ -323,6 +324,7 @@
       closeSearch: function() {
         console.log('closing search!')
         this.query = ''
+        this.lastQuery = ''
         this.mainCardList = []
         this.popupCards = []
       },
@@ -441,7 +443,7 @@
       createCard: function () {
         const card = {
           // objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
-          intent: 'storeMemory',
+          intent: 'store',
           content: {
             description: '',
           },
@@ -515,7 +517,7 @@
             const p = Q.defer()
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
-              listCard.intent = 'storeMemory'
+              listCard.intent = 'store'
               listCard.sender = self.auth.user.uid
             }
             console.log('hi')
@@ -547,10 +549,11 @@
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.auth.user)
         // Should use self.auth.user.refreshUserToken() here!
-        data.user = { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() || self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
+        data.sender = { uid: self.auth.user.uid, algoliaApiKey: self.auth.user.data.algoliaApiKey, idToken: self.auth.user.getAccessToken() || self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
         data.organisationID = self.organisation.id
         ExplaainAuthor.saveCard(data)
         .then(function(res) {
+          console.log(res)
           const returnedCard = res.data.memories[0]
           data.objectID = returnedCard.objectID
           data.updating = false

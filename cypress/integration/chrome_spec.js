@@ -1,6 +1,6 @@
 /* global describe it cy */
 
-const sidebar = true
+const sidebar = false
 
 describe('Booting up', () => {
   it('.should() - load the page', () => {

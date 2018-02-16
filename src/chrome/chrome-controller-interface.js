@@ -39,7 +39,7 @@ const onAuthStateChanged = (state, user) => {
 }
 
 window.addEventListener('message', event => {
-  console.log('event!', event)
+  // console.log('event!', event)
   switch (event.data.action) {
     case 'onAuthStateChanged':
       console.log('onAuthStateChanged (chrome-controller-interface.js)', event.data)

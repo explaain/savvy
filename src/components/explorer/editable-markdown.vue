@@ -1,5 +1,6 @@
 <template lang="html">
-  <vue-markdown :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" @input="update" :watches="['myContent']" :source="myContent" :linkify="false" :emoji="false"></vue-markdown>
+  <component v-bind:is="component" :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" :placeholder="placeholder" @input="update" :watches="['myContent']" :source="myContent" :linkify="false" :emoji="false"></component>
+  <!-- <vue-markdown :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" :placeholder="placeholder" @input="update" :watches="['myContent']" :source="myContent" :linkify="false" :emoji="false"></vue-markdown> -->
 </template>
 
 <script type="text/javascript">
@@ -7,12 +8,21 @@
   export default {
     props: [
       'content',
-      'editable'
+      'editable',
+      'placeholder'
     ],
     data: function() {
       return {
         myContent: this.content,
         myClass: String(Math.floor(Math.random() * 10000000000))
+      }
+    },
+    computed: {
+      component: function() {
+        const cv = this.editable ? 'div' : 'vue-markdown'
+        console.log('cv')
+        console.log(cv)
+        return cv
       }
     },
     components: {
@@ -41,3 +51,11 @@
     }
   }
 </script>
+
+<style lang="scss">
+  [contenteditable=true]:empty:before{
+    content: attr(placeholder);
+    display: block; /* For Firefox */
+    color: #999;
+  }
+</style>

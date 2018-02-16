@@ -50,7 +50,9 @@
         errorMessage: '',
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
-          url: 'https://forget-me-not--staging.herokuapp.com/api/memories',
+          // url: 'https://forget-me-not--staging.herokuapp.com/api/memories',
+          // url: 'https://savvy-api--live.herokuapp.com/api/memories',
+          url: 'http://localhost:5000/api/memories',
           // url: '//localhost:3000/api/memories',
           importUrl: 'https://forget-me-not--staging.herokuapp.com/api/import'
         },

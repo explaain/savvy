@@ -23,10 +23,11 @@ class Auth {
     self.organisation = {}
     self.user = {}
     self.stateChangeCallback = callback || function() {
+      console.log('🔑 Auth 🔑 - stateChangeCallback')
       console.log('no state change callback defined!')
     }
     self.updateAuthState = function(state) {
-      console.log('self.updateAuthState (auth.js)', state)
+      console.log('🔑 Auth 🔑 - self.updateAuthState (auth.js)', state)
       self.authState = state
       self.stateChangeCallback(state, self.user)
     }
@@ -75,6 +76,7 @@ class Auth {
     })
 
     self.toggleSignIn = () => {
+      console.log('🔑 Auth 🔑 - toggleSignIn')
       return new Promise((resolve, reject) => { // Maybe should separate this into signIn() and signOut() to avoid accidentally double taetc
         console.log('🔐  Toggling Sign in')
         self.updateAuthState('pending')
@@ -103,6 +105,7 @@ class Auth {
       })
     }
     self.onFirebaseAuthStateChange = userAuth => {
+      console.log('🔑 Auth 🔑 - onFirebaseAuthStateChange', userAuth)
       return new Promise((resolve, reject) => {
         if (userAuth) {
           userAuth = JSON.parse(JSON.stringify(userAuth))
@@ -131,6 +134,7 @@ class Auth {
       })
     }
     self.authSignIn = token => new Promise((resolve, reject) => {
+      console.log('🔑 Auth 🔑 - authSignIn', token)
       var credential = self.firebase.auth.GoogleAuthProvider.credential(null, token)
       console.log('self.firebase')
       console.log(self.firebase)
@@ -147,9 +151,11 @@ class Auth {
       })
     })
     self.signedIn = () => {
+      console.log('🔑 Auth 🔑 - signedIn')
       return self.Testing ? self.user.uid : !!self.firebase.auth().currentUser
     }
     self.refreshUserToken = async () => {
+      console.log('🔑 Auth 🔑 - refreshUserToken')
       var idToken
       try {
         idToken = await self.user.getAccessToken(/* forceRefresh */ true)
@@ -162,7 +168,7 @@ class Auth {
       return idToken
     }
     self.getUserData = async userAuth => {
-      console.log('getUserData', userAuth)
+      console.log('🔑 Auth 🔑 - getUserData', userAuth)
       const idToken = await self.refreshUserToken()
       console.log('idToken', idToken)
       if (self.Testing) {
@@ -182,26 +188,32 @@ class Auth {
         return null
       }
     }
-    self.getUser = () => { // Not often used now!
-      console.log('self.getUser', self.user)
+    self.getUser = () => { // Trying to migrate from this!
+      console.log('🔑 Auth 🔑 - self.getUser')
+      const self = this
       const user = self.user ? JSON.parse(JSON.stringify(self.user)) : null
-      if (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30) { // Refreshes every 30 mins, since auth token expires every 60 mins
+      if (!user.auth || !user.data || (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30)) { // Refreshes every 30 mins, since auth token expires every 60 mins
         console.log('♻️  Refreshing User Token!')
-        Auth.refreshUserToken()
+        self.refreshUserToken()
         .then(token => {
           user.auth.stsTokenManager.accessToken = token
           user.lastRefreshed = new Date()
           console.log('self.user', self.user)
+          return self.getUserData(token)
+        }).then(userData => {
+          user.data = userData
+          console.log('self.user1', self.user)
         }).catch(e => {
           console.log(e)
         })
       }
-      user.getAccessToken = this.getAccessToken
-      user.refreshUserToken = this.refreshUserToken
+      user.getAccessToken = self.getAccessToken
+      user.refreshUserToken = self.refreshUserToken
       self.user = user
       return user
     }
     self.joinOrg = organisationID => {
+      console.log('🔑 Auth 🔑 - joinOrg', organisationID)
       return new Promise(function(resolve, reject) {
         console.log('Joining Org!')
         try {

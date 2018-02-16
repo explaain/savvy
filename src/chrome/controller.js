@@ -1,3 +1,5 @@
+// @TODO: Move this out of /chrome as it's now the general controller
+
 // import Vue from 'vue'
 import log from 'loglevel'
 import axios from 'axios'
@@ -38,32 +40,32 @@ class Controller {
     console.log(myAuth)
   }
   addStateChangeListener(listenerFunction) {
-    console.log('AAA addStateChangeListener (controller.js)', listenerFunction)
+    console.log('❇️ CONTROLLER ❇️ - addStateChangeListener (controller.js)', listenerFunction)
     stateChangeListeners.push(listenerFunction)
     console.log('stateChangeListeners (controller.js):', stateChangeListeners)
   }
   authSignIn(token) {
-    console.log('AAA authSignIn', token)
+    console.log('❇️ CONTROLLER ❇️ - authSignIn', token)
     return myAuth.authSignIn()
   }
   toggleSignIn() {
-    console.log('AAA toggleSignIn')
+    console.log('❇️ CONTROLLER ❇️ - toggleSignIn')
     console.log(myAuth)
     return myAuth.toggleSignIn()
   }
   startSignIn() {
-    console.log('AAA startSignIn')
+    console.log('❇️ CONTROLLER ❇️ - startSignIn')
     if (!myAuth.signedIn()) {
       console.log('not yet signed in so toggling')
       return myAuth.toggleSignIn()
     }
   }
   signedIn() {
-    console.log('AAA signedIn')
+    console.log('❇️ CONTROLLER ❇️ - signedIn')
     return myAuth.signedIn()
   }
   getUser() {
-    console.log('AAA getUser')
+    console.log('❇️ CONTROLLER ❇️ - getUser')
     return myAuth.getUser()
   }
 
@@ -72,7 +74,7 @@ class Controller {
   /* --- Event Listeners --- */
 
   onMessage(request, sendResponse, extraFunctions) {
-    console.log('AAA onMessage', request, sendResponse, extraFunctions)
+    console.log('❇️ CONTROLLER ❇️ - onMessage', request, sendResponse, extraFunctions)
     try {
       if (request.action)
         switch (request.action) {

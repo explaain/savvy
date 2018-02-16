@@ -216,7 +216,7 @@
       },
       createCard: function () {
         const card = {
-          intent: 'storeMemory',
+          intent: 'store',
           content: {
             description: '',
           },
@@ -249,7 +249,7 @@
             const p = Q.defer()
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
-              listCard.intent = 'storeMemory'
+              listCard.intent = 'store'
               listCard.sender = self.auth.user.uid
             }
             self.saveCard(listCard)

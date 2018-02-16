@@ -38,8 +38,8 @@
   "chrome_url_overrides" : {
     "newtab": "index.html"
   },
-  "content_security_policy": "script-src 'self' https://*.logrocket.io https://savvy-nlp--staging.herokuapp.com/ https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com; object-src 'self'; child-src 'self' blob:; worker-src 'self' blob:;",
-  "web_accessible_resources": [
+"content_security_policy": "script-src 'self' https://savvy-nlp--staging.herokuapp.com/ https://www.gstatic.com/ https://*.firebaseio.com https://*.intercom.io https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com https://savvy-api--live.herokuapp.com; object-src 'self'; child-src 'self' blob:; worker-src 'self' blob:; connect-src https://*.logrocket.io https://*.intercom.io;",
+"web_accessible_resources": [
     "index.html",
     "sidebar.html"
   ],

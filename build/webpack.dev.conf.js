@@ -24,6 +24,11 @@ if (process.env.CHROME) {
 
 
 module.exports = merge(baseWebpackConfig, {
+  entry: {
+    app: './src/webapp.js',
+    chromeNewtab: './src/blank.js',
+    chromeSidebar: './src/blank.js',
+  },
   module: {
     rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap })
   },

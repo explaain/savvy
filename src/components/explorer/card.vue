@@ -2,17 +2,21 @@
   <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <div class="buttons-top-right">
-      <!-- <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
+      <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
       <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
       <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
-      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton> -->
+      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
-    <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description">
+    <img v-if="fileIcons && fileIcons.length" :src="fileIcons[0]" alt="" class="file-icons">
+    <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description || editing">
+      <h3 style="margin-left: 5px" v-if="editing">Enter your card details:</h3>
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <div class="content" @click="linkClick">
+        <label v-if="editing">Title</label>
         <editable-markdown v-if="card.content.title || editing" :content="card.content.title" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable-markdown>
-        <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }"></editable-markdown>
+        <label v-if="editing">Description</label>
+        <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
         <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
           <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
           <section class="buttons" v-if="editing">
@@ -30,14 +34,14 @@
           {{card.pending[0].description}}
         </div>
       </div>
-      <p class="modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Last Modified: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}}</span></p>
+      <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
       <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
       <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     </div>
     <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
-      <img :src="fileIcons[i]" alt="">
+      <!-- <img :src="fileIcons[i]" alt=""> -->
       <h4><vue-markdown :watches="['card.files']" :source="file.title" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
-      <h5>📂 {{file.folder || auth && auth.user && auth.user.data && auth.user.data.organisation && auth.user.data.organisation.id + ' Drive' || 'Explaain Drive'}}</h5>
+      <h5>{{getServiceName(card, file)}}</h5>
     </a>
     <footer v-if="full">
       <div class="sources" v-if="card.sources && card.sources.length">
@@ -51,13 +55,13 @@
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
       </div> -->
-      <div class="buttons reaction" v-if="!reacted && !explaain">
+      <div class="buttons reaction" v-if="!reacted && !explaain && !editing">
         <!-- <p>How well did this match what you were looking for?</p> -->
         <button class="" @click="reaction('great')">😍&nbsp;&nbsp; That's what I needed</button>
         <!-- <button class="" @click="reaction('ok')">😐</button>
         <button class="" @click="reaction('bad')">😢</button> -->
       </div>
-      <div class="buttons reaction" v-if="reacted && !explaain">
+      <div class="buttons reaction" v-if="reacted && !explaain && !editing">
         <p>Thanks for your feedback! Savvy uses this to learn and get smarter over time 🤖</p>
       </div>
       <div class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
@@ -111,7 +115,7 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: this.plugin ? './static/images/clipboard.svg' : './static/images/clipboard.svg', // //static//
+      copyIcon: this.plugin ? './static/images/clipboard.svg' : './images/clipboard.svg', // //static//
       showListSearch: false,
       showPending: false,
       reacted: false
@@ -161,7 +165,7 @@ export default {
       }
     },
     fileIcons: function() {
-      return this.card.files.map(file => {
+      return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
         switch (file.mimeType) {
           case 'application/vnd.google-apps.document':
           case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
@@ -182,7 +186,8 @@ export default {
           default:
             return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
         }
-      })
+      }) : ['/static/images/iconGrey.png']
+      // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
     },
     fullText: function() {
       return (this.card.content.title ? this.card.content.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
@@ -219,6 +224,22 @@ export default {
       this.editing = true
   },
   methods: {
+    getServiceName(card, file) {
+      const services = {
+        gdocs: '📂 Google Drive',
+        gsheets: '📂 Google Drive',
+        sifter: '🐞 Sifter',
+        confluence: '📂 Confluence',
+      }
+      if (file && file.folder)
+        return '📂 ' + file.folder + ' Drive'
+      else if (file && file.service)
+        return services[file.service]
+      else if (card && card.service)
+        return services[card.service]
+      else
+        return '📂 ' + (this.auth && this.auth.user && this.auth.user.data && this.auth.user.data.organisation && this.auth.user.data.organisation.id ? this.auth.user.data.organisation.id : 'Team') + ' Drive'
+    },
     syncData: function() {
       this.card = JSON.parse(JSON.stringify(this.data))
     },
@@ -294,7 +315,7 @@ export default {
         console.log(self.card.content.title)
         self.card.title = self.card.content.title
         self.card.modified = new Date()
-        if (self.card.sources.filter(source => source.name === 'Journalist').length === 0)
+        if (self.card.sources && self.card.sources.filter(source => source.name === 'Journalist').length === 0)
           self.card.sources.push({
             type: 'author',
             name: 'Journalist'
@@ -319,7 +340,7 @@ export default {
       if (!card)
         card = {
           objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
-          intent: 'storeMemory',
+          intent: 'store',
           content: {
             description: '',
           }
@@ -369,7 +390,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     display: inline-block;
     vertical-align: top;
     margin: 10px calc(50% - 203px);
-    width: calc(100% - 50px);
+    width: calc(100% - 60px);
     max-width: 380px;
     padding: 0;
     // border-radius: 10px;
@@ -378,14 +399,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     background: white;
     cursor: pointer;
     overflow: hidden;
-
-    &:hover {
-      @include blockShadow(2);
-
-      .buttons-top-right {
-        display: block;
-      }
-    }
+    transition: margin .3s, transform .3s;
 
     &.highlight {
       box-shadow: 0px 0px 30px rgba(100, 84, 244, 0.5);
@@ -403,18 +417,17 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       opacity: 0.5;
     }
     .buttons-top-right {
-      display: none;
       position: absolute;
       top: 5px;
       right: 5px;
       // margin: -5px -5px 10px 20px;
       button {
+        display: none;
         padding: 6px 12px;
         margin: 2px;
         font-size: 12px;
         box-shadow: none;
         opacity: 0.7;
-        display: inline-block;
 
         &:hover {
           opacity: 1;
@@ -495,10 +508,25 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     p {
       white-space: pre-wrap;
     }
+    .file-icons {
+      float: left;
+      margin: 20px 0 0 15px;
+      width: 30px;
+    }
     .main {
       margin: 5px;
+      margin-left: 50px;
       padding: 5px;
       min-height: 60px;
+
+      label {
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 5px;
+        margin-top: 20px;
+        color: #999;
+      }
 
       .content {
         // @extend .blockSpacing;
@@ -508,7 +536,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         strong {
           font-weight: 800;
           font-style: normal;
-          color: #777;
+          color: #888;
         }
         p {
           line-height: 1.5;
@@ -562,7 +590,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       // font-style: italic;
       text-align: right;
       color: #999;
-      margin: 0;
+      margin: 20px 0 0 0;
 
       svg {
         color: #00cc00;
@@ -574,16 +602,17 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     a.file {
       display: block;
       margin: 0;
+      overflow: hidden;
       padding: 10px;
       box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
       -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-      background: #f5f5f5;
+      // background: #f5f5f5;
       transition: background-color .3s;
       color: inherit;
       text-decoration: inherit;
 
       &:hover {
-        background: #eee;
+        background: #f5f5f5;
       }
 
       img {
@@ -612,6 +641,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       margin: 5px;
       padding: 5px;
       min-height: 20px;
+      -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
 
       .sources {
         margin: 5px;
@@ -678,28 +708,51 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       color: #aaa;
     }
   }
+  .explorer {
+    .card:hover {
+      .buttons-top-right .copy {
+        display: inline-block;
+      }
+    }
+    > .main .card:hover {
+      @include blockShadow(2);
+
+      margin-top: -30px;
+      z-index: 100;
+      transform: scale(1.03);
+
+      .file {
+        // transform: scaleY(1);
+      }
+    }
+    > .popup .card:hover {
+      .buttons-top-right button {
+        display: inline-block;
+      }
+    }
+  }
   .sidebar .card {
     margin: 10px;
   }
-  // .card.shadow {
-  //   width: calc(100% - 70px);
-  //   box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
-  //   border: none;
-  // }
+  .card.shadow {
+    width: calc(100% - 70px);
+    box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
+    border: none;
+  }
   @media (min-width: 600px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
-      width: calc(50% - 35px);
-      margin: 10px;
+      width: calc(50% - 45px);
+      margin: 15px;
     }
   }
   @media (min-width: 900px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
-      width: calc(33.3% - 40px);
+      width: calc(33.3% - 50px);
     }
   }
   @media (min-width: 1450px) {
     .explorer:not(.sidebar) .main .card:not(.cardlet) {
-      width: calc(25% - 30px);
+      width: calc(25% - 40px);
     }
   }
 

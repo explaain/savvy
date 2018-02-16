@@ -1,7 +1,7 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import put from '101/put'
-import LogRocket from 'logrocket'
+// import LogRocket from 'logrocket'
 import Vue from 'vue'
 import router from './router'
 import Dashboard from './dashboard'
@@ -13,7 +13,7 @@ import ChromeControllerTestingInterface from './chrome/chrome-controller-testing
 
 require('./styles/index.css')
 
-LogRocket.init('cqmhn2/savvy-development')
+// LogRocket.init('cqmhn2/savvy-development')
 
 Vue.config.productionTip = false
 
@@ -96,11 +96,11 @@ class Main {
     if (user.uid && user.data.organisationID) {
       v.authState = 'loggedIn'
       console.log('loggedIn!!!')
-      LogRocket.identify(user.uid, {
-        name: user.auth.displayName,
-        email: user.auth.email,
-        organisation: user.data.organisationID
-      })
+      // LogRocket.identify(user.uid, {
+        // name: user.auth.displayName,
+        // email: user.auth.email,
+        // organisation: user.data.organisationID
+      // })
     }
     // })
 
