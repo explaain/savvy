@@ -29,6 +29,20 @@ $radiusLarge: 6px;
   }
 }
 
+h1, h2, h3, h4, h5 {
+  font-size: inherit;
+  font-weight: 600;
+}
+h1 {
+  font-size: 3em;
+}
+h2 {
+  font-size: 2em;
+}
+h3 {
+  font-size: 1.5em;
+}
+
 .defaultFont {
   font-family: "Lato", Arial, sans-serif;
   font-size: 16px;
@@ -101,6 +115,7 @@ input {
     color: #bbb;
   }
 }
+a:focus {outline:0;}
 select {
   @extend .block;
   @extend .defaultFont;

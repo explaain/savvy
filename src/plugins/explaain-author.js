@@ -37,7 +37,6 @@ const Author = {
         })
       }
       delete data.content
-      data.service = 'sifter'
       if (this.plugin && chrome && chrome.runtime) {
         try {
           chrome.runtime.sendMessage({action: 'saveCard', url: url, data: data}, response => {

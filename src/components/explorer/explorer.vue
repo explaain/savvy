@@ -1,6 +1,12 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
     <div uid="main" class="main" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
+      <div class="create-button">
+        <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
+          <b-dropdown-item @click="createCard">🔖 New Card</b-dropdown-item>
+          <b-dropdown-item @click="createCard('sifter')">🐞 New Bug</b-dropdown-item>
+        </b-dropdown>
+      </div>
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header" v-if="!$route.query.q">
@@ -14,7 +20,7 @@
         <slot name="buttons"></slot>
         <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
         <!-- <ibutton icon="random" text="Random" :click="searchRandom"></ibutton> -->
-        <ibutton icon="plus" text="Create" :click="createCard"></ibutton>
+        <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
       <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
@@ -53,6 +59,7 @@
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
+  import BootstrapVue from 'bootstrap-vue'
   import Mixpanel from 'mixpanel-browser'
   import {VueMasonryPlugin} from 'vue-masonry'
   import Card from './card.vue'
@@ -68,6 +75,7 @@
       Card,
       Icon,
       ibutton: IconButton,
+      BootstrapVue,
       Modal,
       Alert,
       Draggable
@@ -134,6 +142,7 @@
       console.log('self.auth', self.auth)
       console.log('self.auth.user', self.auth.user)
       self.auth.user.organisation = self.organisation
+      Vue.use(BootstrapVue)
       Vue.use(ExplaainSearch, self.algoliaParams, self.auth.user)
       self.authorParams.plugin = self.plugin
       Vue.use(ExplaainAuthor, self.authorParams)
@@ -440,14 +449,15 @@
       //   delete this.modal.objectID
       //   this.modal.text = ''
       // },
-      createCard: function () {
+      createCard: function (service) {
         const card = {
           // objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'store',
           content: {
             description: '',
           },
-          newlyCreated: true
+          newlyCreated: true,
+          service: service || null
         }
         // this.allCards[card.objectID] = card
         this.popupCards = [card]
@@ -633,6 +643,12 @@
     pointer-events: all;
   }
 
+  .create-button {
+    position: absolute;
+    right: 60px;
+    top: 0;
+  }
+
   .loader-text {
     font-size: 30px;
     font-weight: bold;
@@ -756,7 +772,7 @@
     }
     input {
       @include blockShadow(2);
-      max-width: 560px;
+      max-width: 600px;
       margin: 0;
       padding: 20px 20px 20px 45px;
       font-size: 18px;
@@ -787,9 +803,13 @@
     .search {
       margin-top: 60px;
 
-      .greeting h3 {
-        opacity: 0;
-        font-size: 28px;
+      .greeting {
+        pointer-events: none;
+        
+        h3 {
+          opacity: 0;
+          font-size: 28px;
+        }
       }
       input {
         max-width: 400px;
@@ -854,6 +874,7 @@
       }
 
       .greeting h3 {
+        pointer-events: none;
         display: none;
       }
     }

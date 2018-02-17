@@ -54,8 +54,8 @@ describe('Logged In', () => {
     it('The first card has some content', function() {
       cy.get('.main > ul.cards .card').find('.content').contains('p', /\w/)
     })
-    it('The first card has a Date Modified', function() {
-      cy.get('.main > ul.cards .card').find('.modified').contains('p', /Last Modified: \w/)
+    it('The first card has an Updated', function() {
+      cy.get('.main > ul.cards .card').find('.modified').contains('p', /Updated: \w/)
     })
     it(`Search results label appears, containing "${query}"`, () => {
       cy.get('.search-results .results-label').should('contain', query)

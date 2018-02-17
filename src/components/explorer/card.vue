@@ -4,19 +4,21 @@
     <div class="buttons-top-right">
       <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
       <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
-      <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
-      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
+      <!-- <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
+      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton> -->
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <img v-if="fileIcons && fileIcons.length" :src="fileIcons[0]" alt="" class="file-icons">
     <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description || editing">
-      <h3 style="margin-left: 5px" v-if="editing">Enter your card details:</h3>
+      <h3 style="margin: 15px 0 10px;" v-if="editing && card.service !== 'sifter'">Enter your card details:</h3>
+      <h3 style="margin: 15px 0 10px;" v-if="editing && card.service === 'sifter'">Enter your bug details:</h3>
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <div class="content" @click="linkClick">
-        <label v-if="editing">Title</label>
+        <!-- <label v-if="editing">Title</label> -->
         <editable-markdown v-if="card.content.title || editing" :content="card.content.title" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable-markdown>
-        <label v-if="editing">Description</label>
+        <!-- <label v-if="editing">Description</label> -->
         <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
+        <!-- <editable-markdown v-if="card.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
         <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
           <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
           <section class="buttons" v-if="editing">
@@ -34,13 +36,14 @@
           {{card.pending[0].description}}
         </div>
       </div>
-      <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
+      <p class="modified" v-if="card.modified && card.service !== 'sifter'"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
+      <p class="modified" v-if="card.service === 'sifter' && card.integrationFields && card.integrationFields.status"><icon name="check" v-if="card.integrationFields.status !== 'Open'"></icon><span>{{card.integrationFields.status}}</span></p>
       <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
       <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     </div>
     <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
-      <h4><vue-markdown :watches="['card.files']" :source="file.title" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
+      <h4 v-if="card.service !== 'sifter'"><vue-markdown :watches="['card.files']" :source="file.title" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
       <h5>{{getServiceName(card, file)}}</h5>
     </a>
     <footer v-if="full">
@@ -50,11 +53,11 @@
       <!-- <div class="buttons" v-if="!editing">
         <ibutton class="left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
         <ibutton class="right edit" icon="pencil" text="Edit" :click="editCard"></ibutton>
-      </div>
+      </div> -->
       <div class="buttons" v-if="editing">
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
-      </div> -->
+      </div>
       <div class="buttons reaction" v-if="!reacted && !explaain && !editing">
         <!-- <p>How well did this match what you were looking for?</p> -->
         <button class="" @click="reaction('great')">😍&nbsp;&nbsp; That's what I needed</button>
@@ -409,7 +412,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
     &.full {
       a.file {
-        margin-bottom: 10px;
+        // margin-bottom: 10px;
       }
     }
 
@@ -621,7 +624,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         margin: 0 10px;
       }
       h4, h5 {
-        margin: 3px;
+        margin: 10px;
       }
       h4 {
         font-size: 1em;
@@ -638,7 +641,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
     footer {
-      margin: 5px;
+      margin: 0;
       padding: 5px;
       min-height: 20px;
       -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
@@ -663,7 +666,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         // position: absolute;
         bottom: 15px;
         left: 20px;
-        margin: 10px 20px -15px 2px;
+        margin: 13px 0 5px;
         padding: 6px 12px;
 
         &.reaction {
@@ -757,6 +760,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
   }
 
   .editing:not(.non-editable) :not(.non-editable) .editable:not(.non-editable), .editing:not(.non-editable) > .editable:not(.non-editable) {
+    margin: 20px 20px 20px 0;
     border: 2px dashed lightgrey;
     border-radius: 4px;
     color: black;
