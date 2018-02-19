@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
-    <div uid="main" class="main" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
+    <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
       <div class="create-button">
         <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
           <b-dropdown-item @click="createCard">🔖 New Card</b-dropdown-item>
@@ -694,7 +694,7 @@
   }
 
   .explorer {
-    > .main {
+    > .main-explorer {
       // position: absolute;
       z-index: 1;
       pointer-events: all;
@@ -735,6 +735,7 @@
 
       .card {
         pointer-events: all;
+        width: auto;
       }
     }
 
@@ -805,7 +806,7 @@
 
       .greeting {
         pointer-events: none;
-        
+
         h3 {
           opacity: 0;
           font-size: 28px;
@@ -862,7 +863,7 @@
   }
 
   .explorer.sidebar {
-    > .main {
+    > .main-explorer {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -895,7 +896,7 @@
         opacity: 0.6;
       }
     }
-    > .main {
+    > .main-explorer {
       // width: calc(100% - 20px);
     }
     > .popup.active {

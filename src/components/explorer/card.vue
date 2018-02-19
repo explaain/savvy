@@ -9,37 +9,13 @@
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <img v-if="fileIcons && fileIcons.length" :src="fileIcons[0]" alt="" class="file-icons">
-    <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description || editing">
-      <h3 style="margin: 15px 0 10px;" v-if="editing && card.service !== 'sifter'">Enter your card details:</h3>
-      <h3 style="margin: 15px 0 10px;" v-if="editing && card.service === 'sifter'">Enter your bug details:</h3>
-      <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
-      <div class="content" @click="linkClick">
-        <!-- <label v-if="editing">Title</label> -->
-        <editable-markdown v-if="card.content.title || editing" :content="card.content.title" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable-markdown>
-        <!-- <label v-if="editing">Description</label> -->
-        <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
-        <!-- <editable-markdown v-if="card.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
-        <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
-          <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
-          <section class="buttons" v-if="editing">
-            <!-- <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
-            <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton> -->
-            <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
-          </section>
-        </draggable>
-        <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
+    <component v-bind:is="format" :data="data" :full="full" :allCards="allCards" :setCard="setCard" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
+    <div v-if="full && card.pending" class="pending">
+      <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
+      <div v-if="showPending">
+        <b>Pending:</b><br>
+        {{card.pending[0].description}}
       </div>
-      <div v-if="full && card.pending" class="pending">
-        <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
-        <div v-if="showPending">
-          <b>Pending:</b><br>
-          {{card.pending[0].description}}
-        </div>
-      </div>
-      <p class="modified" v-if="card.modified && card.service !== 'sifter'"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
-      <p class="modified" v-if="card.service === 'sifter' && card.integrationFields && card.integrationFields.status"><icon name="check" v-if="card.integrationFields.status !== 'Open'"></icon><span>{{card.integrationFields.status}}</span></p>
-      <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
-      <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     </div>
     <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
@@ -88,6 +64,9 @@ import Editable from './editable.vue'
 import EditableMarkdown from './editable-markdown.vue'
 import Search from './search.vue'
 
+import Basic from './formats/basic'
+import Issue from './formats/issue'
+
 Vue.use(Clipboards)
 
 export default {
@@ -111,7 +90,9 @@ export default {
     Editable,
     Draggable,
     Search,
-    EditableMarkdown
+    EditableMarkdown,
+    Basic,
+    Issue,
   },
   data: function() {
     return {
@@ -139,6 +120,9 @@ export default {
           }
         }
       })
+    },
+    format: function() {
+      return this.data.service === 'sifter' ? 'issue' : 'basic'
     },
     // listCards: {
     //   get: function() {
@@ -516,62 +500,6 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       margin: 20px 0 0 15px;
       width: 30px;
     }
-    .main {
-      margin: 5px;
-      margin-left: 50px;
-      padding: 5px;
-      min-height: 60px;
-
-      label {
-        text-transform: uppercase;
-        font-size: 12px;
-        font-weight: 600;
-        margin-left: 5px;
-        margin-top: 20px;
-        color: #999;
-      }
-
-      .content {
-        // @extend .blockSpacing;
-        // margin: 5px;
-        // padding: 5px;
-
-        strong {
-          font-weight: 800;
-          font-style: normal;
-          color: #888;
-        }
-        p {
-          line-height: 1.5;
-        }
-        a {
-          text-decoration: inherit;
-          padding: 0 4px;
-          border: 2px solid $explaainLink;
-          background-color: $explaainLink;
-          color: inherit;
-          border-radius: 4px;
-
-          &:hover {
-            color: white;
-            border: 2px solid $savvy;
-            background-color: $savvy;
-
-            strong {
-              color: white;
-            }
-          }
-        }
-        img {
-          max-width: calc(100% - 10px);
-          border-radius: 5px;
-        }
-        .title {
-          font-weight: bold;
-          font-size: 1.2em;
-        }
-      }
-    }
     .list {
       margin: 20px 0 10px;
     }
@@ -720,7 +648,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     > .main .card:hover {
       @include blockShadow(2);
 
-      margin-top: -30px;
+      // margin-top: -30px;
       z-index: 100;
       transform: scale(1.03);
 
@@ -738,7 +666,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     margin: 10px;
   }
   .card.shadow {
-    width: calc(100% - 70px);
+    width: calc(100% - 50px);
     box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
     border: none;
   }

@@ -9,11 +9,12 @@ function resolve (dir) {
 }
 
 module.exports = {
-  entry: {
-    app: './src/webapp.js',
-    chromeNewtab: './src/chrome-newtab.js',
-    chromeSidebar: './src/chrome-sidebar.js',
-  },
+  // Commented out to avoid putting entry in the base config file (since we only want 'app' in dev mode)
+  // entry: {
+  //   app: './src/webapp.js',
+  //   chromeNewtab: './src/chrome-newtab.js',
+  //   chromeSidebar: './src/chrome-sidebar.js',
+  // },
   output: {
     path: config.build.assetsRoot,
     filename: '[name].js',

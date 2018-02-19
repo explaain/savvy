@@ -7,6 +7,10 @@ const baseWebpackConfig = require('./webpack.base.conf')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
+// This avoids putting entry in the base config file (which avoids loading all three js files simultaneously in dev mode)
+baseWebpackConfig.entry = {
+  app: './src/webapp.js',
+},
 
 // add hot-reload related code to entry chunks
 Object.keys(baseWebpackConfig.entry).forEach(function (name) {
@@ -24,11 +28,6 @@ if (process.env.CHROME) {
 
 
 module.exports = merge(baseWebpackConfig, {
-  entry: {
-    app: './src/webapp.js',
-    chromeNewtab: './src/blank.js',
-    chromeSidebar: './src/blank.js',
-  },
   module: {
     rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap })
   },

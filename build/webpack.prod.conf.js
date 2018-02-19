@@ -16,6 +16,11 @@ const env = process.env.NODE_ENV === 'testing'
   : config.build.env
 
 const webpackConfig = merge(baseWebpackConfig, {
+  entry: {
+    app: './src/webapp.js',
+    chromeNewtab: './src/chrome-newtab.js',
+    chromeSidebar: './src/chrome-sidebar.js',
+  },
   module: {
     rules: utils.styleLoaders({
       sourceMap: config.build.productionSourceMap,
