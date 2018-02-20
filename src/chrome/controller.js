@@ -27,17 +27,9 @@ var myAuth
 
 class Controller {
   constructor(config) {
-    console.log('controller config', config)
+    console.log('Controller Constructed', config)
     myAuth = new Auth(stateChangeCallback, config)
     this.authState = myAuth.authState
-    console.log('myAuth')
-    console.log(myAuth)
-    setTimeout(function() {
-      console.log('3 myAuth')
-      console.log(myAuth)
-    }, 2)
-    console.log('2 myAuth')
-    console.log(myAuth)
   }
   addStateChangeListener(listenerFunction) {
     console.log('❇️ CONTROLLER ❇️ - addStateChangeListener (controller.js)', listenerFunction)
@@ -46,12 +38,24 @@ class Controller {
   }
   authSignIn(token) {
     console.log('❇️ CONTROLLER ❇️ - authSignIn', token)
-    return myAuth.authSignIn()
+    return myAuth.authSignIn(token)
+  }
+  signIn() {
+    console.log('❇️ CONTROLLER ❇️ - signIn')
+    console.log(myAuth)
+    return myAuth.signIn()
+  }
+  signOut() {
+    console.log('❇️ CONTROLLER ❇️ - signOut')
+    console.log(myAuth)
+    return myAuth.signOut()
   }
   toggleSignIn() {
     console.log('❇️ CONTROLLER ❇️ - toggleSignIn')
     console.log(myAuth)
-    return myAuth.toggleSignIn()
+    console.log('Replacing toggleSignIn with signIn')
+    // return myAuth.toggleSignIn()
+    return myAuth.signIn()
   }
   startSignIn() {
     console.log('❇️ CONTROLLER ❇️ - startSignIn')

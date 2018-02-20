@@ -5,7 +5,7 @@ const props = {
   plugin: process.env.CHROME || false,
   // env: 'production',
   // plugin: false,
-  sidebar: true
+  sidebar: false
 }
 
 const main = new Main(props)

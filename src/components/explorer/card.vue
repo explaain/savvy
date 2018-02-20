@@ -99,7 +99,7 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: this.plugin ? './static/images/clipboard.svg' : './images/clipboard.svg', // //static//
+      copyIcon: '../../images/clipboard.svg', // //static//
       showListSearch: false,
       showPending: false,
       reacted: false
@@ -173,7 +173,7 @@ export default {
           default:
             return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
         }
-      }) : ['/static/images/iconGrey.png']
+      }) : ['../../images/iconGrey.png'] // //static//
       // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
     },
     fullText: function() {
@@ -645,7 +645,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         display: inline-block;
       }
     }
-    > .main .card:hover {
+    > .main-explorer .card:hover {
       @include blockShadow(2);
 
       // margin-top: -30px;
@@ -671,18 +671,18 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     border: none;
   }
   @media (min-width: 600px) {
-    .explorer:not(.sidebar) .main .card:not(.cardlet) {
+    .explorer:not(.sidebar) .main-explorer .card:not(.cardlet) {
       width: calc(50% - 45px);
       margin: 15px;
     }
   }
   @media (min-width: 900px) {
-    .explorer:not(.sidebar) .main .card:not(.cardlet) {
+    .explorer:not(.sidebar) .main-explorer .card:not(.cardlet) {
       width: calc(33.3% - 50px);
     }
   }
   @media (min-width: 1450px) {
-    .explorer:not(.sidebar) .main .card:not(.cardlet) {
+    .explorer:not(.sidebar) .main-explorer .card:not(.cardlet) {
       width: calc(25% - 40px);
     }
   }

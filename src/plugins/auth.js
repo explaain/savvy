@@ -8,9 +8,10 @@ import axios from 'axios'
 
 class Auth {
   constructor(callback, config) {
+    console.log('🔑 Auth 🔑 - Constructed', config)
     const self = this
     self.Testing = config.testing || false
-    console.log(config)
+    self.firstLoginAttempted = false
     self.firebase = config.firebaseInstance
     try {
       if (!self.firebase)
@@ -39,9 +40,9 @@ class Auth {
     *    the auth redirect flow. It is where you can get the OAuth access token from the IDP.
     */
     console.log('🔏⛏  Initialising Auth')
-    console.log(self.firebaseConfig)
-    if (!self.firebase.apps.length)
+    if (!self.firebase.apps.length) {
       self.firebase.initializeApp(self.firebaseConfig)
+    }
 
     // this.updateAuthState(self.firebase.auth().currentUser ? 'loggedIn' : 'pending') // Is this correct?
 
@@ -71,8 +72,38 @@ class Auth {
     })
     // [END getidptoken]
 
-    self.firebase.auth().onAuthStateChanged((userAuth) => {
+    self.firebase.auth().onAuthStateChanged(userAuth => {
+      console.log(1)
       self.onFirebaseAuthStateChange(userAuth)
+    })
+
+    self.signIn = () => new Promise((resolve, reject) => {
+      console.log('🔑 Auth 🔑 - signIn')
+      self.updateAuthState('pending')
+      if (!self.firebase.auth().currentUser) {
+        var provider = new self.firebase.auth.GoogleAuthProvider()
+        // provider.addScope('https://www.googleapis.com/auth/userinfo.email') // Experimenting with Gmail API
+        // provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
+        if (self.Testing) {
+          self.onFirebaseAuthStateChange(testUserAuth)
+        } else {
+          self.firebase.auth().signInWithRedirect(provider)
+        }
+        self.firebase.auth().onAuthStateChanged(userAuth => {
+          self.onFirebaseAuthStateChange(userAuth).then(resolve).catch(reject)
+        })
+      }
+    })
+
+    self.signOut = () => new Promise((resolve, reject) => {
+      console.log('🔑 Auth 🔑 - signOut')
+      self.updateAuthState('pending')
+      if (self.firebase.auth().currentUser) {
+        self.firebase.auth().signOut()
+        self.firebase.auth().onAuthStateChanged(userAuth => {
+          self.onFirebaseAuthStateChange(userAuth).then(resolve).catch(reject)
+        })
+      }
     })
 
     self.toggleSignIn = () => {
@@ -87,6 +118,7 @@ class Auth {
           console.log('provider')
           console.log(provider)
           if (self.Testing) {
+            console.log(2)
             self.onFirebaseAuthStateChange(testUserAuth)
           } else {
             self.firebase.auth().signInWithRedirect(provider)
@@ -95,6 +127,7 @@ class Auth {
           self.firebase.auth().signOut()
         }
         self.firebase.auth().onAuthStateChanged(userAuth => {
+          console.log(3)
           self.onFirebaseAuthStateChange(userAuth)
           .then(user => {
             resolve(user)
@@ -129,6 +162,10 @@ class Auth {
         } else {
           console.log('Calling back but with no user')
           self.updateAuthState('loggedOut')
+          if (!self.firstLoginAttempted) {
+            self.firstLoginAttempted = true
+            self.signIn()
+          }
           resolve()
         }
       })
@@ -152,7 +189,8 @@ class Auth {
     })
     self.signedIn = () => {
       console.log('🔑 Auth 🔑 - signedIn')
-      return self.Testing ? self.user.uid : !!self.firebase.auth().currentUser
+      const signedIn = self.Testing ? self.user.uid : !!self.firebase.auth().currentUser
+      return signedIn
     }
     self.refreshUserToken = async () => {
       console.log('🔑 Auth 🔑 - refreshUserToken')

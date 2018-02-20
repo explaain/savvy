@@ -16,6 +16,16 @@ class ChromeControllerInterface {
       return false
     }
   }
+  signIn() {
+    return new Promise((resolve, reject) => {
+      this.sendMessage({action: 'signIn'}, res => {
+        resolve(res) // @TODO: Error catching
+      })
+    })
+  }
+  signOut() {
+    console.log('No sign out option in Chrome extension yet!')
+  }
   addStateChangeListener(listenerFunction) {
     console.log('AAAA addStateChangeListener', listenerFunction)
     stateChangeListeners.push(listenerFunction)

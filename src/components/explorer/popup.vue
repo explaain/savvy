@@ -425,7 +425,7 @@
     &.frame {
       pointer-events: all;
     }
-    > .main {
+    > .main-explorer {
       // position: absolute;
       z-index: 1;
       pointer-events: all;
@@ -511,7 +511,7 @@
   }
 
   .popup.sidebar {
-    .main {
+    .main-explorer {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -529,7 +529,7 @@
   }
 
   .popup:not(.sidebar) {
-    .main {
+    .main-explorer {
       // width: calc(100% - 20px);
     }
     .popup.active {

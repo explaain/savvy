@@ -1,7 +1,7 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import put from '101/put'
-// import LogRocket from 'logrocket'
+import LogRocket from 'logrocket'
 import Vue from 'vue'
 import router from './router'
 import Dashboard from './dashboard'
@@ -13,7 +13,7 @@ import ChromeControllerTestingInterface from './chrome/chrome-controller-testing
 
 require('./styles/index.css')
 
-// LogRocket.init('cqmhn2/savvy-development')
+LogRocket.init('cqmhn2/savvy-development')
 
 Vue.config.productionTip = false
 
@@ -36,9 +36,10 @@ console.log(Chrome)
 class Main {
   constructor(props) {
     const mainSelf = this
-    mainSelf.Controller = props.env === 'testing' ? new ChromeControllerTestingInterface({ firebaseConfig: firebaseConfig }) : new ChromeControllerInterface()
+    mainSelf.Controller = props.env === 'testing' ? new ChromeControllerTestingInterface({ firebaseConfig: firebaseConfig, testing: true }) : new ChromeControllerInterface()
     console.log('props')
     console.log(props)
+    console.log(mainSelf.Controller)
     /* eslint-disable no-new */
     const v = new Vue({
       el: '#app',
@@ -48,8 +49,9 @@ class Main {
           props: {
             GlobalConfig: this.GlobalConfig,
             Controller: mainSelf.Controller,
-            authState: this.authState,
-            sidebar: props.sidebar
+            authState: this.authState || 'notfound',
+            sidebar: props.sidebar,
+            LogRocket: LogRocket,
           }
         })
       },
@@ -68,6 +70,9 @@ class Main {
               auth: {},
               data: {}
             },
+            signIn: () => {
+              console.log('fake signin')
+            },
             toggleSignIn: () => {
               console.log('fake toggling')
             }
@@ -81,6 +86,13 @@ class Main {
       console.log('onAuthStateChanged (main.js)', state, userData)
       updateGlobalConfig('auth.user', userData)
       v.authState = state
+      if (userData && userData.auth) {
+        LogRocket.identify(userData.uid, {
+          name: userData.auth.displayName,
+          email: userData.auth.email,
+          organisation: userData.data ? userData.data.organisationID : null
+        })
+      }
     }
 
     const updateGlobalConfig = (key, val) => {
@@ -96,14 +108,16 @@ class Main {
     if (user.uid && user.data.organisationID) {
       v.authState = 'loggedIn'
       console.log('loggedIn!!!')
-      // LogRocket.identify(user.uid, {
-        // name: user.auth.displayName,
-        // email: user.auth.email,
-        // organisation: user.data.organisationID
-      // })
+      LogRocket.identify(user.uid, {
+        name: user.auth.displayName,
+        email: user.auth.email,
+        organisation: user.data.organisationID
+      })
     }
     // })
 
+    updateGlobalConfig('auth.signIn', this.Controller.signIn) // Doesn't yet work for ChromeControllerInterface
+    updateGlobalConfig('auth.signOut', this.Controller.signOut) // Doesn't yet work for ChromeControllerInterface
     updateGlobalConfig('auth.toggleSignIn', this.Controller.toggleSignIn) // Doesn't yet work for ChromeControllerInterface
   }
 }

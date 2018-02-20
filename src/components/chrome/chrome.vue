@@ -4,13 +4,14 @@
   <div class="app" :class="{'sidebar-true': sidebar}">
     <section class="chooseOrg" v-if="authState !== 'loggedIn'">
       <h3>Hello! 👋 Please sign in below:</h3>
-      <button class="login" :disabled="authState === 'pending'" @click="toggleSignIn">Sign In</button>
+      <!-- <button class="login" :disabled="authState === 'pending'" @click="signIn">Sign In</button> -->
+      <button class="login" @click="signIn">Sign In</button>
       <div class="spinner-div" v-if="orgLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="GlobalConfig.firebase" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
       <div class="chrome-header" slot="header">
-        <img src="/static/images/logo.png" class="savvy-logo" alt=""> <!-- //static// -->
+        <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
         <img :src="profileImage" class="profile">
       </div>
       <div class="greeting" slot="greeting">
@@ -40,7 +41,8 @@
       'testing',
       'GlobalConfig',
       'Controller',
-      'authState'
+      'authState',
+      'LogRocket'
     ],
     data() {
       return {
@@ -57,7 +59,7 @@
           importUrl: 'https://forget-me-not--staging.herokuapp.com/api/import'
         },
         plugin: true,
-        logo: '../images/logo.png',
+        logo: '../../images/logo.png',
         pageCards: [], // ???
         cards: [], // ???
         // sidebar: true,
@@ -84,7 +86,7 @@
     },
     computed: {
       profileImage: function() {
-        return this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '/static/images/profile.jpg' // //static//
+        return this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '../../images/profile.jpg' // //static//
       }
     },
     components: {
@@ -168,8 +170,27 @@
               self.organisation = response.organisation
             if (response.data && response.data.organisationID)
               self.organisation = { id: response.data.organisationID }
+            self.authState = response ? 'loggedIn' : 'loggedOut' // This is hacky
+            console.log('self.GlobalConfig', self.GlobalConfig)
+            console.log('self.authState', self.authState)
+            if (response)
+              self.LogRocket.identify(response.uid, {
+                name: response.auth ? response.auth.displayName : null,
+                email: response.auth ? response.auth.email : null,
+                organisation: response.data ? response.data.organisationID : null
+              })
+            // self.$emit('refreshUser', response)
             resolve(response)
           })
+        })
+      },
+      signIn: function() {
+        const self = this
+        console.log(self.Controller)
+        self.Controller.signIn()
+        .then(response => {
+          console.log('response to signIn()', response)
+          self.GlobalConfig.auth.user = response
         })
       },
       toggleSignIn: function() {
@@ -238,18 +259,21 @@
 <style lang="scss">
 
   @import '../../styles/main.scss';
+  @import '../../styles/bootstrap.min.css';
+  @import '../../styles/bootstrap-vue.css';
 
   body {
     margin: 0;
+    background: none;
   }
-  html, body, body > .app, body > .app > .explorer, body > .app > .explorer > .main {
+  html, body, body > .app, body > .app > .explorer, body > .app > .explorer > .main-explorer {
     height: 100%;
   }
   body > div.app {
     margin: auto;
     text-align: center;
 
-    > .explorer > .main {
+    > .explorer > .main-explorer {
       background: $background;
     }
   }

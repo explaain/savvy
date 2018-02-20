@@ -10,6 +10,7 @@ const firebaseConfig = {
   authDomain: 'savvy-96d8b.firebaseapp.com',
 }
 
+console.log('Constructing Controller from event-page')
 const myController = new Controller({ firebaseConfig: firebaseConfig })
 
 var allowContinue = true // Controller.initialise()
@@ -50,6 +51,7 @@ myController.addStateChangeListener(stateChangeListener)
  */
 const startAuth = (interactive) => new Promise((resolve, reject) => {
   // Request an OAuth token from the Chrome Identity API.
+  console.log('startAuth')
   chrome.identity.getAuthToken({interactive: !!interactive}, token => {
     console.log(token)
     if (chrome.runtime.lastError && !interactive) {
@@ -65,6 +67,7 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
         resolve(res)
       }).catch(error => {
         // The OAuth token might have been invalidated. Lets' remove it from cache.
+        console.log('Sign In failed with error code ' + error.code)
         if (error.code === 'auth/invalid-credential') {
           chrome.identity.removeCachedAuthToken({token: token}, () => {
             startAuth(interactive)
