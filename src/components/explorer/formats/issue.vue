@@ -18,7 +18,7 @@
       <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
     </div>
     <ul class="status" :class="card.integrationFields.status.toLowerCase()">
-      <li class="opened">Open</li>
+      <li class="open">Open</li>
       <li class="resolved">Resolved</li>
       <li class="closed">Closed</li>
     </ul>
@@ -280,7 +280,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     //   // padding: 10px;
     //   // font-size: 14px;
     // }
-    // > .opened {
+    // > .open {
     //   background: #EF9A3B;
     //   border-left-color: #EF9A3B;
     //   color: #873817;
@@ -296,14 +296,14 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     //   color: #004738;
     // }
     //
-    // &.opened, &.reopened {
+    // &.open, &.reopened {
     //   > .resolved {
     //     background: #eee;
     //     border-left-color: #eee;
     //     color: #eee;
     //   }
     // }
-    // &.opened, &.reopened, &.resolved {
+    // &.open, &.reopened, &.resolved {
     //   > .closed {
     //     background: #ddd;
     //     border-left-color: #ddd;
@@ -311,7 +311,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     //   }
     // }
     // &.resolved, &.closed {
-    //   > .opened, .reopened {
+    //   > .open, .reopened {
     //     color: #EF9A3B;
     //   }
     // }
@@ -366,7 +366,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         left: 100%;
         z-index: 20;
       }
-      &.opened, &.opened {
+      &.open, &.open {
         background: #888;
         &:after {
           border-left-color: #888;
@@ -386,7 +386,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
 
-    &.opened li.opened, &.reopened li.opened {
+    &.open li.open, &.reopened li.open {
       background: #EF9A3B;
       &:after {
         border-left-color: #EF9A3B;
