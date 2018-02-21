@@ -77,7 +77,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     }),
     // generate another html file
     new HtmlWebpackPlugin({
-      filename: 'static/index.html',
+      filename: 'newtab.html',
       template: 'chrome-newtab.html',
       inject: true,
       minify: {
@@ -92,7 +92,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     }),
     // generate another html file
     new HtmlWebpackPlugin({
-      filename: 'static/sidebar.html',
+      filename: 'sidebar.html',
       template: 'chrome-sidebar.html',
       inject: true,
       minify: {
@@ -135,7 +135,15 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: config.build.assetsSubDirectory,
         ignore: ['.*']
       }
-    ])
+    ]),
+    // copy special static assets from '../staticRoot' to root folder (e.g. manifest.json)
+    new CopyWebpackPlugin([
+      {
+        from: path.resolve(__dirname, '../staticRoot'),
+        to: config.build.assetsRoot,
+        ignore: ['.*']
+      }
+    ]),
   ]
 })
 

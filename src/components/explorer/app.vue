@@ -48,7 +48,7 @@
         },
         userID: '', // This will be replaced by user: {authProvider: '', id: ''}
         plugin: true,
-        logo: "../images/logo.png",
+        logo: "/static/images/logo.png",
         pageCards: [], //???
         cards: [], //???
         // sidebar: true

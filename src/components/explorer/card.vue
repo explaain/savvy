@@ -8,7 +8,7 @@
       <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton> -->
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
-    <img v-if="fileIcons && fileIcons.length" :src="fileIcons[0]" alt="" class="file-icons">
+    <img :src="cardIcon" alt="" class="file-icons">
     <component v-bind:is="format" :data="data" :full="full" :allCards="allCards" :setCard="setCard" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
     <div v-if="full && card.pending" class="pending">
       <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
@@ -19,7 +19,7 @@
     </div>
     <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
-      <h4 v-if="card.service !== 'sifter'"><vue-markdown :watches="['card.files']" :source="file.title" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
+      <h4><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
       <h5>{{getServiceName(card, file)}}</h5>
     </a>
     <footer v-if="full">
@@ -99,7 +99,7 @@ export default {
       card: {},
       tempListCards: {},
       editing: false,
-      copyIcon: '../../images/clipboard.svg', // //static//
+      copyIcon: '/static/images/clipboard.svg', // //static//
       showListSearch: false,
       showPending: false,
       reacted: false
@@ -151,6 +151,19 @@ export default {
         this.card.content.description = val
       }
     },
+    cardIcon: function() {
+      if (this.cardType === 'issue')
+        return '/static/images/icons/bug.png'
+      else
+        return this.fileIcons
+    },
+    cardType: function() {
+      if (this.card.service === 'sifter')
+        return 'issue'
+      else
+        return 'other'
+      // else if (this.card.files && this.card.files.length && this.card.files[0])
+    },
     fileIcons: function() {
       return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
         switch (file.mimeType) {
@@ -173,7 +186,7 @@ export default {
           default:
             return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
         }
-      }) : ['../../images/iconGrey.png'] // //static//
+      }) : ['/static/images/iconGrey.png'] // //static//
       // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
     },
     fullText: function() {
@@ -226,6 +239,9 @@ export default {
         return services[card.service]
       else
         return '📂 ' + (this.auth && this.auth.user && this.auth.user.data && this.auth.user.data.organisation && this.auth.user.data.organisation.id ? this.auth.user.data.organisation.id : 'Team') + ' Drive'
+    },
+    getFileTitle: function(file) {
+      return this.card.service === 'sifter' ? 'Issue #' + this.card.integrationFields.number : file.title
     },
     syncData: function() {
       this.card = JSON.parse(JSON.stringify(this.data))
@@ -371,7 +387,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 
   @import '../../styles/main.scss';
 
-  .card {
+  div.card {
     @extend .block;
     position: relative;
     display: inline-block;
@@ -497,8 +513,9 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
     .file-icons {
       float: left;
-      margin: 20px 0 0 15px;
-      width: 30px;
+      margin: 18px 0 0 10px;
+      max-width: 35px;
+      max-height: 35px;
     }
     .list {
       margin: 20px 0 10px;

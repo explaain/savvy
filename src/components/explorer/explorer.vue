@@ -36,7 +36,7 @@
         <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
-          <img src="../../images/search-graphic.png" alt=""> <!-- //static// -->
+          <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
         </div>
       </ul>
     </div>
@@ -777,7 +777,7 @@
       margin: 0;
       padding: 20px 20px 20px 45px;
       font-size: 18px;
-      background: url('../../images/search-icon-1.png'); // //static//
+      background: url('/static/images/search-icon-1.png'); // //static//
       background-repeat: no-repeat;
       background-position: center left;
       background-size: 40px;

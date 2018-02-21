@@ -59,7 +59,7 @@
           importUrl: 'https://forget-me-not--staging.herokuapp.com/api/import'
         },
         plugin: true,
-        logo: '../../images/logo.png',
+        logo: '/static/images/logo.png',
         pageCards: [], // ???
         cards: [], // ???
         // sidebar: true,
@@ -86,7 +86,7 @@
     },
     computed: {
       profileImage: function() {
-        return this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '../../images/profile.jpg' // //static//
+        return this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '/static/images/profile.jpg' // //static//
       }
     },
     components: {
