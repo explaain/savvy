@@ -7,7 +7,8 @@ import router from './router'
 import Dashboard from './dashboard'
 import Chrome from './components/chrome/chrome'
 import ChromeControllerInterface from './chrome/chrome-controller-interface'
-import ChromeControllerTestingInterface from './chrome/chrome-controller-testing-interface' // Ideally this is only imported if we're testing
+import Controller from './controller' // Ideally this is only imported if we're testing
+import * as firebase from 'firebase'
 
 // import Popup from './components/explorer/popup'
 
@@ -17,29 +18,17 @@ LogRocket.init('cqmhn2/savvy-development')
 
 Vue.config.productionTip = false
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
-  authDomain: 'savvy-96d8b.firebaseapp.com',
-}
 const algolia = {
   appID: 'D3AE3TSULH'
 }
 
-console.log('main.js running')
-console.log('Chrome')
-console.log(Chrome)
-// console.log('ChromeControllerTestingInterface')
-// console.log(ChromeControllerTestingInterface)
-// console.log('ChromeControllerInterface')
-// console.log(ChromeControllerInterface)
-
 class Main {
   constructor(props) {
     const mainSelf = this
-    mainSelf.Controller = props.env === 'testing' ? new ChromeControllerTestingInterface({ firebaseConfig: firebaseConfig, testing: true }) : new ChromeControllerInterface()
-    console.log('props')
-    console.log(props)
-    console.log(mainSelf.Controller)
+    // @TODO: This should choose Controller not just for testing but also for webapp
+    const ControllerClass = props.env === 'testing' ? Controller : ChromeControllerInterface
+    const ControllerConfig = props.env === 'testing' ? { firebaseInstance: firebase } : {}
+    mainSelf.Controller = new ControllerClass(ControllerConfig)
     /* eslint-disable no-new */
     const v = new Vue({
       el: '#app',
@@ -56,8 +45,8 @@ class Main {
         })
       },
       data: {
+        // @TODO: Eventually deprecate GlobalConfig and use Controller for all global things
         GlobalConfig: {
-          firebase: firebaseConfig,
           algolia: algolia,
           author: {
             url: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/memories',
@@ -102,23 +91,23 @@ class Main {
 
     this.Controller.addStateChangeListener(onAuthStateChanged)
     console.log('this.Controller.getUser (main.js)')
-    var user = this.Controller.getUser()
-    // .then(user => {
-    v.GlobalConfig.auth.user = user
-    if (user.uid && user.data.organisationID) {
-      v.authState = 'loggedIn'
-      console.log('loggedIn!!!')
-      LogRocket.identify(user.uid, {
-        name: user.auth.displayName,
-        email: user.auth.email,
-        organisation: user.data.organisationID
-      })
-    }
-    // })
+    this.Controller.getUser()
+    .then(user => {
+      v.GlobalConfig.auth.user = user
+      if (user && user.uid && user.data.organisationID) {
+        v.authState = 'loggedIn'
+        console.log('loggedIn!!!')
+        LogRocket.identify(user.uid, {
+          name: user.auth.displayName,
+          email: user.auth.email,
+          organisation: user.data.organisationID
+        })
+      }
 
-    updateGlobalConfig('auth.signIn', this.Controller.signIn) // Doesn't yet work for ChromeControllerInterface
-    updateGlobalConfig('auth.signOut', this.Controller.signOut) // Doesn't yet work for ChromeControllerInterface
-    updateGlobalConfig('auth.toggleSignIn', this.Controller.toggleSignIn) // Doesn't yet work for ChromeControllerInterface
+      updateGlobalConfig('auth.signIn', this.Controller.signIn) // Doesn't yet work for ChromeControllerInterface
+      updateGlobalConfig('auth.signOut', this.Controller.signOut) // Doesn't yet work for ChromeControllerInterface
+      updateGlobalConfig('auth.toggleSignIn', this.Controller.toggleSignIn) // Doesn't yet work for ChromeControllerInterface
+    })
   }
 }
 

@@ -1,26 +1,25 @@
 <template lang="html">
-  <div class="main" v-if="(full && card.highlight) || card.content.title || card.content.description || editing">
-    <h3 style="margin: 15px 0 10px;" v-if="editing && card.service !== 'sifter'">Enter your card details:</h3>
-    <h3 style="margin: 15px 0 10px;" v-if="editing && card.service === 'sifter'">Enter your bug details:</h3>
-    <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
+  <div class="main" v-if="(full && content.highlight) || content.title || content.description || editing">
+    <h3 style="margin: 15px 0 10px;">Enter your content details:</h3>
+    <div class="label" v-if="full && content.highlight"><span class="top-hit" v-if="content.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
     <div class="content" @click="linkClick">
-      <editable-markdown v-if="card.content.title || editing" :content="card.content.title" :editable="editing" @update="card.content.title = $event" placeholder="Title" class="title"></editable-markdown>
-      <editable-markdown :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
-      <!-- <editable-markdown v-if="card.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
+      <editable-markdown v-if="content.title || editing" :content="content.title" :editable="editing" @update="content.title = $event" placeholder="Title" class="title"></editable-markdown>
+      <editable-markdown :content="text" :editable="editing" @update="content.description = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
+      <!-- <editable-markdown v-if="content.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
       <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
-        <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
+        <cardlet v-for="item in listCards" :editing="editing" :content="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
         <section class="buttons" v-if="editing">
           <!-- <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
           <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton> -->
           <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
         </section>
       </draggable>
-      <img v-if="full && card.attachments && card.attachments[0]" v-bind:src="card.attachments[0].url">
+      <img v-if="full && content.attachments && content.attachments[0]" v-bind:src="content.attachments[0].url">
     </div>
-    <p class="modified" v-if="card.modified && card.service !== 'sifter'"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
-    <p class="modified" v-if="card.service === 'sifter' && card.integrationFields && card.integrationFields.status"><icon name="check" v-if="card.integrationFields.status !== 'Open'"></icon><span>{{card.integrationFields.status}}</span></p>
-    <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
-    <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
+    <p class="modified" v-if="content.modified && content.service !== 'sifter'"><icon name="check" v-if="new Date() - content.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(content.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
+    <p class="modified" v-if="content.service === 'sifter' && content.integrationFields && content.integrationFields.status"><icon name="check" v-if="content.integrationFields.status !== 'Open'"></icon><span>{{content.integrationFields.status}}</span></p>
+    <p class="spinner" v-if="!content"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+    <p class="extractedFrom" v-if="full && content.extractedFrom">Extracted from <a v-bind:href="content.extractedFrom.url" target="_blank">{{content.extractedFrom.title}}</a></p>
   </div>
 </template>
 
@@ -64,57 +63,41 @@ export default {
   },
   data: function() {
     return {
-      card: {},
+      content: {},
       tempListCards: {},
       showListSearch: false
     }
   },
   computed: {
     updating: function() {
-      return this.card.updating || false
+      return this.content.updating || false
     },
     listCards: function() {
       const self = this
-      const listCards = (self.card._highlightResult && self.card._highlightResult.listCards) || self.card.listCards || []
+      const listCards = (self.content._highlightResult && self.content._highlightResult.listCards) || self.content.listCards || []
       return listCards.map((content, i) => {
         return {
-          objectID: self.card.listItems[i],
+          objectID: self.content.listItems[i],
           content: {
             description: content.value || content
           }
         }
       })
     },
-    // listCards: {
-    //   get: function() {
-    //     const self = this
-    //     return self.card.content.listItems ? self.card.content.listItems.map(function(objectID) {
-    //       return self.tempListCards[objectID] || JSON.parse(JSON.stringify(self.allCards[objectID] || null)) || { content: { description: 'Card Not Found' } }
-    //     }) : []
-    //   },
-    //   set: function(newValue) { // Doesn't get called for deep events which could cause issues
-    //     const self = this
-    //     self.card.content.listItems = newValue.map(function(listCard) {
-    //       self.tempListCards[listCard.objectID] = listCard // Is having this here good practice?
-    //       return listCard.objectID
-    //     })
+    text: function() {
+      const text = this.content.description || ''
+      // if (!text || !text.length) console.log(text)
+      const snippetLength = 100
+      const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
+      return this.full ? text : text.trunc(snippetStart, snippetLength, true)
+    },
+    //   set: function(val) {
+    //     this.content.description = val
     //   }
     // },
-    text: {
-      get: function() {
-        const text = this.card.content.description || ''
-        // if (!text || !text.length) console.log(text)
-        const snippetLength = 100
-        const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
-        return this.full ? text : text.trunc(snippetStart, snippetLength, true)
-      },
-      set: function(val) {
-        this.card.content.description = val
-      }
-    },
     fullText: function() {
-      return (this.card.content.title ? this.card.content.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
-        return '\n- ' + listCard.content.description
+      return (this.content.title ? this.content.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
+        return '\n- ' + listCard.description
       })
     },
     fontSize: function() {
@@ -126,9 +109,17 @@ export default {
   watch: {
     data: {
       handler: function(val) {
-        console.log('data data')
-        console.log(this.editing)
         if (!this.editing) this.syncData()
+      },
+      deep: true
+    },
+    content: {
+      handler: function(val) {
+        const self = this
+        if (Object.keys(val).filter(key => JSON.stringify(val[key]) !== JSON.stringify(self.data[key])).length) {
+          console.log('content updated!')
+          this.$emit('contentUpdate', val)
+        }
       },
       deep: true
     },
@@ -146,7 +137,7 @@ export default {
   },
   methods: {
     syncData: function() {
-      this.card = JSON.parse(JSON.stringify(this.data))
+      this.content = JSON.parse(JSON.stringify(this.data))
     },
     linkClick: function(event) {
       const self = this
@@ -179,17 +170,15 @@ export default {
         card = {
           objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'store',
-          content: {
-            description: '',
-          }
+          description: ''
         }
       self.tempListCards[card.objectID] = card
-      if (!self.card.content.listItems) Vue.set(self.card.content, 'listItems', [])
-      self.card.content.listItems.push(card.objectID)
+      if (!self.content.listItems) Vue.set(self.content, 'listItems', [])
+      self.content.listItems.push(card.objectID)
     },
     removeListItem: function(data) {
-      const listIndex = this.card.content.listItems.indexOf(data.objectID) // Doesn't account for same item appearing twice in list
-      this.card.content.listItems.splice(listIndex, 1)
+      const listIndex = this.content.listItems.indexOf(data.objectID) // Doesn't account for same item appearing twice in list
+      this.content.listItems.splice(listIndex, 1)
     },
     toggleListSearch: function() {
       this.showListSearch = !this.showListSearch

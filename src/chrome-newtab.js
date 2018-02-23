@@ -5,6 +5,8 @@ const props = {
   sidebar: false
 }
 
+console.log('Running New Tab')
+
 const main = new Main(props)
 
 console.log('main:', main)

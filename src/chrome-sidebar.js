@@ -5,6 +5,8 @@ const props = {
   sidebar: true
 }
 
+console.log('Running Sidebar')
+
 const main = new Main(props)
 
 console.log('main:', main)

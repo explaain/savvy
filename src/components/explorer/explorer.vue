@@ -3,7 +3,7 @@
     <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
       <div class="create-button">
         <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
-          <b-dropdown-item @click="createCard">🔖 New Card</b-dropdown-item>
+          <b-dropdown-item @click="createCard(null)">🔖 New Card</b-dropdown-item>
           <b-dropdown-item @click="createCard('sifter')">🐞 New Bug</b-dropdown-item>
         </b-dropdown>
       </div>
@@ -43,7 +43,7 @@
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
-        <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].content.title || popupCards[popupCards.length - 2].content.description || '').substring(0, 30)}}...</span>"</div>
+        <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
         <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
       </ul>
     </div>
@@ -85,7 +85,7 @@
       'organisation',
       'auth',
       'logo',
-      'firebaseConfig',
+      'Controller',
       'algoliaParams',
       'authorParams',
       'sidebar',
@@ -127,7 +127,7 @@
         const watchThis = self.allCards // This does nothing other than force this function to watch for changes in self.allCards
         console.log(watchThis)
         return self.mainCardList ? self.mainCardList.map(function(objectID) {
-          return self.allCards[objectID] || { content: { description: 'Card Not Found' } }
+          return self.allCards[objectID] || { description: 'Card Not Found' }
         }) : []
       },
       searchPlaceholder: function() {
@@ -242,8 +242,8 @@
             organisationID: self.organisation.id,
             userID: self.auth.user.uid,
             cardID: card.objectID,
-            description: card.content.description,
-            listItems: card.content.listItems
+            description: card.description,
+            listItems: card.listItems
           })
         }, 1)
       },
@@ -278,7 +278,7 @@
               if (key === 'fileTitle' && card.files && card.files.length)
                 card.files[0].title = c._highlightResult[key].value
               else
-                card.content[key === 'content' ? 'description' : key] = c._highlightResult[key].value
+                card[key === 'content' ? 'description' : key] = c._highlightResult[key].value
             })
           }
           console.log('card', card)
@@ -351,7 +351,7 @@
             userID: self.auth.user.uid,
             searchQuery: query,
             noOfResults: hits.length,
-            results: hits.map(hit => { return { objectID: hit.objectID, description: hit.content.description } })
+            results: hits.map(hit => { return { objectID: hit.objectID, description: hit.description } })
           })
           self.loading = false
           self.pingCards = []
@@ -402,7 +402,7 @@
         const params = {
           restrictSearchableAttributes: [
             'title',
-            'content'
+            'description'
           ]
         }
         const promises = Array.apply(null, Array(4)).map(x => ExplaainSearch.searchCards(self.auth.user, randomQuery(), 10, false, params))
@@ -410,7 +410,7 @@
         Promise.all(promises)
         .then(function(samplesOfHits) {
           hits = [].concat.apply([], samplesOfHits)
-          hits = hits.filter(hit => hit.content.description.length > 10)
+          hits = hits.filter(hit => hit.description.length > 10)
           shuffleArray(hits)
           console.log('hits')
           console.log(hits)
@@ -453,11 +453,19 @@
         const card = {
           // objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'store',
-          content: {
-            description: '',
-          },
           newlyCreated: true,
           service: service || null
+        }
+        // Currently have to do this so that card properties are registered when the card format vue component is created - otherwise the editable-markdown doesn't update the content properties!
+        switch (card.service) {
+          case null:
+            card.title = ''
+            card.description = ''
+            break
+          case 'sifter':
+            card.title = ''
+            card.description = ''
+            break
         }
         // this.allCards[card.objectID] = card
         this.popupCards = [card]
@@ -519,50 +527,45 @@
         })
         return d.promise
       },
-      updateCard: function(data, callback, errorCallback) {
+      updateCard: async function(data, callback, errorCallback) {
+        console.log('updateCard', data, callback, errorCallback)
         const self = this
-        const promises = []
-        if (data.content && data.content.listCards && data.content.listCards.length) {
-          data.content.listCards.forEach(function(listCard, index) {
-            const p = Q.defer()
+        if (data && data.listCards && data.listCards.length) {
+          data.listCards.forEach(async (listCard, index) => {
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
               listCard.intent = 'store'
               listCard.sender = self.auth.user.uid
             }
             console.log('hi')
-            self.saveCard(listCard)
-            .then(function(savedListCard) {
-              data.content.listItems[index] = savedListCard.objectID // In case it was a new listCard. This also relies on the index still being correct after the asynchronous delay
-              p.resolve()
-            }).catch(function(e) {
-              p.reject(e)
-            })
-            promises.push(p.promise)
+            const savedListCard = self.saveCard(listCard)
+            data.listItems[index] = savedListCard.objectID // In case it was a new listCard. This also relies on the index still being correct after the asynchronous delay
           })
         }
-        console.log('hello')
-        Q.allSettled(promises)
-        .then(function () {
-          self.saveCard(data)
+        try {
+          const savedCard = await self.saveCard(data)
           callback()
-        }).catch(function(e) {
+          return savedCard
+        } catch (e) {
           console.log(e)
           errorCallback(e)
-        })
+          return null
+        }
       },
-      saveCard: function(data) {
-        const d = Q.defer()
+      saveCard: async function(data) {
         const self = this
-        if (data.content && data.content.listCards) delete data.content.listCards
+        if (data && data.listCards) delete data.listCards
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log(self.auth.user)
         // Should use self.auth.user.refreshUserToken() here!
-        data.sender = { uid: self.auth.user.uid, algoliaApiKey: self.auth.user.data.algoliaApiKey, idToken: self.auth.user.getAccessToken() || self.auth.user.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
+        const idToken = await self.Controller.getAccessToken() // @TODO: Maybe move this to ExplaainAuthor?
+        data.sender = { uid: self.auth.user.uid, algoliaApiKey: self.auth.user.data.algoliaApiKey, idToken: idToken }
+        // @TODO: This is undefined - fix this and any other organisation issues
         data.organisationID = self.organisation.id
-        ExplaainAuthor.saveCard(data)
-        .then(function(res) {
+        console.log('data to send with saveCard()', data)
+        try {
+          const res = await ExplaainAuthor.saveCard(data)
           console.log(res)
           const returnedCard = res.data.memories[0]
           data.objectID = returnedCard.objectID
@@ -570,13 +573,11 @@
           self.setCard(returnedCard.objectID, data)
           // self.setCardProperty(returnedCard.objectID, 'objectID', returnedCard.objectID) // In case it was a new data
           // self.setCardProperty(returnedCard.objectID, 'updating', false)
-          d.resolve(data)
-        }).catch(function(e) {
+          return data
+        } catch (e) {
           console.error(e)
-          d.reject(e)
-        })
-        console.log('yo1')
-        return d.promise
+          return null
+        }
       },
       modalCallback: function(message) {
         const self = this
@@ -608,8 +609,8 @@
           userID: self.auth.user.uid,
           reaction: data.reaction,
           cardID: data.card.objectID,
-          description: data.card.content.description,
-          listItems: data.card.content.listItems,
+          description: data.card.description,
+          listItems: data.card.listItems,
           files: data.card.files.map(file => { return { id: file.objectID, title: file.title } }),
           searchQuery: self.query
         })

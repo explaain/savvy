@@ -106,7 +106,7 @@
         axios.post('http://localhost:3000/api/user/getTeams', {
           organisationID: self.organisation.id,
           // Should use self.auth.user.refreshUserToken() here!
-          user: { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() }
+          user: { uid: self.auth.user.uid, idToken: self.auth.user.getAccessToken() } // @TODO: Remove requirement for synchronous getAccessToken()
         }).then(res => {
           console.log(res)
         }).catch(e => {

@@ -131,8 +131,6 @@ export default {
   watch: {
     data: {
       handler: function(val) {
-        console.log('data data')
-        console.log(this.editing)
         if (!this.editing) this.syncData()
       },
       deep: true
@@ -184,9 +182,7 @@ export default {
         card = {
           objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'store',
-          content: {
-            description: '',
-          }
+          description: '',
         }
       self.tempListCards[card.objectID] = card
       if (!self.card.content.listItems) Vue.set(self.card.content, 'listItems', [])
@@ -325,11 +321,11 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
   .status {
     display: block;
     height: 52px;
+    min-width: 250px;
     box-sizing: border-box;
     padding: 0;
     list-style-type: none;
-    font-family: arial;
-    font-size: 12px;
+    font-size: 13px;
     clear: both;
     line-height: 1em;
     margin: 0 24px 0 5px;
@@ -366,7 +362,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         left: 100%;
         z-index: 20;
       }
-      &.open, &.open {
+      &.open, &.reopened {
         background: #888;
         &:after {
           border-left-color: #888;
@@ -388,18 +384,21 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 
     &.open li.open, &.reopened li.open {
       background: #EF9A3B;
+      font-weight: bold;
       &:after {
         border-left-color: #EF9A3B;
       }
     }
     &.resolved li.resolved {
       background: #34BA9C;
+      font-weight: bold;
       &:after {
         border-left-color: #34BA9C;
       }
     }
     &.closed li.closed {
       background: #409AD5;
+      font-weight: bold;
       &:after {
         border-left-color: #409AD5;
       }

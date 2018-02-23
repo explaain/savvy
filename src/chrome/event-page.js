@@ -1,17 +1,13 @@
 /* global chrome */
 
 import log from 'loglevel'
-import Controller from './controller'
+import Controller from '../controller'
+import axios from 'axios'
 
 log.setLevel('debug')
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
-  authDomain: 'savvy-96d8b.firebaseapp.com',
-}
-
 console.log('Constructing Controller from event-page')
-const myController = new Controller({ firebaseConfig: firebaseConfig })
+const myController = new Controller({})
 
 var allowContinue = true // Controller.initialise()
 
@@ -124,12 +120,48 @@ if (allowContinue) {
     })
   })
 
+  // chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  //   log.debug((sender.tab ? '📬 🖌  Event from a content script: ' + sender.tab.url : '📬 ⛓  Event from the extension'), request)
+  //   const extraFunctions = {
+  //     startSignIn: startSignIn,
+  //     sendMessageToCurrentTab: sendMessageToCurrentTab
+  //   }
+  //   return myController.onMessage(request, sendResponse, extraFunctions)
+  // })
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     log.debug((sender.tab ? '📬 🖌  Event from a content script: ' + sender.tab.url : '📬 ⛓  Event from the extension'), request)
-    const extraFunctions = {
-      startSignIn: startSignIn,
-      sendMessageToCurrentTab: sendMessageToCurrentTab
-    }
-    return myController.onMessage(request, sendResponse, extraFunctions)
+    var promiseFunction
+    if (request.action)
+      switch (request.action) {
+        case 'signIn':
+          promiseFunction = myController.signIn(startSignIn)
+          break
+        case 'getUser':
+          promiseFunction = myController.getUser()
+          break
+        case 'getAccessToken':
+          promiseFunction = myController.getAccessToken()
+          break
+        case 'refreshUserToken':
+          promiseFunction = myController.refreshUserToken()
+          break
+        case 'saveCard':
+          promiseFunction = axios.post(request.url, request.data) // Doesn't yet use Controlled because for non-chrome-extension this is already done ExplaainAuthor
+          break
+      }
+    else if (request.event)
+      switch (request.event) {
+        case 'popupOpened':
+          sendMessageToCurrentTab({event: 'popupOpened'})
+          break
+      }
+    promiseFunction.then(res => {
+      console.log('Responding: ', res)
+      sendResponse(res)
+    }).catch(e => {
+      log.error(e)
+      sendResponse({ error: e })
+    })
+    return true
   })
 }

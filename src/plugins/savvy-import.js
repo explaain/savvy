@@ -55,8 +55,6 @@ const Import = {
 
       self.user.authProvider = 'google'
       self.user.uid = gapi.auth2.getAuthInstance().currentUser.Ab.El // 104380110279658920175
-      console.log('self.getUser().uid')
-      console.log(self.getUser().uid)
 
       // Handle the initial sign-in state.
       this.updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get())
@@ -121,53 +119,56 @@ const Import = {
 
   resetDb: function () {
     const d = Q.defer()
-    if (self.getUser().uid === '101118387301286232222')
-      self.deleteAllCards()
-      .then(function () {
-        const initialCards = [
-          {
-            'context': [],
-            'entities': {},
-            'intent': 'setTask.URL',
-            'sender': '101118387301286232222',
-            'sentence': 'TechCrunch News:\r\n\r\nMACE has raised £500k from Angel List to help its efforts expanding the company\'s business SaaS model. Customers include Disney, Adobe and YouTube.',
-            'hasAttachments': true,
-            'userID': '101118387301286232222',
-            'dateCreated': 1507109266738,
-            'triggerURL': 'mail.google.com',
-            'actionSentence': 'Breaking news',
-            'attachments': [
-              {
-                'type': 'image',
-                'url': 'https://s0.wp.com/wp-content/themes/vip/techcrunch-2013/assets/images/techcrunch.opengraph.default.png'
-              }
-            ],
-          },
-          {
-            'context': [],
-            'entities': {},
-            'intent': 'setTask.URL',
-            'sender': '101118387301286232222',
-            'sentence': 'MACE vs ACME Competitor Analysis:\r\n\r\n- They don\'t integrate with AWS\r\n- They don\'t offer a free trial\r\n- Customer satisfaction in 3* on Trustpilot vs us at 4.5*\r\n- They don\'t have case studies',
-            'hasAttachments': false,
-            'userID': '101118387301286232222',
-            'dateCreated': 1507109266738,
-            'triggerURL': 'mail.google.com',
-            'actionSentence': 'Breaking news',
-          },
-        ]
-        const promises = initialCards.map(function(card) {
-          return ExplaainAuthor.saveCard(card)
+    self.getUser()
+    .then(user => {
+      if (user.uid === '101118387301286232222')
+        self.deleteAllCards()
+        .then(function () {
+          const initialCards = [
+            {
+              'context': [],
+              'entities': {},
+              'intent': 'setTask.URL',
+              'sender': '101118387301286232222',
+              'sentence': 'TechCrunch News:\r\n\r\nMACE has raised £500k from Angel List to help its efforts expanding the company\'s business SaaS model. Customers include Disney, Adobe and YouTube.',
+              'hasAttachments': true,
+              'userID': '101118387301286232222',
+              'dateCreated': 1507109266738,
+              'triggerURL': 'mail.google.com',
+              'actionSentence': 'Breaking news',
+              'attachments': [
+                {
+                  'type': 'image',
+                  'url': 'https://s0.wp.com/wp-content/themes/vip/techcrunch-2013/assets/images/techcrunch.opengraph.default.png'
+                }
+              ],
+            },
+            {
+              'context': [],
+              'entities': {},
+              'intent': 'setTask.URL',
+              'sender': '101118387301286232222',
+              'sentence': 'MACE vs ACME Competitor Analysis:\r\n\r\n- They don\'t integrate with AWS\r\n- They don\'t offer a free trial\r\n- Customer satisfaction in 3* on Trustpilot vs us at 4.5*\r\n- They don\'t have case studies',
+              'hasAttachments': false,
+              'userID': '101118387301286232222',
+              'dateCreated': 1507109266738,
+              'triggerURL': 'mail.google.com',
+              'actionSentence': 'Breaking news',
+            },
+          ]
+          const promises = initialCards.map(function(card) {
+            return ExplaainAuthor.saveCard(card)
+          })
+          return Q.allSettled(promises)
+        }).then(function () {
+          console.log('yoyoyoyoyoyo')
+          d.resolve()
+        }).catch(function(e) {
+          d.reject(e)
         })
-        return Q.allSettled(promises)
-      }).then(function () {
-        console.log('yoyoyoyoyoyo')
+      else
         d.resolve()
-      }).catch(function(e) {
-        d.reject(e)
-      })
-    else
-      d.resolve()
+    })
     return d.promise
   },
 

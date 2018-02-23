@@ -9,7 +9,7 @@
       <div class="spinner-div" v-if="orgLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
-    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :firebaseConfig="GlobalConfig.firebase" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
+    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
         <img :src="profileImage" class="profile">
@@ -51,11 +51,8 @@
         orgLoading: false,
         errorMessage: '',
         authorParams: {
-          // url: 'https://forget-me-not--app.herokuapp.com/api/memories',
-          // url: 'https://forget-me-not--staging.herokuapp.com/api/memories',
-          // url: 'https://savvy-api--live.herokuapp.com/api/memories',
-          url: 'http://localhost:5000/api/memories',
-          // url: '//localhost:3000/api/memories',
+          url: 'https://savvy-api--live.herokuapp.com/api/memories',
+          // url: 'http://localhost:5000/api/memories',
           importUrl: 'https://forget-me-not--staging.herokuapp.com/api/import'
         },
         plugin: true,
@@ -63,25 +60,6 @@
         pageCards: [], // ???
         cards: [], // ???
         // sidebar: true,
-        chromeRuntime: {
-          sendMessage: data => {
-            console.log('sendMessage (chrome.js):', data)
-            const self = this
-            return new Promise((resolve, reject) => {
-              // @TODO: Sort this so it rejects when error in actual chrome extension
-              self.Controller.sendMessage(data, response => {
-                console.log('Response received!', response)
-                resolve(response)
-              })
-              // try {
-              // } catch (e) {
-              //   console.log('catching')
-              //   if (data.action === 'signIn')
-              //     self.GlobalConfig.auth.toggleSignIn().then(resolve)
-              // }
-            })
-          },
-        },
       }
     },
     computed: {
@@ -162,23 +140,24 @@
           console.log(self)
           console.log(self.GlobalConfig)
           console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
-          self.chromeRuntime.sendMessage({action: 'getUser'})
+          self.Controller.getUser()
           .then(response => {
             console.log('response user', response)
-            self.GlobalConfig.auth.user = response
-            if (response.organisation)
-              self.organisation = response.organisation
-            if (response.data && response.data.organisationID)
-              self.organisation = { id: response.data.organisationID }
-            self.authState = response ? 'loggedIn' : 'loggedOut' // This is hacky
-            console.log('self.GlobalConfig', self.GlobalConfig)
-            console.log('self.authState', self.authState)
-            if (response)
+            if (response) {
+              self.GlobalConfig.auth.user = response
+              if (response.organisation)
+                self.organisation = response.organisation
+              if (response.data && response.data.organisationID)
+                self.organisation = { id: response.data.organisationID }
+              self.authState = response ? 'loggedIn' : 'loggedOut' // This is hacky
+              console.log('self.GlobalConfig', self.GlobalConfig)
+              console.log('self.authState', self.authState)
               self.LogRocket.identify(response.uid, {
                 name: response.auth ? response.auth.displayName : null,
                 email: response.auth ? response.auth.email : null,
                 organisation: response.data ? response.data.organisationID : null
               })
+            }
             // self.$emit('refreshUser', response)
             resolve(response)
           })
@@ -195,7 +174,7 @@
       },
       toggleSignIn: function() {
         const self = this
-        self.chromeRuntime.sendMessage({action: 'signIn'})
+        self.Controller.signIn()
         .then(response => {
           console.log('response user', response)
           self.GlobalConfig.auth.user = response
@@ -217,20 +196,6 @@
       //   this.user = user
       //   this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
       //   this.signInButton.disabled = false
-      // },
-      // getUser: function() {
-      //   const self = this
-      //   try {
-      //     self.chromeRuntime.sendMessage({action: 'getUser'})
-      //     .then(userID => {
-      //       self.userID = userID || self.userID
-      //       console.log('userID', self.userID)
-      //     })
-      //   } catch (e) {
-      //     this.plugin = false
-      //     self.userID = '1627888800569309'
-      //     console.log('userID', self.userID)
-      //   }
       // },
       fromPage: function() {
         console.log('fromPage')
@@ -258,9 +223,9 @@
 
 <style lang="scss">
 
-  @import '../../styles/main.scss';
   @import '../../styles/bootstrap.min.css';
   @import '../../styles/bootstrap-vue.css';
+  @import '../../styles/main.scss';
 
   body {
     margin: 0;

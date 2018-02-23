@@ -1,3 +1,6 @@
+// Deprecating! Skips this and goes straight to Controller.
+// @TODO: Ultimately Delete This File
+
 import * as firebase from 'firebase'
 import Controller from './controller'
 
@@ -11,6 +14,8 @@ class ControllerWrapper {
     this.signOut = this.Controller.signOut
     this.toggleSignIn = this.Controller.toggleSignIn
     this.getUser = this.Controller.getUser
+    this.getAccessToken = this.Controller.getAccessToken
+    this.refreshUserToken = this.Controller.refreshUserToken
     this.addStateChangeListener = this.Controller.addStateChangeListener
     this.sendMessage = (data, resFunction) => {
       const self = this

@@ -20,8 +20,6 @@
     computed: {
       component: function() {
         const cv = this.editable ? 'div' : 'vue-markdown'
-        console.log('cv')
-        console.log(cv)
         return cv
       }
     },

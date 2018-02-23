@@ -147,7 +147,6 @@ class Auth {
             uid: userAuth.uid,
             lastRefreshed: new Date(),
             auth: userAuth,
-            getAccessToken: self.getAccessToken
           }
           self.getUserData(userAuth)
           .then(userData => {
@@ -192,18 +191,27 @@ class Auth {
       const signedIn = self.Testing ? self.user.uid : !!self.firebase.auth().currentUser
       return signedIn
     }
-    self.refreshUserToken = async () => {
-      console.log('🔑 Auth 🔑 - refreshUserToken')
-      var idToken
+    self.getAccessToken = async (forceRefresh) => {
+      console.log('🔑 Auth 🔑 - getAccessToken')
       try {
-        idToken = await self.user.getAccessToken(/* forceRefresh */ true)
-        // idToken = await self.firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
+        if (forceRefresh || !self.user.lastRefreshed || new Date() - self.user.lastRefreshed > 1000 * 60 * 30) {
+          const token = await self.firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
+          console.log('New User Token!', token.substring(0, 100) + '...')
+          return token
+        } else {
+          const token = self.user.auth.stsTokenManager.accessToken
+          console.log('Existing User Token!', token.substring(0, 100) + '...')
+          return token
+        }
       } catch (e) {
         console.log(e)
         return null
       }
-      console.log('New User Token!', idToken.substring(0, 100) + '...')
-      return idToken
+    }
+    self.refreshUserToken = async () => {
+      console.log('🔑 Auth 🔑 - refreshUserToken')
+      const token = await self.getAccessToken(true)
+      return token
     }
     self.getUserData = async userAuth => {
       console.log('🔑 Auth 🔑 - getUserData', userAuth)
@@ -226,28 +234,54 @@ class Auth {
         return null
       }
     }
-    self.getUser = () => { // Trying to migrate from this!
-      console.log('🔑 Auth 🔑 - self.getUser')
+    // self.getUser = () => { // Trying to migrate from this!
+    //   console.log('🔑 Auth 🔑 - self.getUser')
+    //   const self = this
+    //   const user = self.user ? JSON.parse(JSON.stringify(self.user)) : null
+    //   if (!user.auth || !user.data || (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30)) { // Refreshes every 30 mins, since auth token expires every 60 mins
+    //     console.log('♻️  Refreshing User Token!')
+    //     self.refreshUserToken()
+    //     .then(token => {
+    //       user.auth.stsTokenManager.accessToken = token
+    //       user.lastRefreshed = new Date()
+    //       console.log('self.user', self.user)
+    //       return self.getUserData(token)
+    //     }).then(userData => {
+    //       user.data = userData
+    //       console.log('self.user1', self.user)
+    //     }).catch(e => {
+    //       console.log(e)
+    //     })
+    //   }
+    //   user.refreshUserToken = self.refreshUserToken
+    //   user.testingtesting = true
+    //   self.user = user
+    //   console.log('🔑 Auth 🔑 - sending user back:', user)
+    //   return user
+    // }
+    self.getUser = async () => { // Trying to migrate TO this!
+      const randomID = parseInt(Math.random() * 10000)
+      console.log('🔑 Auth 🔑 - self.getUser, id:', randomID)
       const self = this
       const user = self.user ? JSON.parse(JSON.stringify(self.user)) : null
-      if (!user.auth || !user.data || (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30)) { // Refreshes every 30 mins, since auth token expires every 60 mins
-        console.log('♻️  Refreshing User Token!')
-        self.refreshUserToken()
-        .then(token => {
-          user.auth.stsTokenManager.accessToken = token
-          user.lastRefreshed = new Date()
-          console.log('self.user', self.user)
-          return self.getUserData(token)
-        }).then(userData => {
-          user.data = userData
-          console.log('self.user1', self.user)
-        }).catch(e => {
-          console.log(e)
-        })
+      if (!user.auth) {
+        console.log('🔑 Auth 🔑 -  Don\'t even have user.auth yet! Sending back null.')
+        return null
       }
-      user.getAccessToken = self.getAccessToken
-      user.refreshUserToken = self.refreshUserToken
+      if (!user.data || (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30)) { // Refreshes every 30 mins, since auth token expires every 60 mins
+        console.log('♻️  Refreshing User Token!')
+        const token = await self.refreshUserToken()
+        user.auth.stsTokenManager.accessToken = token
+        user.lastRefreshed = new Date()
+        console.log('self.user', self.user)
+        const userData = await self.getUserData(token)
+        user.data = userData
+        console.log('self.user1', self.user)
+      }
+      user.refreshUserToken = self.refreshUserToken // Need to move away from this as functions can't be passed from event-page to content-script
+      user.testingtesting1 = true
       self.user = user
+      console.log('🔑 Auth 🔑 - sending user back (async):', randomID, user)
       return user
     }
     self.joinOrg = organisationID => {
@@ -278,7 +312,6 @@ class Auth {
         }
       })
     }
-    self.getAccessToken = () => self.user.auth.stsTokenManager.accessToken
   }
 }
 

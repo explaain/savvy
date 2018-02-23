@@ -217,9 +217,8 @@
       createCard: function () {
         const card = {
           intent: 'store',
-          content: {
-            description: '',
-          },
+          description: '',
+          title: '',
           newlyCreated: true
         }
         this.cardRows = [[card]]

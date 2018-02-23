@@ -3,24 +3,9 @@
 const stateChangeListeners = []
 
 class ChromeControllerInterface {
-  sendMessage(data, resFunction) {
-    try {
-      if (chrome) {
-        console.log('chrome', chrome)
-        if (chrome.runtime) {
-          console.log('Sending message to chrome (chrome-controller-interface.js):', data, resFunction)
-          return chrome.runtime.sendMessage(data, resFunction)
-        }
-      }
-    } catch (e) {
-      return false
-    }
-  }
   signIn() {
     return new Promise((resolve, reject) => {
-      this.sendMessage({action: 'signIn'}, res => {
-        resolve(res) // @TODO: Error catching
-      })
+      this.sendMessage({action: 'signIn'}, resolve)
     })
   }
   signOut() {
@@ -34,9 +19,19 @@ class ChromeControllerInterface {
   getUser() {
     return new Promise((resolve, reject) => {
       console.log('getUser (chrome-controller-interface.js)')
-      chrome.runtime.sendMessage({ action: 'getUser' }, user => {
-        resolve(user)
-      })
+      chrome.runtime.sendMessage({ action: 'getUser' }, resolve)
+    })
+  }
+  getAccessToken() {
+    return new Promise((resolve, reject) => {
+      console.log('getAccessToken (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'getAccessToken' }, resolve)
+    })
+  }
+  refreshUserToken() {
+    return new Promise((resolve, reject) => {
+      console.log('refreshUserToken (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'refreshUserToken' }, resolve)
     })
   }
 }

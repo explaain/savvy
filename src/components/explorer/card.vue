@@ -9,7 +9,7 @@
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <img :src="cardIcon" alt="" class="file-icons">
-    <component v-bind:is="format" :data="data" :full="full" :allCards="allCards" :setCard="setCard" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
+    <component v-bind:is="format" :data="data" :full="full" :allCards="allCards" :setCard="setCard" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
     <div v-if="full && card.pending" class="pending">
       <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
       <div v-if="showPending">
@@ -115,9 +115,7 @@ export default {
       return listCards.map((content, i) => {
         return {
           objectID: self.card.listItems[i],
-          content: {
-            description: content.value || content
-          }
+          description: content.value || content
         }
       })
     },
@@ -127,13 +125,13 @@ export default {
     // listCards: {
     //   get: function() {
     //     const self = this
-    //     return self.card.content.listItems ? self.card.content.listItems.map(function(objectID) {
+    //     return self.card.listItems ? self.card.listItems.map(function(objectID) {
     //       return self.tempListCards[objectID] || JSON.parse(JSON.stringify(self.allCards[objectID] || null)) || { content: { description: 'Card Not Found' } }
     //     }) : []
     //   },
     //   set: function(newValue) { // Doesn't get called for deep events which could cause issues
     //     const self = this
-    //     self.card.content.listItems = newValue.map(function(listCard) {
+    //     self.card.listItems = newValue.map(function(listCard) {
     //       self.tempListCards[listCard.objectID] = listCard // Is having this here good practice?
     //       return listCard.objectID
     //     })
@@ -141,14 +139,14 @@ export default {
     // },
     text: {
       get: function() {
-        const text = this.card.content.description || ''
+        const text = this.card.description || ''
         // if (!text || !text.length) console.log(text)
         const snippetLength = 100
         const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
         return this.full ? text : text.trunc(snippetStart, snippetLength, true)
       },
       set: function(val) {
-        this.card.content.description = val
+        this.card.description = val
       }
     },
     cardIcon: function() {
@@ -190,8 +188,8 @@ export default {
       // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
     },
     fullText: function() {
-      return (this.card.content.title ? this.card.content.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
-        return '\n- ' + listCard.content.description
+      return (this.card.title ? this.card.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
+        return '\n- ' + listCard.description
       })
     },
     fontSize: function() {
@@ -203,8 +201,6 @@ export default {
   watch: {
     data: {
       handler: function(val) {
-        console.log('data data')
-        console.log(this.editing)
         if (!this.editing) this.syncData()
       },
       deep: true
@@ -314,9 +310,10 @@ export default {
       const self = this
       self.editing = false
       setTimeout(function() {
-        console.log('self.card.content.title')
-        console.log(self.card.content.title)
-        self.card.title = self.card.content.title
+        console.log('self.card')
+        console.log(self.card)
+        console.log('self.card.title')
+        console.log(self.card.title)
         self.card.modified = new Date()
         if (self.card.sources && self.card.sources.filter(source => source.name === 'Journalist').length === 0)
           self.card.sources.push({
@@ -324,7 +321,7 @@ export default {
             name: 'Journalist'
           })
         console.log(self.card.title)
-        self.card.content.listCards = self.listCards
+        self.card.listCards = self.listCards
         self.listCards.forEach(function(listCard) {
           self.tempListCards[listCard.objectID] = listCard
         })
@@ -337,6 +334,13 @@ export default {
         })
       }, 5)
     },
+    contentUpdate: function(content) {
+      const self = this
+      Object.keys(content).forEach(key => {
+        self.data[key] = content[key]
+        self.card[key] = content[key]
+      })
+    },
     addListItem: function(card) {
       console.log(card)
       const self = this
@@ -344,17 +348,15 @@ export default {
         card = {
           objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'store',
-          content: {
-            description: '',
-          }
+          description: '',
         }
       self.tempListCards[card.objectID] = card
-      if (!self.card.content.listItems) Vue.set(self.card.content, 'listItems', [])
-      self.card.content.listItems.push(card.objectID)
+      if (!self.card.listItems) Vue.set(self.card, 'listItems', [])
+      self.card.listItems.push(card.objectID)
     },
     removeListItem: function(data) {
-      const listIndex = this.card.content.listItems.indexOf(data.objectID) // Doesn't account for same item appearing twice in list
-      this.card.content.listItems.splice(listIndex, 1)
+      const listIndex = this.card.listItems.indexOf(data.objectID) // Doesn't account for same item appearing twice in list
+      this.card.listItems.splice(listIndex, 1)
     },
     toggleListSearch: function() {
       this.showListSearch = !this.showListSearch
@@ -538,7 +540,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       // font-style: italic;
       text-align: right;
       color: #999;
-      margin: 20px 0 0 0;
+      margin: 20px 10px 0;
 
       svg {
         color: #00cc00;

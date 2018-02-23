@@ -77,7 +77,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
   .cardlet {
     margin: 0 8px -1px;
     min-height: unset;
-    padding: 8px 15px;
+    padding: 0 10px;
     border-radius: 0;
     width: calc(100% - 50px);
     border: 1px solid #e4e4e4;

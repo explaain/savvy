@@ -8,6 +8,8 @@ const props = {
   sidebar: false
 }
 
+console.log('Running Web App')
+
 const main = new Main(props)
 
 console.log('main:', main)
