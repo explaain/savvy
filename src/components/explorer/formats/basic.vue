@@ -7,7 +7,7 @@
       <editable-markdown :content="text" :editable="editing" @update="content.description = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
       <!-- <editable-markdown v-if="content.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
       <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
-        <cardlet v-for="item in listCards" :editing="editing" :content="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
+        <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
         <section class="buttons" v-if="editing">
           <!-- <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
           <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton> -->
@@ -16,8 +16,7 @@
       </draggable>
       <img v-if="full && content.attachments && content.attachments[0]" v-bind:src="content.attachments[0].url">
     </div>
-    <p class="modified" v-if="content.modified && content.service !== 'sifter'"><icon name="check" v-if="new Date() - content.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(content.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
-    <p class="modified" v-if="content.service === 'sifter' && content.integrationFields && content.integrationFields.status"><icon name="check" v-if="content.integrationFields.status !== 'Open'"></icon><span>{{content.integrationFields.status}}</span></p>
+    <p class="modified" v-if="content.modified"><icon name="check" v-if="new Date() - content.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(content.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
     <p class="spinner" v-if="!content"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
     <p class="extractedFrom" v-if="full && content.extractedFrom">Extracted from <a v-bind:href="content.extractedFrom.url" target="_blank">{{content.extractedFrom.title}}</a></p>
   </div>

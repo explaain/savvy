@@ -465,6 +465,7 @@
           case 'sifter':
             card.title = ''
             card.description = ''
+            card.integrationFields = {}
             break
         }
         // this.allCards[card.objectID] = card
