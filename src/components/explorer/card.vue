@@ -17,7 +17,7 @@
         {{card.pending[0].description}}
       </div>
     </div>
-    <a v-if="card.files" v-for="file, i in card.files" class="file" target="_blank" :href="file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
+    <a v-if="card.files && card.files.length" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
       <h4><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
       <h5>{{getServiceName(card, file)}}</h5>
@@ -164,7 +164,7 @@ export default {
     },
     fileIcons: function() {
       return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
-        switch (file.mimeType) {
+        switch (file && file.mimeType ? file.mimeType : null) {
           case 'application/vnd.google-apps.document':
           case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
             return 'https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300'
@@ -214,8 +214,11 @@ export default {
     }
   },
   created: function() {
+    const self = this
     log.debug(this.data.objectID)
     this.syncData()
+    console.log('aaaaa', self.card)
+    console.log('bbbbb', self.card.files)
     if (this.data.newlyCreated)
       this.editing = true
   },
@@ -237,7 +240,7 @@ export default {
         return '📂 ' + (this.auth && this.auth.user && this.auth.user.data && this.auth.user.data.organisation && this.auth.user.data.organisation.id ? this.auth.user.data.organisation.id : 'Team') + ' Drive'
     },
     getFileTitle: function(file) {
-      return this.card.service === 'sifter' ? 'Issue #' + this.card.integrationFields.number : file.title
+      return this.card.service === 'sifter' ? 'Issue #' + this.card.integrationFields.number : file && file.title ? file.title : ''
     },
     syncData: function() {
       this.card = JSON.parse(JSON.stringify(this.data))

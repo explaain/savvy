@@ -43,7 +43,6 @@
     },
     methods: {
       update: function(event) {
-        console.log('update')
         this.$emit('update', event.target.innerText)
       }
     }

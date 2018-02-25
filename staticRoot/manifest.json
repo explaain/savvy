@@ -14,16 +14,12 @@
       "*://*/*"
     ],
     "js" : [
-      "static/chrome/manifest.js",
-      "static/chrome/vendor.js",
       "static/chrome/contentScript.js"
     ]
   }],
   "background": {
     "scripts": [
       "static/chrome/js/firebase.js",
-      "static/chrome/manifest.js",
-      "static/chrome/vendor.js",
       "static/chrome/eventPage.js"
     ],
     "persistent": false

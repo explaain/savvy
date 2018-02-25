@@ -7,7 +7,7 @@ import axios from 'axios'
 // Vue.use(VueAxios, axios)
 
 class Auth {
-  constructor(callback, config) {
+  constructor(stateChangeCallback, config) {
     console.log('🔑 Auth 🔑 - Constructed', config)
     const self = this
     self.Testing = config.testing || false
@@ -23,7 +23,7 @@ class Auth {
     self.options = {}
     self.organisation = {}
     self.user = {}
-    self.stateChangeCallback = callback || function() {
+    self.stateChangeCallback = stateChangeCallback || function() {
       console.log('🔑 Auth 🔑 - stateChangeCallback')
       console.log('no state change callback defined!')
     }
@@ -163,7 +163,7 @@ class Auth {
           self.updateAuthState('loggedOut')
           if (!self.firstLoginAttempted) {
             self.firstLoginAttempted = true
-            self.signIn()
+            // self.signIn() // @TODO: Once we know this auto-onstart-login is not needed in chrome extension, delete this + firstLoginAttempted
           }
           resolve()
         }
@@ -191,8 +191,8 @@ class Auth {
       const signedIn = self.Testing ? self.user.uid : !!self.firebase.auth().currentUser
       return signedIn
     }
-    self.getAccessToken = async (forceRefresh) => {
-      console.log('🔑 Auth 🔑 - getAccessToken')
+    self.getAccessToken = async forceRefresh => {
+      console.log('🔑 Auth 🔑 - getAccessToken', forceRefresh)
       try {
         if (forceRefresh || !self.user.lastRefreshed || new Date() - self.user.lastRefreshed > 1000 * 60 * 30) {
           const token = await self.firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
@@ -234,31 +234,6 @@ class Auth {
         return null
       }
     }
-    // self.getUser = () => { // Trying to migrate from this!
-    //   console.log('🔑 Auth 🔑 - self.getUser')
-    //   const self = this
-    //   const user = self.user ? JSON.parse(JSON.stringify(self.user)) : null
-    //   if (!user.auth || !user.data || (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30)) { // Refreshes every 30 mins, since auth token expires every 60 mins
-    //     console.log('♻️  Refreshing User Token!')
-    //     self.refreshUserToken()
-    //     .then(token => {
-    //       user.auth.stsTokenManager.accessToken = token
-    //       user.lastRefreshed = new Date()
-    //       console.log('self.user', self.user)
-    //       return self.getUserData(token)
-    //     }).then(userData => {
-    //       user.data = userData
-    //       console.log('self.user1', self.user)
-    //     }).catch(e => {
-    //       console.log(e)
-    //     })
-    //   }
-    //   user.refreshUserToken = self.refreshUserToken
-    //   user.testingtesting = true
-    //   self.user = user
-    //   console.log('🔑 Auth 🔑 - sending user back:', user)
-    //   return user
-    // }
     self.getUser = async () => { // Trying to migrate TO this!
       const randomID = parseInt(Math.random() * 10000)
       console.log('🔑 Auth 🔑 - self.getUser, id:', randomID)

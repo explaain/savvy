@@ -4,12 +4,11 @@
   <div class="app" :class="{'sidebar-true': sidebar}">
     <section class="chooseOrg" v-if="authState !== 'loggedIn'">
       <h3>Hello! 👋 Please sign in below:</h3>
-      <!-- <button class="login" :disabled="authState === 'pending'" @click="signIn">Sign In</button> -->
-      <button class="login" @click="signIn">Sign In</button>
-      <div class="spinner-div" v-if="orgLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
+      <button class="login" :disabled="authState === 'pending'" @click="signIn">Sign In</button>
+      <div class="spinner-div" v-if="authState === 'pending'"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
-    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :algoliaParams="GlobalConfig.algolia" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :auth="GlobalConfig.auth" :testing="testing">
+    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
         <img :src="profileImage" class="profile">
@@ -39,9 +38,9 @@
       'sidebar',
       'local',
       'testing',
-      'GlobalConfig',
       'Controller',
       'authState',
+      'user',
       'LogRocket'
     ],
     data() {
@@ -64,7 +63,7 @@
     },
     computed: {
       profileImage: function() {
-        return this.GlobalConfig && this.GlobalConfig.auth && this.GlobalConfig.auth.user && this.GlobalConfig.auth.user.auth && this.GlobalConfig.auth.user.auth.photoURL ? this.GlobalConfig.auth.user.auth.photoURL : '/static/images/profile.jpg' // //static//
+        return this.user && this.user.auth && this.user.auth.photoURL ? this.user.auth.photoURL : '/static/images/profile.jpg' // //static//
       }
     },
     components: {
@@ -75,35 +74,31 @@
     created: function(a) {
       const self = this
       console.log('chrome.vue created')
-      console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
-      // self.getUser()
       if (self.testing) {
         console.log('In Testing Mode!')
         self.organisation = {
           id: 'explaain'
         }
-        self.GlobalConfig.auth = {
-          user: {
-            auth: {},
-            data: {
-              algoliaKey: '88bd0a77faff65d4ace510fbf172a4e1',
-              name: {
-                first: 'Jeremy',
-                last: 'Evans'
-              },
-              teams: []
-            }
+        self.user = {
+          auth: {},
+          data: {
+            algoliaKey: '88bd0a77faff65d4ace510fbf172a4e1',
+            name: {
+              first: 'Jeremy',
+              last: 'Evans'
+            },
+            teams: []
           },
           uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2'
         }
-      } else if (self.plugin) {
-        console.log('chrome.vue plugin')
-        this.refreshUser()
-        .then(res => {
-          console.log('self.organisation:', self.organisation)
-          console.log('self.authState', self.authState)
-        })
-        // self.fromPage()
+      // } else if (self.plugin) {
+      //   console.log('chrome.vue plugin')
+      //   this.refreshUser()
+      //   .then(res => {
+      //     console.log('self.organisation:', self.organisation)
+      //     console.log('self.authState', self.authState)
+      //   })
+      //   // self.fromPage()
       }
 
       window.addEventListener('message', function(event) {
@@ -125,78 +120,13 @@
             break
         }
       }, false)
-      self.refreshUser()
     },
     methods: {
-      refreshUser: function() {
-        const self = this
-        console.log('refreshUser')
-        console.log(self)
-        console.log(self.GlobalConfig)
-        console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
-        console.log('self.authState', self.authState)
-        return new Promise(function(resolve, reject) {
-          console.log('refreshUser Promise')
-          console.log(self)
-          console.log(self.GlobalConfig)
-          console.log('self.GlobalConfig', JSON.stringify(self.GlobalConfig))
-          self.Controller.getUser()
-          .then(response => {
-            console.log('response user', response)
-            if (response) {
-              self.GlobalConfig.auth.user = response
-              if (response.organisation)
-                self.organisation = response.organisation
-              if (response.data && response.data.organisationID)
-                self.organisation = { id: response.data.organisationID }
-              self.authState = response ? 'loggedIn' : 'loggedOut' // This is hacky
-              console.log('self.GlobalConfig', self.GlobalConfig)
-              console.log('self.authState', self.authState)
-              self.LogRocket.identify(response.uid, {
-                name: response.auth ? response.auth.displayName : null,
-                email: response.auth ? response.auth.email : null,
-                organisation: response.data ? response.data.organisationID : null
-              })
-            }
-            // self.$emit('refreshUser', response)
-            resolve(response)
-          })
-        })
-      },
       signIn: function() {
         const self = this
         console.log(self.Controller)
         self.Controller.signIn()
-        .then(response => {
-          console.log('response to signIn()', response)
-          self.GlobalConfig.auth.user = response
-        })
       },
-      toggleSignIn: function() {
-        const self = this
-        self.Controller.signIn()
-        .then(response => {
-          console.log('response user', response)
-          self.GlobalConfig.auth.user = response
-        })
-        // if (this.sidebar) {
-        //   console.log('sidebar')
-        //   // Why don't we allow it here?
-        // } else {
-        //   console.log('not sidebar')
-        // }
-      },
-      // onAuthStateChanged: function(user) {
-      //   console.log('onAuthStateChanged')
-      //   console.log(user)
-      //   this.auth.user = user
-      // },
-      // onAuthStateChanged: function(user) {
-      //   console.log('user', user)
-      //   this.user = user
-      //   this.signInButton.text = user ? 'Sign out' : 'Sign in with Google'
-      //   this.signInButton.disabled = false
-      // },
       fromPage: function() {
         console.log('fromPage')
         const message = {action: 'getPageResults'}

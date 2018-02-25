@@ -14,10 +14,10 @@ var allowContinue = true // Controller.initialise()
 const stateChangeListener = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
   sendMessageToAllTabs({
-    action: 'onAuthStateChanged',
+    action: 'stateChanged',
     data: {
       state: state,
-      // user: user // @TODO: Figure out whether we can include this or not (might not be a stringifyable object so may mess up the sendMessage sending)
+      user: user
     }
   })
 }
@@ -146,7 +146,10 @@ if (allowContinue) {
           promiseFunction = myController.refreshUserToken()
           break
         case 'saveCard':
-          promiseFunction = axios.post(request.url, request.data) // Doesn't yet use Controlled because for non-chrome-extension this is already done ExplaainAuthor
+          promiseFunction = myController.saveCard(request.data)
+          break
+        case 'deleteCard':
+          promiseFunction = myController.deleteCard(request.data)
           break
       }
     else if (request.event)

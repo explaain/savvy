@@ -12,7 +12,7 @@
     </div> -->
     <transition-group name="fade" appear>
       <slick :options="{ focusOnSelect: true, slidesToShow: 1, infinite: false, adaptiveHeight: true, centerPadding: '15px', centerMode: true, initialSlide: positions[rowIndex] }" class="cards" v-for="(row, rowIndex) in cards" key="rowIndex" ref="slick">
-        <card v-for="(card, cardIndex) in row" :highlight="positions[rowIndex] === cardIndex" @cardClick="cardClick" @showCard="showCard" @updateCard="updateCard" @deleteCard="deleteCard" :data="card" :explaain="explaain" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :auth="GlobalConfig.auth" :position="[rowIndex, cardIndex]" @copy="copyAlert"></card>
+        <card v-for="(card, cardIndex) in row" :highlight="positions[rowIndex] === cardIndex" @showCard="showCard" @updateCard="updateCard" @deleteCard="deleteCard" :data="card" :explaain="explaain" :key="card.objectID" :full="true" :allCards="allCards" :setCard="setCard" :position="[rowIndex, cardIndex]" @copy="copyAlert"></card>
         <p class="no-cards" v-if="!cards.length">{{noCardMessage}}</p>
       </slick>
     </transition-group>
@@ -20,7 +20,6 @@
 </template>
 
 <script>
-  // /* global GlobalConfig */
   import Vue from 'vue'
   import log from 'loglevel'
   import Q from 'q'
@@ -34,7 +33,6 @@
   import Modal from './modal.vue'
   import Alert from './alert.vue'
   import ExplaainSearch from '../../plugins/explaain-search.js'
-  import ExplaainAuthor from '../../plugins/explaain-author.js'
 
   export default {
     components: {
@@ -47,8 +45,8 @@
       Slick
     },
     props: [
+      'Controller',
       'explaain',
-      'GlobalConfig',
       'closePopup',
       'initialCard',
       'frameID',
@@ -105,10 +103,6 @@
     },
     created: function () {
       const self = this
-      // self.authorParams.plugin = self.plugin
-      Vue.use(ExplaainSearch, self.GlobalConfig.algolia, self.GlobalConfig.auth.user)
-      Vue.use(ExplaainAuthor, self.GlobalConfig.author)
-
       self.$parent.$on('updateCards', self.updateCards)
       self.$parent.$on('getCard', self.getCard)
       self.$parent.$on('setLoading', self.setLoading)
@@ -147,19 +141,20 @@
     },
     methods: {
       fetchCard: function(objectID) {
+        console.log('fetchCard', objectID)
         const self = this
         if (self.allCards[objectID]) {
           return new Promise(function(resolve, reject) {
             resolve(self.allCards[objectID])
           })
         } else {
-          return ExplaainSearch.getCard(objectID)
+          return self.Controller.getCard(objectID)
         }
       },
       yieldAndShowCard: function(data) {
         console.log('yieldAndShowCard', data)
         const self = this
-        ExplaainSearch.yieldCard(data)
+        self.Controller.yieldCard(data)
         .then(card => {
           data.objectID = card.objectID
           data.toLayerKeys = [data.objectID]
@@ -181,16 +176,6 @@
         const card = self.allCards[objectID]
         card[property] = value
         Vue.set(self.allCards, objectID, card) // Forces this to be watched - not yet working, at least with 'updating'
-      },
-      cardClick: function(card) {
-        // const self = this
-        // Mixpanel.track('Card Clicked', {
-        //   organisationID: self.GlobalConfig.organisation.id,
-        //   userID: self.GlobalConfig.auth.user.uid,
-        //   cardID: card.objectID,
-        //   description: card.content.description,
-        //   listItems: card.content.listItems
-        // })
       },
       close: function(instantly) {
         const self = this
@@ -277,11 +262,7 @@
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
         console.log('data', data)
-        // Should use self.GlobalConfig.auth.user.refreshUserToken() here!
-        // data.user = { uid: self.GlobalConfig.auth.user.uid, idToken: self.GlobalConfig.auth.user.getAccessToken() || self.GlobalConfig.auth.user.GlobalConfig.auth.stsTokenManager.accessToken } // Ideally we should get getAccessToken() working on chrome extension so we don't need this backup option!
-        // data.organisationID = self.organisation.id
-        ExplaainSearch.saveCard(data)
-        // ExplaainAuthor.saveCard(data)
+        self.Controller.saveCard(data)
         .then(function(res) {
           const returnedCard = res.data.memories[0]
           data.objectID = returnedCard.objectID

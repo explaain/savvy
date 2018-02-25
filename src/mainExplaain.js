@@ -2,6 +2,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import Vue from 'vue'
 import log from 'loglevel'
+import Controller from './controller'
 // import router from './router'
 // import Dashboard from './dashboard'
 // import Chrome from './components/chrome/chrome'
@@ -52,7 +53,7 @@ const App = new Vue({
   render: h => h(Popup, {
     props: {
       explaain: true,
-      GlobalConfig: GlobalConfig,
+      Controller: Controller,
       sidebar: true,
       initialCard: {
         objectID: getParameterByName('cardID') || getAnchorString() || null,

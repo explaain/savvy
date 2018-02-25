@@ -31,9 +31,9 @@
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" @copy="copyAlert"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" @copy="copyAlert"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
@@ -44,7 +44,7 @@
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
-        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" :setCard="setCard" :auth="auth" @copy="copyAlert"></card>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" :setCard="setCard" @copy="copyAlert"></card>
       </ul>
     </div>
   </div>
@@ -67,7 +67,6 @@
   import Modal from './modal.vue'
   import Alert from './alert.vue'
   import ExplaainSearch from '../../plugins/explaain-search.js'
-  import ExplaainAuthor from '../../plugins/explaain-author.js'
   // import SavvyImport from '../../plugins/savvy-import.js'
 
   export default {
@@ -82,18 +81,19 @@
     },
     props: [
       'plugin',
-      'organisation',
-      'auth',
+      'user',
       'logo',
       'Controller',
-      'algoliaParams',
-      'authorParams',
+      'authState',
       'sidebar',
       'local',
       'testing'
     ],
     data () {
       return {
+        algoliaParams: {
+          appID: 'D3AE3TSULH'
+        },
         pageCards: [],
         allCards: {},
         mainCardList: [],
@@ -138,17 +138,11 @@
       console.log('Starting Explorer')
       const self = this
       Vue.use(VueMasonryPlugin)
-      console.log('self.algoliaParams', self.algoliaParams)
-      console.log('self.auth', self.auth)
-      console.log('self.auth.user', self.auth.user)
-      self.auth.user.organisation = self.organisation
       Vue.use(BootstrapVue)
-      Vue.use(ExplaainSearch, self.algoliaParams, self.auth.user)
-      self.authorParams.plugin = self.plugin
-      Vue.use(ExplaainAuthor, self.authorParams)
+      Vue.use(ExplaainSearch, self.algoliaParams, self.user)
 
       // Vue.use(SavvyImport)
-      self.modal.sender = self.auth.user.uid
+      self.modal.sender = self.user.uid
       self.modal.callback = self.modalCallback
       self.$parent.$on('updateCards', self.updateCards)
       self.$parent.$on('getCard', self.getCard)
@@ -158,12 +152,10 @@
       })
       self.$parent.$on('search', function(query) {
         self.search(self.$route.query.q)
-        console.log('SEARCHSEARCHSEARCHSEARCHSEARCHSEARCHSEARCHSEARCHSEARCH')
       })
       // SavvyImport.beginImport()
       Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
       setTimeout(() => {
-        console.log('SEARCHSEARCHSEARCHSEARCHSEARCH')
         if (self.$route.query.q)
           self.search(self.$route.query.q)
         // else if (!self.sidebar)
@@ -239,8 +231,8 @@
           self.popupClicked = true
           self.openPopup(card, fromPopup)
           Mixpanel.track('Card Clicked', {
-            organisationID: self.organisation.id,
-            userID: self.auth.user.uid,
+            organisationID: self.user.data.organisationID,
+            userID: self.user.uid,
             cardID: card.objectID,
             description: card.description,
             listItems: card.listItems
@@ -344,11 +336,11 @@
         if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
         const query = self.query
-        ExplaainSearch.searchCards(self.auth.user, self.query, 12, true)
+        ExplaainSearch.searchCards(self.user, self.query, 12, true)
         .then(function(hits) {
           Mixpanel.track('Searched', {
-            organisationID: self.organisation.id,
-            userID: self.auth.user.uid,
+            organisationID: self.user.data.organisationID,
+            userID: self.user.uid,
             searchQuery: query,
             noOfResults: hits.length,
             results: hits.map(hit => { return { objectID: hit.objectID, description: hit.description } })
@@ -370,12 +362,11 @@
       searchRecent: function () {
         const self = this
         self.setLoading()
-        log.debug(self.auth)
-        ExplaainSearch.searchCards(self.auth.user, '', 24, false)
+        ExplaainSearch.searchCards(self.user, '', 24, false)
         .then(function(hits) {
           Mixpanel.track('Recently Searched', {
-            organisationID: self.organisation.id,
-            userID: self.auth.user.uid
+            organisationID: self.user.data.organisationID,
+            userID: self.user.uid
           })
           self.loading = false
           console.log('hits')
@@ -396,7 +387,6 @@
       searchRandom: function () {
         const self = this
         self.setLoading()
-        log.debug(self.auth)
         var hits = []
         const randomQuery = () => Math.random().toString(36).substring(7).substring(0, 1)
         const params = {
@@ -405,7 +395,7 @@
             'description'
           ]
         }
-        const promises = Array.apply(null, Array(4)).map(x => ExplaainSearch.searchCards(self.auth.user, randomQuery(), 10, false, params))
+        const promises = Array.apply(null, Array(4)).map(x => ExplaainSearch.searchCards(self.user, randomQuery(), 10, false, params))
         console.log(promises)
         Promise.all(promises)
         .then(function(samplesOfHits) {
@@ -439,7 +429,7 @@
         })
       },
       // beginCreate: function () {
-      //   this.modal.sender = this.auth.user.uid
+      //   this.modal.sender = this.user.uid
       //   this.modal.show = true
       //   console.log(222)
       //   this.modal.submit = this.saveCard
@@ -492,11 +482,11 @@
         const self = this
         const d = Q.defer()
         const data = {
-          sender: this.auth.user.uid,
-          organisationID: self.organisation.id,
+          sender: this.user.uid,
+          organisationID: self.user.data.organisationID,
           objectID: objectID
         }
-        ExplaainAuthor.deleteCard(data)
+        self.Controller.deleteCard(data)
         .then(function () {
           d.resolve()
         }).catch(function(e) {
@@ -509,7 +499,7 @@
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.auth.user, '', 1 /* 50 */, false) /* Have set this to be one at a time for now to avoid BAD THINGS */
+        ExplaainSearch.searchCards(self.user, '', 1 /* 50 */, false) /* Have set this to be one at a time for now to avoid BAD THINGS */
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -536,7 +526,7 @@
             if (!listCard.objectID || listCard.objectID.indexOf('TEMP') === 0) {
               if (listCard.objectID) delete listCard.objectID
               listCard.intent = 'store'
-              listCard.sender = self.auth.user.uid
+              listCard.sender = self.user.uid
             }
             console.log('hi')
             const savedListCard = self.saveCard(listCard)
@@ -558,17 +548,11 @@
         if (data && data.listCards) delete data.listCards
         if (data.newlyCreated) delete data.newlyCreated
         if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
-        console.log(self.auth.user)
-        // Should use self.auth.user.refreshUserToken() here!
-        const idToken = await self.Controller.getAccessToken() // @TODO: Maybe move this to ExplaainAuthor?
-        data.sender = { uid: self.auth.user.uid, algoliaApiKey: self.auth.user.data.algoliaApiKey, idToken: idToken }
-        // @TODO: This is undefined - fix this and any other organisation issues
-        data.organisationID = self.organisation.id
+        console.log(self.user)
         console.log('data to send with saveCard()', data)
         try {
-          const res = await ExplaainAuthor.saveCard(data)
-          console.log(res)
-          const returnedCard = res.data.memories[0]
+          const returnedCard = await self.Controller.saveCard(data)
+          console.log('returnedCard', returnedCard)
           data.objectID = returnedCard.objectID
           data.updating = false
           self.setCard(returnedCard.objectID, data)
@@ -606,8 +590,8 @@
         console.log('Reacting!')
         const self = this
         Mixpanel.track('User Reacted to Card', {
-          organisationID: self.organisation.id,
-          userID: self.auth.user.uid,
+          organisationID: self.user.data.organisationID,
+          userID: self.user.uid,
           reaction: data.reaction,
           cardID: data.card.objectID,
           description: data.card.description,

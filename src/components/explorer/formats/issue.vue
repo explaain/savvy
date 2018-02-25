@@ -1,6 +1,6 @@
 conten<template lang="html">
   <div class="main" v-if="(full && content.highlight) || content.title || content.description || editing">
-    <h3 style="margin: 15px 0 10px;">Enter your bug details:</h3>
+    <h3 v-if="editing" style="margin: 15px 0 10px;">Enter your bug details:</h3>
     <div class="label" v-if="full && content.highlight"><span class="top-hit" v-if="content.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
     <div class="content" @click="linkClick">
       <editable-markdown v-if="content.title || editing" :content="content.title" :editable="editing" @update="content.title = $event" placeholder="Title" class="title"></editable-markdown>
@@ -121,7 +121,6 @@ export default {
       handler: function(val) {
         const self = this
         if (Object.keys(val).filter(key => JSON.stringify(val[key]) !== JSON.stringify(self.data[key])).length) {
-          console.log('content updated!')
           this.$emit('contentUpdate', val)
         }
       },

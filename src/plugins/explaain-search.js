@@ -7,8 +7,7 @@ log.setLevel('debug')
 
 const Search = {
   install(Vue, algoliaParams, userAuth) {
-    log.debug('algoliaParams', algoliaParams)
-    log.debug('userAuth', userAuth)
+    console.log('Installing ExplaainSearch', algoliaParams, userAuth)
     const AlgoliaClient = Algolia(algoliaParams.appID, userAuth.data.algoliaApiKey, {
       protocol: 'https:'
     })

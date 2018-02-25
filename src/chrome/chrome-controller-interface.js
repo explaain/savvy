@@ -2,10 +2,19 @@
 
 const stateChangeListeners = []
 
+/* Gets called when the auth state changes, and proceeds to call every listenerFunction */
+const stateChanged = (state, user) => {
+  console.log('stateChangeCallback (chrome-controller-interface.js)', state, user)
+  console.log('stateChangeListeners to call (chrome-controller-interface.js):', stateChangeListeners)
+  stateChangeListeners.forEach(listenerFunction => {
+    listenerFunction(state, user)
+  })
+}
+
 class ChromeControllerInterface {
   signIn() {
     return new Promise((resolve, reject) => {
-      this.sendMessage({action: 'signIn'}, resolve)
+      chrome.runtime.sendMessage({ action: 'signIn' }, resolve)
     })
   }
   signOut() {
@@ -34,21 +43,26 @@ class ChromeControllerInterface {
       chrome.runtime.sendMessage({ action: 'refreshUserToken' }, resolve)
     })
   }
-}
-
-const onAuthStateChanged = (state, user) => {
-  console.log('user', user)
-  stateChangeListeners.forEach(listenerFunction => {
-    listenerFunction(state, user)
-  })
+  saveCard() {
+    return new Promise((resolve, reject) => {
+      console.log('saveCard (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'saveCard' }, resolve)
+    })
+  }
+  deleteCard() {
+    return new Promise((resolve, reject) => {
+      console.log('deleteCard (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'deleteCard' }, resolve)
+    })
+  }
 }
 
 window.addEventListener('message', event => {
   // console.log('event!', event)
   switch (event.data.action) {
-    case 'onAuthStateChanged':
-      console.log('onAuthStateChanged (chrome-controller-interface.js)', event.data)
-      onAuthStateChanged(event.data.state, event.data.user)
+    case 'stateChanged':
+      console.log('stateChanged (chrome-controller-interface.js)', event.data)
+      stateChanged(event.data.state, event.data.user)
       break
   }
 }, false)
