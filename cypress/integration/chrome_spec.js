@@ -1,6 +1,8 @@
 /* global describe it cy */
 
-import Controller from '../../src/controller'
+// Currently using { "chromeWebSecurity": false } in cypress.json
+
+// import Controller from '../../src/controller'
 const sidebar = false
 
 describe('Booting up', () => {
@@ -105,32 +107,32 @@ describe('Logged In', () => {
       cy.get('.search input').should('not.have.length', 0)
     })
     it('.cards is non-empty', function() {
-      cy.get('.main > ul.cards .card').should('not.have.length', 0)
+      cy.get('.main-explorer > ul.cards .card').should('not.have.length', 0)
     })
     it('The first card has some content', function() {
-      cy.get('.main > ul.cards .card').find('.content').contains('p', /\w/)
+      cy.get('.main-explorer > ul.cards .card').find('.content').contains('p', /\w/)
     })
     it('The first card has an Updated', function() {
-      cy.get('.main > ul.cards .card').find('.modified').contains('p', /Updated: \w/)
+      cy.get('.main-explorer > ul.cards .card').find('.modified').contains('p', /Updated: \w/)
     })
     it(`Search results label appears, containing "${query}"`, () => {
       cy.get('.search-results .results-label').should('contain', query)
     })
     it(`First result should contain "${correctSnippet}"`, () => {
-      cy.get('.main > ul.cards .card').find('.content').contains('p', correctSnippet)
+      cy.get('.main-explorer > ul.cards .card').find('.content').contains('p', correctSnippet)
     })
     it('It should also contain a file', () => {
-      cy.get('.main > ul.cards .card').find('.file').contains('p', 'Brand Guidelines')
+      cy.get('.main-explorer > ul.cards .card').find('.file').contains('p', 'Brand Guidelines')
     })
   })
   describe('Popup works', () => {
     if (sidebar) {
       it(`Hover over first card`, () => {
-        cy.get('.main > ul.cards .card').first().trigger('mouseover')
+        cy.get('.main-explorer > ul.cards .card').first().trigger('mouseover')
       })
     } else {
       it(`Click on first card`, () => {
-        cy.get('.main > ul.cards .card').first().click('top')
+        cy.get('.main-explorer > ul.cards .card').first().click('top')
       })
     }
     it('.popup > .cards should have one card', function() {
@@ -156,7 +158,7 @@ describe('Logged In', () => {
       cy.get('.search .closeSearch').click()
     })
     it(`Removes all cards`, () => {
-      cy.get('.main > ul.cards .card').should('have.length', 0)
+      cy.get('.main-explorer > ul.cards .card').should('have.length', 0)
     })
     it('Removes all popup cards', function() {
       cy.get('.popup > .cards > .card').should('have.length', 0)

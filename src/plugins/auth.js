@@ -140,32 +140,31 @@ class Auth {
     self.onFirebaseAuthStateChange = userAuth => {
       console.log('🔑 Auth 🔑 - onFirebaseAuthStateChange', userAuth)
       return new Promise((resolve, reject) => {
-        if (userAuth) {
-          userAuth = JSON.parse(JSON.stringify(userAuth))
-          console.log('🖌👤  Setting user', userAuth)
+        if (userAuth && !self.user.auth)
           self.user = {
             uid: userAuth.uid,
             lastRefreshed: new Date(),
-            auth: userAuth,
+            auth: JSON.parse(JSON.stringify(userAuth)),
           }
-          self.getUserData(userAuth)
+        if (self.user.auth && !self.user.data)
+          self.getUserData(self.user.auth)
           .then(userData => {
-            console.log('👤  User data!', userData)
+            console.log('👤  New User data!', userData)
             self.user.data = userData
             self.updateAuthState('loggedIn')
             resolve(self.user)
           }).catch(e => {
             self.updateAuthState('loggedOut') // Could have another state for this scenario?
-            resolve(self.user)
+            resolve(null)
           })
-        } else {
+        if (!self.user.auth) {
           console.log('Calling back but with no user')
           self.updateAuthState('loggedOut')
           if (!self.firstLoginAttempted) {
             self.firstLoginAttempted = true
             // self.signIn() // @TODO: Once we know this auto-onstart-login is not needed in chrome extension, delete this + firstLoginAttempted
           }
-          resolve()
+          resolve(null)
         }
       })
     }

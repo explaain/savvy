@@ -233,6 +233,7 @@ const Search = {
     }
 
     const advancedSearch = function(params) {
+      console.log('advancedSearch')
       const d = Q.defer()
       AlgoliaIndex.clearCache()
       AlgoliaIndex.search(params, function(e, content) {
@@ -260,6 +261,7 @@ const Search = {
     }
 
     const advancedChunkSearch = function(params, showHighlights) {
+      console.log('advancedChunkSearch')
       const d = Q.defer()
       var cards = []
       if (params.filters && params.filters.indexOf('teams: ') > -1)
@@ -353,6 +355,7 @@ const Search = {
     })
 
     const searchCards = function(user, searchText, hitsPerPage, showHighlights, extraParams) {
+      console.log('searchCards')
       const d = Q.defer()
       var params = {
         query: searchText,
@@ -372,6 +375,7 @@ const Search = {
     }
 
     const fetchListItemCards = function(cards) {
+      console.log('fetchListItemCards')
       const d = Q.defer()
       const promises = []
       cards.forEach(function(card) {
@@ -414,6 +418,7 @@ const Search = {
     })
 
     const correctCard = function(card) {
+      console.log('correctCard')
       if (!card.content || !card.content.description)
         card.content = {
           title: card.title || '',
@@ -427,17 +432,17 @@ const Search = {
     }
 
     const correctChunkCard = function(card, showHighlights) {
-      card.content = {
-        title: showHighlights && card._highlightResult && card._highlightResult.title ? card._highlightResult.title.value : card.title || '',
-        description: (showHighlights && card._highlightResult && card._highlightResult.description ? card._highlightResult.description.value : card.description) || (showHighlights && card._highlightResult && card._highlightResult.content ? card._highlightResult.content.value : card.content) || ''
-      }
+      console.log('correctChunkCard')
+      card.title = showHighlights && card._highlightResult && card._highlightResult.title ? card._highlightResult.title.value : card.title || ''
+      card.description = (showHighlights && card._highlightResult && card._highlightResult.description ? card._highlightResult.description.value : card.description) || (showHighlights && card._highlightResult && card._highlightResult.content ? card._highlightResult.content.value : card.content) || ''
       return card
     }
 
     const combineDuplicateContents = cards => {
+      console.log('combineDuplicateContents')
       cards.forEach((card2, j) => {
         cards.slice(0, j).forEach((card1, i) => {
-          if (card1 && card1.content.description === card2.content.description) {
+          if (card1 && card1.description === card2.description) {
             if (card1.files && card2.files && card1.files.objectID !== card2.files.objectID)
               card1.files = card1.files.concat(card2.files)
             cards[j] = null
@@ -449,6 +454,7 @@ const Search = {
     }
 
     const compoundSearch = function(user, searchText) {
+      console.log('compoundSearch')
       const d = Q.defer()
       const maxLength = 400
       const searchTextArray = []
@@ -472,6 +478,7 @@ const Search = {
     }
 
     const removeDuplicates = (originalArray, objKey) => {
+      console.log('removeDuplicates')
       var trimmedArray = []
       var values = []
       var value
@@ -486,6 +493,7 @@ const Search = {
     }
 
     // const checkPageHit = function(pageData, results) {
+    console.log('const')
     //   //Not yet accounting for capitals
     //   const boringWords = [
     //     'favourite',
@@ -533,6 +541,7 @@ const Search = {
     // }
 
     // const checkPageReminder = function(userID, pageData) {
+    console.log('const')
     //   const d = Q.defer()
     //   log.trace(pageData)
     //   const urlRoot = pageData.baseUrl.replace('.com','').replace('.co.uk','').replace('.org','')
