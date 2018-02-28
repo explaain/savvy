@@ -4,12 +4,13 @@
     <div class="buttons-top-right">
       <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
       <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
-      <!-- <ibutton v-if="editing" class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
-      <ibutton v-if="editing" class="right save" icon="check" text="Save" :click="saveEdit"></ibutton> -->
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <img :src="cardIcon" alt="" class="file-icons">
+      <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
+    <h3 v-if="editing" style="margin: 15px 10px 10px;">Enter your card details:</h3>
     <component v-bind:is="format" :showPending="showPending" :data="data" :full="full" :allCards="allCards" :setCard="setCard" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
+    <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
     <!-- <div v-if="full && card.pending" class="pending">
       <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
       <div v-if="showPending">
@@ -17,11 +18,13 @@
         {{card.pending[0].description}}
       </div>
     </div> -->
-    <a v-if="card.files && card.files.length" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
+    <a v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
       <h4><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
       <h5>{{getServiceName(card, file)}}</h5>
     </a>
+    <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
+    <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
     <footer v-if="full">
       <div class="sources" v-if="card.sources && card.sources.length">
         Source{{card.sources.length > 1 ? 's' : ''}}: <span v-for="source, i in card.sources"><a :href="source.url" target="_blank">{{source.name}}</a>{{i < card.sources.length - 1 ? ', ' : '' }}</span>
@@ -572,13 +575,19 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       // font-style: italic;
       text-align: right;
       color: #999;
-      margin: 20px 10px 0;
+      margin: 10px;
 
       svg {
         color: #00cc00;
       }
       span {
         font-weight: bold;
+      }
+    }
+    .content {
+      .title {
+        font-weight: bold;
+        font-size: 1.2em;
       }
     }
     a.file {
