@@ -9,14 +9,14 @@
       <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <img :src="cardIcon" alt="" class="file-icons">
-    <component v-bind:is="format" :data="data" :full="full" :allCards="allCards" :setCard="setCard" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
-    <div v-if="full && card.pending" class="pending">
+    <component v-bind:is="format" :showPending="showPending" :data="data" :full="full" :allCards="allCards" :setCard="setCard" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
+    <!-- <div v-if="full && card.pending" class="pending">
       <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
       <div v-if="showPending">
         <b>Pending:</b><br>
         {{card.pending[0].description}}
       </div>
-    </div>
+    </div> -->
     <a v-if="card.files && card.files.length" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
       <h4><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
@@ -32,7 +32,7 @@
       </div> -->
       <div class="buttons" v-if="editing">
         <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
-        <ibutton class="right save" icon="check" text="Save" :click="saveEdit"></ibutton>
+        <ibutton class="right save" icon="check" :text="['admin', 'manager'].indexOf(userRole) > -1 ? 'Save Card' : 'Submit for Approval'" :click="saveEdit"></ibutton>
       </div>
       <div class="buttons reaction" v-if="!reacted && !explaain && !editing">
         <!-- <p>How well did this match what you were looking for?</p> -->
@@ -44,6 +44,10 @@
         <p>Thanks for your feedback! Savvy uses this to learn and get smarter over time 🤖</p>
       </div>
       <div class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
+      <div class="pending-toggle" v-if="!editing && card.pendingContent && Object.keys(card.pendingContent).length">
+        <toggle-button v-model="showPending" :sync="true" :labels="true"/>
+        <span>Show Pending Changes</span>
+      </div>
     </footer>
     <ibutton class="approve" v-if="pendingApproval" icon="check" text="Approve"></ibutton>
   </div>
@@ -58,6 +62,8 @@ import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
 import VueMarkdown from 'vue-markdown'
 import Draggable from 'vuedraggable'
+import ToggleButton from 'vue-js-toggle-button'
+
 import IconButton from './ibutton.vue'
 import Cardlet from './cardlet.vue'
 import Editable from './editable.vue'
@@ -80,7 +86,8 @@ export default {
     'auth',
     'pendingApproval',
     'position',
-    'highlight'
+    'highlight',
+    'userRole',
   ],
   components: {
     Icon,
@@ -101,8 +108,8 @@ export default {
       editing: false,
       copyIcon: '/static/images/clipboard.svg', // //static//
       showListSearch: false,
-      showPending: false,
-      reacted: false
+      reacted: false,
+      showPending: true,
     }
   },
   computed: {
@@ -217,6 +224,7 @@ export default {
     const self = this
     log.debug(this.data.objectID)
     this.syncData()
+    Vue.use(ToggleButton)
     console.log('aaaaa', self.card)
     console.log('bbbbb', self.card.files)
     if (this.data.newlyCreated)
@@ -364,9 +372,6 @@ export default {
     toggleListSearch: function() {
       this.showListSearch = !this.showListSearch
     },
-    togglePending: function() {
-      this.showPending = !this.showPending
-    },
     copy: function(e) {
       // The v-clipboard directive has already copied the text from the card - this function just shows the alert
       this.$emit('copy')
@@ -421,6 +426,30 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
 
+    .field {
+      &.pending ::after, &.reverted ::after {
+        font-size: 12px;
+        right: 0px;
+        display: block;
+        font-style: italic;
+        font-weight: normal;
+        text-align: right;
+      }
+      &.pending {
+        border-right: 4px orange solid;
+        ::after {
+          content: "Pending Update";
+          color: orange;
+        }
+      }
+      &.reverted {
+        border-right: 4px blue solid;
+        ::after {
+          content: "Most Recent Verified Content";
+          color: blue;
+        }
+      }
+    }
     .updating {
       opacity: 0.5;
     }
@@ -678,9 +707,12 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         // transform: scaleY(1);
       }
     }
-    > .popup .card:hover {
-      .buttons-top-right button {
-        display: inline-block;
+    > .popup .card {
+      padding-top: 10px;
+      &:hover {
+        .buttons-top-right button {
+          display: inline-block;
+        }
       }
     }
   }
@@ -715,6 +747,18 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     border-radius: 4px;
     color: black;
     cursor: text;
+  }
+
+  .pending-toggle {
+    margin: 0 20px 11px;
+
+    > label {
+      margin-bottom: 4px;
+    }
+    > span {
+      margin: 0 5px;
+      font-size: 14px;
+    }
   }
 
   button.approve {

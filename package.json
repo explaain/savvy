@@ -135,6 +135,7 @@
     "vue-clickaway": "^2.1.0",
     "vue-clipboards": "^1.1.0",
     "vue-js-modal": "^1.2.9",
+    "vue-js-toggle-button": "^1.2.2",
     "vue-jsonp": "^0.1.7",
     "vue-loader": "^13.3.0",
     "vue-markdown": "^2.2.4",

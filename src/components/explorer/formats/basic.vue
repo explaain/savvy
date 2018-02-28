@@ -1,10 +1,10 @@
 <template lang="html">
-  <div class="main" v-if="(full && content.highlight) || content.title || content.description || editing">
+  <div class="main" v-if="(full && content.highlight) || displayContent.title || displayContent.description || editing">
     <h3 v-if="editing" style="margin: 15px 0 10px;">Enter your content details:</h3>
     <div class="label" v-if="full && content.highlight"><span class="top-hit" v-if="content.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
     <div class="content" @click="linkClick">
-      <editable-markdown v-if="content.title || editing" :content="content.title" :editable="editing" @update="content.title = $event" placeholder="Title" class="title"></editable-markdown>
-      <editable-markdown :content="text" :editable="editing" @update="content.description = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
+      <editable-markdown class="title field" :class="displayContent.title && displayContent.title.state" v-if="displayContent.title || editing" :content="displayContent.title.value" :editable="editing" @update="content.title = $event" placeholder="Title"></editable-markdown>
+      <editable-markdown class="field" :class="displayContent.description && displayContent.description.state" :content="text" :editable="editing" @update="content.description = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
       <!-- <editable-markdown v-if="content.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
       <draggable v-model="listCards" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.length || editing">
         <cardlet v-for="item in listCards" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
@@ -14,7 +14,7 @@
           <search v-if="showListSearch" @select="addListItem" :allCards="allCards" :setCard="setCard" :auth="auth"></search>
         </section>
       </draggable>
-      <img v-if="full && content.attachments && content.attachments[0]" v-bind:src="content.attachments[0].url">
+      <img :class="displayContent.attachments && displayContent.attachments.state" v-if="full && displayContent.attachments && displayContent.attachments.value && displayContent.attachments.value[0]" v-bind:src="displayContent.attachments.value[0].url">
     </div>
     <p class="modified" v-if="content.modified"><icon name="check" v-if="new Date() - content.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(content.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
     <p class="spinner" v-if="!content"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
@@ -48,7 +48,8 @@ export default {
     'auth',
     'position',
     'highlight',
-    'editing'
+    'editing',
+    'showPending',
   ],
   components: {
     Icon,
@@ -64,12 +65,31 @@ export default {
     return {
       content: {},
       tempListCards: {},
-      showListSearch: false
+      showListSearch: false,
     }
   },
   computed: {
     updating: function() {
       return this.content.updating || false
+    },
+    displayContent: function() {
+      // @TODO: figure out how listCards fit into this
+      const displayContent = {}
+      Object.keys(this.content).filter(key => key !== 'pendingContent').forEach(key => {
+        displayContent[key] = {
+          value: this.content[key],
+          state: 'verified'
+        }
+      })
+      if (this.content.pendingContent && Object.keys(this.content.pendingContent)) {
+        Object.keys(this.content.pendingContent).forEach(key => {
+          displayContent[key] = {
+            value: this.showPending ? this.content.pendingContent[key] : this.content[key],
+            state: this.showPending ? 'pending' : 'reverted'
+          }
+        })
+      }
+      return displayContent
     },
     listCards: function() {
       const self = this
@@ -84,7 +104,7 @@ export default {
       })
     },
     text: function() {
-      const text = this.content.description || ''
+      const text = this.displayContent.description ? this.displayContent.description.value : ''
       // if (!text || !text.length) console.log(text)
       const snippetLength = 100
       const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
@@ -95,7 +115,7 @@ export default {
     //   }
     // },
     fullText: function() {
-      return (this.content.title ? this.content.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
+      return (this.displayContent.title ? this.displayContent.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
         return '\n- ' + listCard.description
       })
     },

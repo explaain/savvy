@@ -2,16 +2,10 @@
 
 import log from 'loglevel'
 import Controller from '../controller'
-import axios from 'axios'
 
 log.setLevel('debug')
 
-console.log('Constructing Controller from event-page')
-const myController = new Controller({})
-
-var allowContinue = true // Controller.initialise()
-
-const stateChangeListener = (state, user) => {
+const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
   sendMessageToAllTabs({
     action: 'stateChanged',
@@ -21,6 +15,14 @@ const stateChangeListener = (state, user) => {
     }
   })
 }
+
+console.log('Constructing Controller from event-page')
+const config = {
+  stateChangeCallback: stateChangeCallback
+}
+const myController = new Controller(config)
+
+var allowContinue = true // Controller.initialise()
 
 const sendMessageToCurrentTab = messageData => {
   chrome.tabs.query({active: true, currentWindow: true}, tabs => {
@@ -37,9 +39,6 @@ const sendMessageToAllTabs = messageData => {
     })
   })
 }
-
-console.log('adding the state change listener')
-myController.addStateChangeListener(stateChangeListener)
 
 /**
  * Start the auth flow and authorizes to Firebase.
@@ -129,7 +128,7 @@ if (allowContinue) {
   //   return myController.onMessage(request, sendResponse, extraFunctions)
   // })
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    log.debug((sender.tab ? '📬 🖌  Event from a content script: ' + sender.tab.url : '📬 ⛓  Event from the extension'), request)
+    log.debug((sender.tab ? '📬 🖌  Event from a content script, tab ID ' + sender.tab.id + ': ' + sender.tab.url : '📬 ⛓  Event from the extension'), request)
     var promiseFunction
     if (request.action)
       switch (request.action) {

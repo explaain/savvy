@@ -212,7 +212,7 @@ const createDrawer = () => {
 const openDrawer = e => {
   if (drawer.getAttribute('data-status') === 'closed' && (!e || !e.dealtWith)) {
     console.log('Opening Drawer')
-    getPageResults()
+    // getPageResults()
     drawer.style.right = '0px'
     drawer.style.marginRight = '0px'
     drawer.style.boxShadow = 'rgba(0, 0, 0, 0.4) -1px 3px 50px 0px'
@@ -261,5 +261,5 @@ const toggleDrawer = e => {
 /* --- ONLOAD Functions -- */
 
 createDrawer()
-getPageResults()
-window.onload = e => getPageResults()
+// getPageResults()
+// window.onload = e => getPageResults()

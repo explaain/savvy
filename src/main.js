@@ -20,8 +20,8 @@ class Main {
   constructor(props) {
     const mainSelf = this
     // @TODO: This should choose Controller not just for testing but also for webapp
-    const ControllerClass = props.env === 'testing' ? ControllerInterface : ChromeControllerInterface
-    mainSelf.Controller = new ControllerClass({})
+    const ControllerInterfaceClass = props.env === 'testing' ? ControllerInterface : ChromeControllerInterface
+    mainSelf.Controller = new ControllerInterfaceClass({})
 
     /* eslint-disable no-new */
     const v = new Vue({
@@ -55,6 +55,7 @@ class Main {
           organisation: user.data ? user.data.organisationID : null
         })
       }
+      console.log('Current authState and user: ', v.authState, v.user)
     }
 
     this.Controller.addStateChangeListener(onAuthStateChanged)

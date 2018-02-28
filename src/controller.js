@@ -17,6 +17,7 @@ const firebaseConfig = {
 }
 const authorConfig = {
   url: '//' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/memories',
+  // url: 'http://localhost:5000/api/memories',
   importUrl: '//' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/import'
 }
 

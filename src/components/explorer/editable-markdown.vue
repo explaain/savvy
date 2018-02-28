@@ -39,6 +39,10 @@
             self.myContent = self.content
           }, 1)
         }
+      },
+      content: function(val) {
+        if (!this.editable)
+          this.myContent = this.content
       }
     },
     methods: {

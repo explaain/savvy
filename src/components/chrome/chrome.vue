@@ -2,12 +2,13 @@
 
 <template lang="html">
   <div class="app" :class="{'sidebar-true': sidebar}">
-    <section class="chooseOrg" v-if="authState !== 'loggedIn'">
+    <!-- <button class="login" :disabled="authState === 'pending'" @click="signOut">Sign Out</button> -->
+    <section class="chooseOrg" v-if="authState === 'loggedOut' || justClicked">
       <h3>Hello! 👋 Please sign in below:</h3>
       <button class="login" :disabled="authState === 'pending'" @click="signIn">Sign In</button>
-      <div class="spinner-div" v-if="authState === 'pending'"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
+    <div class="spinner-div" v-if="authState === 'pending'"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
@@ -49,16 +50,12 @@
         organisationID: '',
         orgLoading: false,
         errorMessage: '',
-        authorParams: {
-          url: 'https://savvy-api--live.herokuapp.com/api/memories',
-          // url: 'http://localhost:5000/api/memories',
-          importUrl: 'https://forget-me-not--staging.herokuapp.com/api/import'
-        },
         plugin: true,
         logo: '/static/images/logo.png',
         pageCards: [], // ???
         cards: [], // ???
         // sidebar: true,
+        justClicked: false,
       }
     },
     computed: {
@@ -126,6 +123,10 @@
         const self = this
         console.log(self.Controller)
         self.Controller.signIn()
+        self.justClicked = true
+      },
+      signOut: function() {
+        this.Controller.signOut()
       },
       fromPage: function() {
         console.log('fromPage')
@@ -201,17 +202,12 @@
       color: red;
     }
   }
-  .sidebar-true section.chooseOrg {
-    width: 50%;
-    position: absolute;
-    right: 0
-  }
   .spinner-div {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    padding: 100px 0;
+    padding: 180px 0;
     font-size: 80px;
     background: rgba(255,255,255,0.5);
 
@@ -221,6 +217,16 @@
       /* The following two lines make this work in Safari */
       max-width: 100%;
       max-height: 100%;
+    }
+  }
+  .sidebar-true {
+    section.chooseOrg {
+      width: 50%;
+      position: absolute;
+      right: 0
+    }
+    .spinner-div {
+      left: 50%;
     }
   }
 

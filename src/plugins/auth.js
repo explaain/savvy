@@ -193,9 +193,10 @@ class Auth {
     self.getAccessToken = async forceRefresh => {
       console.log('🔑 Auth 🔑 - getAccessToken', forceRefresh)
       try {
-        if (forceRefresh || !self.user.lastRefreshed || new Date() - self.user.lastRefreshed > 1000 * 60 * 30) {
+        if (forceRefresh || !self.user.lastRefreshed || new Date().getTime() - new Date(self.user.lastRefreshed).getTime() > 1000 * 60 * 30) {
           const token = await self.firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
           console.log('New User Token!', token.substring(0, 100) + '...')
+          self.user.lastRefreshed = new Date()
           return token
         } else {
           const token = self.user.auth.stsTokenManager.accessToken
@@ -215,7 +216,7 @@ class Auth {
     self.getUserData = async userAuth => {
       console.log('🔑 Auth 🔑 - getUserData', userAuth)
       const idToken = await self.refreshUserToken()
-      console.log('idToken', idToken)
+      console.log('idToken (in getUserData())', idToken.substring(0, 100) + '...')
       if (self.Testing) {
         return testUserData
       } else if (idToken) {
