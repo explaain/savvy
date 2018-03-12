@@ -71,7 +71,7 @@ class Author {
   }
   verifyCard(data) {
     console.log('verifyCard', data)
-    return this.rest.post('http://localhost:5000/api/verify', data)
+    return this.rest.post('https://savvy-api--live.herokuapp.com/api/verify', data)
   }
 }
 

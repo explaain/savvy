@@ -16,8 +16,8 @@ const firebaseConfig = {
   authDomain: 'savvy-96d8b.firebaseapp.com',
 }
 const authorConfig = {
-  // url: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/memories',
-  url: 'http://localhost:5000/api/memories',
+  url: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/memories',
+  // url: 'http://localhost:5000/api/memories',
   importUrl: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/import'
 }
 
