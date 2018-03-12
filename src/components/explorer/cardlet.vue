@@ -1,9 +1,11 @@
 <template lang="html">
-  <div class="cardlet" @click.stop="cardletClick">
+  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === 0 }">
     <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton>
     <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton>
-    <!-- <editable :content="card.content.description" :editable="editing && editable" @update="card.content.description = $event"></editable> -->
-    <editable-markdown :content="text" :editable="editing && editable" @update="card.content.description = $event" :class="{ greyed: greyed }"></editable-markdown>
+    <!-- <editable :content="card.description" :editable="editing && editable" @update="card.description = $event"></editable> -->
+    <editable-markdown v-if="card.label" class="label" :content="card.label.replace(':', '')" :editable="editing && editable" @update="card.label = $event" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.value" class="value" :content="card.value" :editable="editing && editable" @update="card.value = $event" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.description" :content="text" :editable="editing && editable" @update="card.description = $event" :class="{ greyed: greyed }"></editable-markdown>
   </div>
 </template>
 
@@ -20,24 +22,19 @@ export default {
     'editing',
     'editable'
   ],
-  data: function() {
-    return {
-
-    }
-  },
   computed: {
     cardletEditable: function() {
       return this.editing && this.editable
     },
     text: {
       get: function() {
-        const text = this.card.content.description || ''
+        const text = this.card.description || ''
         const snippetLength = 60
         const snippetStart = Math.max(text.indexOf('**') - (snippetLength / 2), 0)
         return this.full ? text : text.trunc(snippetStart, snippetLength, true)
       },
       set: function(val) {
-        this.card.content.description = val
+        this.card.description = val
       }
     },
     greyed: function() {
@@ -74,37 +71,58 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 <style lang="scss">
   @import '../../styles/main.scss';
 
-  .cardlet {
+  div.card .cardlet {
     margin: 0 8px -1px;
     min-height: unset;
-    padding: 0 10px;
+    padding: 0;
     border-radius: 0;
-    width: calc(100% - 50px);
+    width: calc(100% - 20px);
     border: 1px solid #e4e4e4;
     box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
     -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+
+    &.show-more {
+      text-align: center;
+      color: #aaa;
+    }
+    &:first-of-type {
+      border-top-left-radius: $radiusLarge;
+      border-top-right-radius: $radiusLarge;
+    }
+    &:last-of-type {
+      border-bottom-left-radius: $radiusLarge;
+      border-bottom-right-radius: $radiusLarge;
+    }
+    > .label, > .value {
+      display: inline-block;
+      margin: -2px 0 -1px;
+      padding: 10px;
+      display: table-cell;
+      vertical-align: middle;
+      line-break: loose;
+      text-transform: none;
+      font-size: 16px;
+    }
+    > .label {
+      background: #f8f8f8;
+      box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+      -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+      border-right: 1px solid #eee;
+    }
 
     p {
       margin: 0;
       padding: 0;
     }
-  }
-  .cardlet:first-of-type {
-    border-top-left-radius: $radiusLarge;
-    border-top-right-radius: $radiusLarge;
-  }
-  .cardlet:last-of-type {
-    border-bottom-left-radius: $radiusLarge;
-    border-bottom-right-radius: $radiusLarge;
+    button {
+      padding: 3px 6px;
+      margin: 8px -29px;
+    }
   }
   .card:not(.editing) .cardlet:hover, .card .cardlet.non-editable:hover {
     background: #eee;
   }
 
-  .cardlet button {
-    padding: 3px 6px;
-    margin: 8px -29px;
-  }
   .drag {
     float: left;
   }

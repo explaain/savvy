@@ -113,6 +113,12 @@ button {
     background: #eee;
     color: #aaa;
   }
+  &.small {
+    padding: 6px 12px;
+    margin: 2px;
+    font-size: 12px;
+    box-shadow: none;
+  }
 }
 input {
   &::placeholder {

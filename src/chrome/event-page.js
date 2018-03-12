@@ -150,6 +150,12 @@ if (allowContinue) {
         case 'deleteCard':
           promiseFunction = myController.deleteCard(request.data)
           break
+        case 'verifyCard':
+          promiseFunction = myController.verifyCard(request.data)
+          break
+        case 'force':
+          promiseFunction = myController.force(request.data)
+          break
       }
     else if (request.event)
       switch (request.event) {

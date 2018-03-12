@@ -43,16 +43,27 @@ class ChromeControllerInterface {
       chrome.runtime.sendMessage({ action: 'refreshUserToken' }, resolve)
     })
   }
-  saveCard() {
+  saveCard(data) {
     return new Promise((resolve, reject) => {
       console.log('saveCard (chrome-controller-interface.js)')
-      chrome.runtime.sendMessage({ action: 'saveCard' }, resolve)
+      chrome.runtime.sendMessage({ action: 'saveCard', data: data }, resolve)
     })
   }
-  deleteCard() {
+  deleteCard(data) {
     return new Promise((resolve, reject) => {
       console.log('deleteCard (chrome-controller-interface.js)')
-      chrome.runtime.sendMessage({ action: 'deleteCard' }, resolve)
+      chrome.runtime.sendMessage({ action: 'deleteCard', data: data }, resolve)
+    })
+  }
+  verifyCard(data) {
+    return new Promise((resolve, reject) => {
+      console.log('verifyCard (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'verifyCard', data: data }, resolve)
+    })
+  }
+  force(toForce) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action: 'force', data: toForce }, resolve)
     })
   }
 }

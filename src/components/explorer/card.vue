@@ -1,80 +1,80 @@
 <template lang="html">
-  <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, updating: updating, full: full }">
+  <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, loading: loading || card.loading, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
-    <div class="buttons-top-right">
-      <ibutton v-if="!editing" class="left" icon="plus" text="Add" :click="createCard"></ibutton>
-      <ibutton v-if="!editing" class="right" icon="pencil" text="Edit" :click="editCard"></ibutton>
-      <button v-if="!explaain" class="copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
+    <div class="buttons-top-right edit-buttons">
+      <ibutton class="small left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
+      <ibutton v-if="!editing" class="small center create" icon="plus" text="Add" :click="createCard"></ibutton>
+      <ibutton v-if="!editing" class="small right edit" icon="pencil" text="Edit" :click="editCard"></ibutton>
+      <button v-if="!explaain" class="small copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
-    <img :src="cardIcon" alt="" class="file-icons">
+    <section style="overflow: hidden" @click="linkClick">
+      <img :src="cardIcon" alt="" class="file-icons">
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
-    <h3 v-if="editing" style="margin: 15px 10px 10px;">Enter your card details:</h3>
-    <component v-bind:is="format" :showPending="showPending" :data="data" :full="full" :allCards="allCards" :setCard="setCard" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
-    <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{new Date(card.modified*1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')}}</span></p>
-    <!-- <div v-if="full && card.pending" class="pending">
-      <i>This card has changes pending review</i> <ibutton icon="eye" text="Show Pending Changes" :click="togglePending" class="small"></ibutton>
-      <div v-if="showPending">
-        <b>Pending:</b><br>
-        {{card.pending[0].description}}
-      </div>
-    </div> -->
+      <h3 v-if="editing" style="margin: 15px 10px 10px;">Enter your card details:</h3>
+      <component v-bind:is="format" :showPending="showPending" :content="content" :full="full" @update="update" :allCards="allCards" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
+      <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
+      <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
+      <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+    </section>
     <a v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
       <!-- <img :src="fileIcons[i]" alt=""> -->
       <h4><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
-      <h5>{{getServiceName(card, file)}}</h5>
+      <h5><img v-if="getServiceName(card, file).icon" :src="getServiceName(card, file).icon" alt="">{{getServiceName(card, file).name}}</h5>
     </a>
     <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
-    <p class="spinner" v-if="!card"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+    <p class="message-block warning" v-if="warningMessage"><icon name="exclamation-circle"></icon>{{warningMessage}}
+      <ibutton v-if="card.pendingDelete" class="small" icon="close" text="Cancel" :click="cancelPendingDelete"></ibutton>
+    </p>
+    <p class="message-block error" v-if="errorMessage"><icon name="exclamation-triangle"></icon>{{errorMessage}}</p>
     <footer v-if="full">
       <div class="sources" v-if="card.sources && card.sources.length">
         Source{{card.sources.length > 1 ? 's' : ''}}: <span v-for="source, i in card.sources"><a :href="source.url" target="_blank">{{source.name}}</a>{{i < card.sources.length - 1 ? ', ' : '' }}</span>
       </div>
-      <!-- <div class="buttons" v-if="!editing">
-        <ibutton class="left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
-        <ibutton class="right edit" icon="pencil" text="Edit" :click="editCard"></ibutton>
-      </div> -->
-      <div class="buttons" v-if="editing">
-        <ibutton class="left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
-        <ibutton class="right save" icon="check" :text="['admin', 'manager'].indexOf(userRole) > -1 ? 'Save Card' : 'Submit for Approval'" :click="saveEdit"></ibutton>
+      <div class="buttons save-buttons" v-if="editing">
+        <ibutton class="small left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
+        <ibutton class="small right save" icon="check" :text="userIsSavvy ? 'Save Card' : 'Submit for Approval'" :click="saveEdit"></ibutton>
       </div>
       <div class="buttons reaction" v-if="!reacted && !explaain && !editing">
         <!-- <p>How well did this match what you were looking for?</p> -->
-        <button class="" @click="reaction('great')">😍&nbsp;&nbsp; That's what I needed</button>
-        <!-- <button class="" @click="reaction('ok')">😐</button>
-        <button class="" @click="reaction('bad')">😢</button> -->
+        <button class="" @click="react('great')">😍&nbsp;&nbsp; That's what I needed</button>
+        <!-- <button class="" @click="react('ok')">😐</button>
+        <button class="" @click="react('bad')">😢</button> -->
       </div>
       <div class="buttons reaction" v-if="reacted && !explaain && !editing">
         <p>Thanks for your feedback! Savvy uses this to learn and get smarter over time 🤖</p>
       </div>
-      <div class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
       <div class="pending-toggle" v-if="!editing && card.pendingContent && Object.keys(card.pendingContent).length">
         <toggle-button v-model="showPending" :sync="true" :labels="true"/>
         <span>Show Pending Changes</span>
       </div>
     </footer>
-    <ibutton class="approve" v-if="pendingApproval" icon="check" text="Approve"></ibutton>
+    <div class="buttons small verify" v-if="userIsSavvy && card.pendingContent && Object.keys(card.pendingContent).length">
+      <ibutton class="approve left" icon="check" :text="`Approve ${numberOfPendingChanges} Change` + (numberOfPendingChanges > 1 ? 's' : '')" :click="verify" :clickProps="true"></ibutton>
+      <ibutton class="reject right" icon="close" text="Reject" :click="verify" :clickProps="false"></ibutton>
+    </div>
+    <div v-if="card.files && card.files.length && card.files[0]" class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
-import log from 'loglevel'
-// import _ from 'lodash'
 import Clipboards from 'vue-clipboards'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
 import VueMarkdown from 'vue-markdown'
 import Draggable from 'vuedraggable'
 import ToggleButton from 'vue-js-toggle-button'
+import bAlert from 'bootstrap-vue/es/components/alert/alert'
 
 import IconButton from './ibutton.vue'
 import Cardlet from './cardlet.vue'
 import Editable from './editable.vue'
-import EditableMarkdown from './editable-markdown.vue'
 import Search from './search.vue'
+import Topics from './topics.vue'
 
 import Basic from './formats/basic'
 import Issue from './formats/issue'
+import Row from './formats/row'
 
 Vue.use(Clipboards)
 
@@ -85,12 +85,14 @@ export default {
     'data',
     'full',
     'allCards',
-    'setCard',
     'auth',
     'pendingApproval',
     'position',
     'highlight',
     'userRole',
+    'userTopics',
+    'creating',
+    'highlightResult',
   ],
   components: {
     Icon,
@@ -100,9 +102,11 @@ export default {
     Editable,
     Draggable,
     Search,
-    EditableMarkdown,
+    bAlert,
+    Topics,
     Basic,
     Issue,
+    Row,
   },
   data: function() {
     return {
@@ -113,40 +117,78 @@ export default {
       showListSearch: false,
       reacted: false,
       showPending: true,
+      highlightedContent: {},
+      loading: false,
+      error: null,
     }
   },
   computed: {
-    updating: function() {
-      return this.card.updating || false
-    },
-    listCards: function() {
-      const self = this
-      const listCards = (self.card._highlightResult && self.card._highlightResult.listCards) || self.card.listCards || []
-      return listCards.map((content, i) => {
-        return {
-          objectID: self.card.listItems[i],
-          description: content.value || content
+    content: function() {
+      // @TODO: figure out how listCards fit into this
+      // const subLayers = ['pendingContent', 'listCards']
+      const subLayers = ['pendingContent']
+      const preferHighlight = (key, initialKey, loop) => {
+        if (initialKey) {
+          if (key)
+            return this.highlightedContent && this.highlightedContent[initialKey] && this.highlightedContent[initialKey][key] ? this.highlightedContent[initialKey][key].value : this.card[initialKey][key]
+          else
+            return this.highlightedContent && this.highlightedContent[initialKey] && this.highlightedContent[initialKey].length
+            ? this.highlightedContent[initialKey].map(item => item.value)
+            : this.card[initialKey]
+        } else
+          return this.highlightedContent && this.highlightedContent[key] ? this.highlightedContent[key].value : this.card[key]
+      }
+      const content = {}
+      Object.keys(this.card).filter(key => subLayers.indexOf(key) === -1).forEach(key => {
+        content[key] = {
+          value: key === 'listCards' ? preferHighlight(false, key).map((description, i) => {
+            return {
+              objectID: this.card.listItems.value ? this.card.listItems.value[i] : this.card.listItems[i],
+              description: description
+            }
+          }) : preferHighlight(key),
+          state: 'verified'
         }
       })
+      if (this.card.pendingContent && Object.keys(this.card.pendingContent)) {
+        Object.keys(this.card.pendingContent).forEach(key => {
+          content[key] = {
+            value: this.showPending ? preferHighlight(key, 'pendingContent') : preferHighlight(key),
+            state: this.showPending ? 'pending' : 'reverted'
+          }
+        })
+      }
+
+      // subLayers.forEach(initialKey => {
+      //   if (this.card[initialKey] && Object.keys(this.card[initialKey])) {
+      //     Object.keys(this.card[initialKey]).forEach(key => {
+      //       content[key] = {
+      //         value: this.showPending ? preferHighlight(key, initialKey) : preferHighlight(key),
+      //         state: this.showPending ? 'pending' : 'reverted'
+      //       }
+      //     })
+      //   }
+      // })
+      return content
     },
     format: function() {
-      return this.data.service === 'sifter' ? 'issue' : 'basic'
+      const service = this.data.cells ? 'gsheets' : this.data.service
+      const fileCardServices = [
+        'gsheets'
+      ]
+      if (fileCardServices.indexOf(service) > -1 && this.data.type === 'file')
+        return 'basic'
+      else
+        switch (service) {
+          case 'sifter':
+          case 'zoho':
+            return 'issue'
+          case 'gsheets':
+            return 'row'
+          default:
+            return 'basic'
+        }
     },
-    // listCards: {
-    //   get: function() {
-    //     const self = this
-    //     return self.card.listItems ? self.card.listItems.map(function(objectID) {
-    //       return self.tempListCards[objectID] || JSON.parse(JSON.stringify(self.allCards[objectID] || null)) || { content: { description: 'Card Not Found' } }
-    //     }) : []
-    //   },
-    //   set: function(newValue) { // Doesn't get called for deep events which could cause issues
-    //     const self = this
-    //     self.card.listItems = newValue.map(function(listCard) {
-    //       self.tempListCards[listCard.objectID] = listCard // Is having this here good practice?
-    //       return listCard.objectID
-    //     })
-    //   }
-    // },
     text: {
       get: function() {
         const text = this.card.description || ''
@@ -160,17 +202,10 @@ export default {
       }
     },
     cardIcon: function() {
-      if (this.cardType === 'issue')
+      if (this.format === 'issue')
         return '/static/images/icons/bug.png'
       else
         return this.fileIcons
-    },
-    cardType: function() {
-      if (this.card.service === 'sifter')
-        return 'issue'
-      else
-        return 'other'
-      // else if (this.card.files && this.card.files.length && this.card.files[0])
     },
     fileIcons: function() {
       return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
@@ -198,14 +233,44 @@ export default {
       // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
     },
     fullText: function() {
-      return (this.card.title ? this.card.title + '\n\n' : '') + this.text + this.listCards.map(function(listCard) {
-        return '\n- ' + listCard.description
-      })
+      return (this.card.title ? this.card.title + '\n\n' : '') + this.text
+      //  + this.listCards.map(function(listCard) {
+      //   return '\n- ' + listCard.description
+      // })
     },
     fontSize: function() {
       // const self = this
       // return 16 + 2 * Math.floor(Math.min(5, 100 / (self.text.length))) + 'px'
       return 16 + 'px'
+    },
+    errorMessage: function() {
+      const self = this
+      return (!self.card || !Object.keys(self.card).length) && !self.loading ? 'No card found!' : self.error ? self.error.message : null
+    },
+    warningMessage: function() {
+      const self = this
+      return self.card.pendingDelete ? 'This card is pending deletion' : null
+    },
+    numberOfPendingChanges: function() {
+      return Object.keys(this.card.pendingContent).filter(key => this.card.pendingContent[key] && this.card.pendingContent[key].length && this.card.pendingContent[key] !== this.card[key]).length
+    },
+    lastUpdatedText: function() {
+      const daysOld = parseInt(Math.floor((new Date() - new Date(this.card.modified * 1000)) / (1000 * 60 * 60 * 24)))
+      if (daysOld === 0)
+        return 'Today'
+      else if (daysOld === 1)
+        return '1 Day Ago'
+      else if (daysOld < 7)
+        return daysOld + ' Days Ago'
+      else if (daysOld < 10)
+        return '1 Week Ago'
+      else if (daysOld < 29)
+        return parseInt(Math.round(daysOld / 7)) + ' Weeks Ago'
+      else
+        return new Date(this.card.modified * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).replace(' 2018', '')
+    },
+    userIsSavvy: function () {
+      return !!(this.userRole === 'admin' || (this.card && (!this.card.topics || !this.card.topics.length || (this.userTopics && typeof this.userTopics === 'object' && this.userTopics.constructor === Array && this.userTopics.filter(topic => this.card.topics.indexOf(topic) > -1).length))))
     }
   },
   watch: {
@@ -217,41 +282,57 @@ export default {
     },
     editing: function(val) {
       const self = this
-      if (val)
-        self.listCards.forEach(function(listCard) {
+      if (val && self.content.listCards && self.content.listCards.value)
+        self.content.listCards.value.forEach(function(listCard) {
           self.tempListCards[listCard.objectID] = JSON.parse(JSON.stringify(listCard))
         })
     }
   },
   created: function() {
-    const self = this
-    log.debug(this.data.objectID)
     this.syncData()
+    this.highlightedContent = this.card._highlightResult || this.highlightResult
     Vue.use(ToggleButton)
-    console.log('aaaaa', self.card)
-    console.log('bbbbb', self.card.files)
-    if (this.data.newlyCreated)
+    if (this.card.newlyCreated)
       this.editing = true
   },
+  updated: function () {
+    this.highlightedContent = this.card._highlightResult || this.highlightResult
+  },
   methods: {
+    update: function(data) {
+      this.card[data.field] = data.value
+    },
     getServiceName(card, file) {
       const services = {
-        gdocs: '📂 Google Drive',
-        gsheets: '📂 Google Drive',
-        sifter: '🐞 Sifter',
-        confluence: '📂 Confluence',
+        gdocs: {
+          name: '📂 Google Drive',
+        },
+        gsheets: {
+          name: '📂 Google Drive',
+        },
+        sifter: {
+          name: 'Sifter',
+          icon: '/static/images/icons/sifter.png'
+        },
+        confluence: {
+          name: '📂 Confluence',
+        },
+        zoho: {
+          name: 'Zoho',
+          icon: '/static/images/icons/zoho.png'
+        },
       }
       if (file && file.folder)
-        return '📂 ' + file.folder + ' Drive'
+        return { name: '📂 ' + file.folder + ' Drive' }
       else if (file && file.service)
         return services[file.service]
       else if (card && card.service)
         return services[card.service]
       else
-        return '📂 ' + (this.auth && this.auth.user && this.auth.user.data && this.auth.user.data.organisation && this.auth.user.data.organisation.id ? this.auth.user.data.organisation.id : 'Team') + ' Drive'
+        return { name: '📂 ' + (this && this.user && this.user.data && this.user.data.organisation && this.user.data.organisation.id ? this.user.data.organisation.id : 'Team') + ' Drive' }
     },
     getFileTitle: function(file) {
-      return this.card.service === 'sifter' ? 'Issue #' + this.card.integrationFields.number : file && file.title ? file.title : ''
+      return this.format === 'issue' ? 'Issue #' + (this.card.integrationFields.key || this.card.integrationFields.number) : file && file.title ? file.title : ''
     },
     syncData: function() {
       this.card = JSON.parse(JSON.stringify(this.data))
@@ -310,43 +391,72 @@ export default {
       this.editing = true
     },
     deleteCard: function() {
-      this.$emit('deleteCard', this.card.objectID)
+      const self = this
+      self.loading = true
+      self.$emit('deleteCard', self.card.objectID, () => {
+        self.loading = false
+      })
     },
     cancelEdit: function() {
-      this.syncData()
-      this.editing = false
+      const self = this
+      self.syncData()
+      self.editing = false
       // self.tempListCards = {} ????
       setTimeout(function() {
         self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
       }, 10)
     },
-    saveEdit: function() {
+    saveEdit: function(card) {
+      // Can specify the 'card' argument to override what is saved (e.g. in cancelPendingDelete)
       const self = this
       self.editing = false
+      self.loading = true
       setTimeout(function() {
-        console.log('self.card')
-        console.log(self.card)
-        console.log('self.card.title')
-        console.log(self.card.title)
-        self.card.modified = new Date()
         if (self.card.sources && self.card.sources.filter(source => source.name === 'Journalist').length === 0)
           self.card.sources.push({
             type: 'author',
             name: 'Journalist'
           })
-        console.log(self.card.title)
         self.card.listCards = self.listCards
-        self.listCards.forEach(function(listCard) {
-          self.tempListCards[listCard.objectID] = listCard
-        })
-        self.$emit('updateCard', self.card, function(data) {
+        if (self.content.listCards && self.content.listCards.value)
+          self.content.listCards.value.forEach(function(listCard) {
+            self.tempListCards[listCard.objectID] = listCard
+          })
+        self.$emit('updateCard', card || self.card, function(result) {
+          console.log('callback successful')
+          self.loading = false
+          if (result.error) {
+            self.error = result.error
+          }
           self.tempListCards = {}
           // self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
         }, function(e) {
           console.log(e)
           self.tempListCards = {}
         })
+        self.card = {}
       }, 5)
+    },
+    verify: function(approve) {
+      console.log('verify', approve)
+      const self = this
+      const data = {
+        objectID: self.card.objectID,
+        approve: approve,
+        callback: result => {},
+      }
+      self.editing = false
+      self.loading = true
+      self.$emit('verifyCard', data, function(result) {
+        console.log('callback successful')
+        self.loading = false
+        if (result.error) {
+          self.error = result.error
+        }
+      }, function(e) {
+        console.log(e)
+        self.tempListCards = {}
+      })
     },
     contentUpdate: function(content) {
       const self = this
@@ -354,6 +464,14 @@ export default {
         self.data[key] = content[key]
         self.card[key] = content[key]
       })
+    },
+    cancelPendingDelete: function() {
+      const self = this
+      const card = {
+        objectID: self.card.objectID,
+        pendingDelete: false,
+      }
+      this.saveEdit(card)
     },
     addListItem: function(card) {
       console.log(card)
@@ -379,9 +497,9 @@ export default {
       // The v-clipboard directive has already copied the text from the card - this function just shows the alert
       this.$emit('copy')
     },
-    reaction: function(reaction) {
+    react: function(reaction) {
       const self = this
-      self.$emit('reaction', { reaction: reaction, card: self.card })
+      self.$emit('react', { reaction: reaction, card: self.card })
       self.reacted = true
     }
   }
@@ -415,7 +533,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     background: white;
     cursor: pointer;
     overflow: hidden;
-    transition: margin .3s, transform .3s;
+    // transition: margin .3s, transform .3s;
 
     &.highlight {
       box-shadow: 0px 0px 30px rgba(100, 84, 244, 0.5);
@@ -428,33 +546,104 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         // margin-bottom: 10px;
       }
     }
-
-    .field {
-      &.pending ::after, &.reverted ::after {
-        font-size: 12px;
-        right: 0px;
+    &.loading {
+      div, img, p {
+        opacity: 0.5;
+      }
+      p.spinner {
         display: block;
-        font-style: italic;
-        font-weight: normal;
-        text-align: right;
+        opacity: 1;
       }
-      &.pending {
-        border-right: 4px orange solid;
-        ::after {
-          content: "Pending Update";
-          color: orange;
+    }
+    &:not(.editing) {
+      .field {
+        &.pending::after, &.reverted::after {
+          display: block;
+          font-size: 12px;
+          margin-right: 8px;
+          text-align: right;
+          font-weight: normal;
+          font-style: italic;
         }
-      }
-      &.reverted {
-        border-right: 4px blue solid;
-        ::after {
-          content: "Most Recent Verified Content";
-          color: blue;
+        &.pending, &.reverted {
+          border: solid 0px;
+          border-right-width: 4px;
+        }
+        &.pending {
+          border-color: orange;
+          &::after {
+            content: "Pending Update";
+            color: orange;
+          }
+        }
+        &.reverted {
+          border-color: blue;
+          &::after {
+            content: "Most Recent Verified Content";
+            color: blue;
+          }
         }
       }
     }
-    .updating {
-      opacity: 0.5;
+
+    .spinner {
+      display: none;
+    }
+
+    button {
+      &.left {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        margin-right: -2px;
+      }
+      &.right {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        margin-left: -2px;
+      }
+      &.center {
+        border-radius: 0;
+        margin-left: -2px;
+        margin-right: -2px;
+      }
+      &.cancel {
+        background: #ffb6c9;
+      }
+      &.save {
+        background: #b8ecc0;
+      }
+      &.delete:hover {
+        background: #ffaaaa;
+      }
+      &.selected {
+        background: #ddd;
+      }
+    }
+    .buttons {
+      bottom: 15px;
+      left: 20px;
+      margin: 13px 0 5px;
+      padding: 6px 12px;
+
+      &:focus {
+        outline:none;
+      }
+      &.reaction {
+        position: relative;
+        left: auto;
+        text-align: center;
+
+        button {
+          margin: 15px 5px 0;
+          font-size: 16px;
+          padding: 5px 15px;
+        }
+      }
+    }
+    button.small, .buttons.small button {
+      margin: -2px;
+      font-size: 12px;
+      padding: 0.5em 1em;
     }
     .buttons-top-right {
       position: absolute;
@@ -463,10 +652,6 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       // margin: -5px -5px 10px 20px;
       button {
         display: none;
-        padding: 6px 12px;
-        margin: 2px;
-        font-size: 12px;
-        box-shadow: none;
         opacity: 0.7;
 
         &:hover {
@@ -482,33 +667,43 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         }
       }
     }
-    button {
-      &.left {
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-        margin-right: -2px;
+
+    .content {
+      margin: 5px;
+      margin-left: 50px;
+      padding: 5px;
+      min-height: 60px;
+
+      strong {
+        font-weight: 800;
+        font-style: normal;
+        color: #888;
       }
-      &.delete:hover {
-        background: #ffaaaa;
+      p {
+        line-height: 1.5;
       }
-      &.right {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-        margin-left: -2px;
-      }
-      &.cancel {
-        background: #ffb6c9;
-      }
-      &.save {
-        background: #b8ecc0;
-      }
-      &.selected {
-        background: #ddd;
+      a {
+        text-decoration: inherit;
+        padding: 0 4px;
+        border: 2px solid $explaainLink;
+        background-color: $explaainLink;
+        color: inherit;
+        border-radius: 4px;
+
+        &:hover {
+          color: white;
+          border: 2px solid $savvy;
+          background-color: $savvy;
+
+          strong {
+            color: white;
+          }
+        }
       }
 
-      .small {
-        font-size: 0.8em;
-        padding: 0.5em 1em;
+      img {
+        max-width: calc(100% - 10px);
+        border-radius: 5px;
       }
     }
     .label {
@@ -554,9 +749,6 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       max-width: 35px;
       max-height: 35px;
     }
-    .list {
-      margin: 20px 0 10px;
-    }
     .extractedFrom {
       font-size: 14px;
       color: #999;
@@ -571,11 +763,13 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       border-bottom: 4px solid rgb(255,211,35);
     }
     .modified {
+      float: right;
       font-size: 14px;
       // font-style: italic;
       text-align: right;
       color: #999;
-      margin: 10px;
+      padding: 10px;
+      margin: 10px 5px 5px;
 
       svg {
         color: #00cc00;
@@ -607,9 +801,9 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
 
       img {
-        height: 40px;
+        height: 25px;
         float: left;
-        margin: 0 10px;
+        margin: -8px 5px 0 -4px;
       }
       h4, h5 {
         margin: 10px;
@@ -625,6 +819,67 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         p {
           margin: 0;
           padding: 0;
+        }
+      }
+    }
+    .message-block {
+      position: relative;
+      padding: .75rem 1.25rem;
+      margin-bottom: 1rem;
+      border: 1px solid transparent;
+      border-radius: .25rem;
+      text-align: center;
+      white-space: normal;
+
+      &.error {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      &.warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+
+        button {
+          background: rgb(239, 150, 82);
+          color: white;
+          border: none;
+        }
+      }
+
+      button {
+        display: inline-block;
+        margin-left: 10px;
+        padding: 4px 10px;
+        white-space: normal;
+
+        &:hover {
+          opacity: 0.7;
+        }
+      }
+    }
+    button {
+      &:hover {
+        background: #eee;
+      }
+      &.approve {
+        position: relative;
+        margin-right: -1px;
+        color: green;
+        border-color: green;
+        &:hover {
+          color: white;
+          background: green;
+          opacity: 1;
+
+          svg {
+            color: white;
+          }
+        }
+
+        svg {
+          color: green;
         }
       }
     }
@@ -649,45 +904,11 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
           }
         }
       }
-
-      .buttons {
-        // position: absolute;
-        bottom: 15px;
-        left: 20px;
-        margin: 13px 0 5px;
-        padding: 6px 12px;
-
-        &.reaction {
-          position: relative;
-          left: auto;
-          margin: 30px 0 10px;
-          text-align: center;
-          font-size: 14px;
-
-          button {
-            margin: 5px 5px 10px;
-            font-size: 16px;
-            padding: 10px 20px;
-            // padding: 4px 10px 0;
-          }
-        }
-      }
     }
-    .list section.buttons {
-      margin: 10px 0;
-    }
-    .buttons button {
-      padding: 6px 12px;
-      margin: -2px;
-      font-size: 12px;
-    }
-    .buttons button:focus {
-      outline:none;
-    }
-    .pending {
-      color: grey;
-      font-size: 0.8em;
-    }
+    // .pending {
+    //   color: grey;
+    //   font-size: 0.8em;
+    // }
     .footer-logo {
       position: absolute;
       margin: 5px;
@@ -750,6 +971,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
   }
 
+
   .editing:not(.non-editable) :not(.non-editable) .editable:not(.non-editable), .editing:not(.non-editable) > .editable:not(.non-editable) {
     margin: 20px 20px 20px 0;
     border: 2px dashed lightgrey;
@@ -769,15 +991,4 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       font-size: 14px;
     }
   }
-
-  button.approve {
-    margin: 20px 0 0 0;
-    color: green;
-
-    svg {
-      color: green;
-    }
-  }
-
-
 </style>

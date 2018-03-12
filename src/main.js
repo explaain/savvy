@@ -23,6 +23,15 @@ class Main {
     const ControllerInterfaceClass = props.env === 'testing' ? ControllerInterface : ChromeControllerInterface
     mainSelf.Controller = new ControllerInterfaceClass({})
 
+    Vue.filter('capitalise', (value, initial) => {
+      if (!value) return ''
+      const splitChar = {
+        kebab: '-',
+        default: ' ',
+      }[initial || 'default'] || ' '
+      return value.toString().split(splitChar).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    })
+
     /* eslint-disable no-new */
     const v = new Vue({
       el: '#app',
@@ -41,7 +50,15 @@ class Main {
       data: {
         authState: 'pending',
         user: {}
-      }
+      },
+      // created: function () {
+      //   window.addEventListener('keyup', this.keyPressed)
+      // },
+      // methods: {
+      //   keyPressed: function (event) {
+      //     console.log('keyPressed', event)
+      //   }
+      // }
     })
 
     const onAuthStateChanged = (state, user) => {
@@ -51,7 +68,7 @@ class Main {
       if (user && user.auth) {
         LogRocket.identify(user.uid, {
           name: user.auth.displayName,
-          email: user.auth.email,
+          email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
           organisation: user.data ? user.data.organisationID : null
         })
       }

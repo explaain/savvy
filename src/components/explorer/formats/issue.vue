@@ -1,9 +1,9 @@
 <template lang="html">
   <div class="content" @click="linkClick">
-    <editable-markdown v-if="content.title || editing" :content="content.title" :editable="editing" @update="content.title = $event" placeholder="Title" class="title"></editable-markdown>
-    <editable-markdown :content="content.description" :editable="editing" @update="content.description = $event" :style="{'font-size': fontSize }" placeholder="Description"></editable-markdown>
+    <field label="title" :content="content.title" :editing="editing" @update="update"></field>
+    <field label="description" :content="content.description" :editing="editing" @update="update" :truncate="full"></field>
     <!-- <editable-markdown v-if="content.service === 'sifter'" :content="text" :editable="editing" @update="text = $event" :style="{'font-size': fontSize }" placeholder="Category"></editable-markdown> -->
-    <ul v-if="content.integrationFields.status" class="status" :class="content.integrationFields.status && content.integrationFields.status.toLowerCase()">
+    <ul v-if="content.integrationFields && content.integrationFields.value.status" class="status" :class="content.integrationFields.value.status && content.integrationFields.value.status.toLowerCase()">
       <li class="open">Open</li>
       <li class="resolved">Resolved</li>
       <li class="closed">Closed</li>
@@ -14,44 +14,21 @@
 
 
 <script>
-import Vue from 'vue'
-import log from 'loglevel'
-import Clipboards from 'vue-clipboards'
-import 'vue-awesome/icons'
-import Icon from 'vue-awesome/components/Icon.vue'
-import VueMarkdown from 'vue-markdown'
-import Draggable from 'vuedraggable'
-import IconButton from './../ibutton.vue'
-import Cardlet from './../cardlet.vue'
-import Editable from './../editable.vue'
-import EditableMarkdown from './../editable-markdown.vue'
-import Search from './../search.vue'
-
-Vue.use(Clipboards)
+import Field from './../field.vue'
 
 export default {
   props: [
-    'data',
+    'content',
     'full',
     'allCards',
-    'setCard',
-    'auth',
     'position',
-    'editing'
+    'editing',
   ],
   components: {
-    Icon,
-    VueMarkdown,
-    ibutton: IconButton,
-    Cardlet,
-    Editable,
-    Draggable,
-    Search,
-    EditableMarkdown
+    Field,
   },
   data: function() {
     return {
-      content: {},
       tempListCards: {},
       showListSearch: false
     }
@@ -80,23 +57,11 @@ export default {
       },
       deep: true
     },
-    content: {
-      handler: function(val) {
-        const self = this
-        if (Object.keys(val).filter(key => JSON.stringify(val[key]) !== JSON.stringify(self.data[key])).length) {
-          this.$emit('contentUpdate', val)
-        }
-      },
-      deep: true
-    },
-  },
-  created: function() {
-    log.debug(this.data.objectID)
-    this.syncData()
   },
   methods: {
-    syncData: function() {
-      this.content = JSON.parse(JSON.stringify(this.data))
+    update: function(data) {
+      console.log('update (basic)', data)
+      this.$emit('update', data)
     },
     linkClick: function(event) {
       const self = this
@@ -118,30 +83,7 @@ export default {
         data.toPos = [ data.fromPos[0] + 1, data.toLayerKeys.indexOf(data.toURI) ]
         this.$emit('showCard', data)
       }
-    },
-    cardletClick: function(card) {
-      if (!this.editing) this.$emit('cardClick', card)
-    },
-    addListItem: function(card) {
-      console.log(card)
-      const self = this
-      if (!card)
-        card = {
-          objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
-          intent: 'store',
-          description: ''
-        }
-      self.tempListCards[card.objectID] = card
-      if (!self.content.listItems) Vue.set(self.content, 'listItems', [])
-      self.content.listItems.push(card.objectID)
-    },
-    removeListItem: function(data) {
-      const listIndex = this.content.listItems.indexOf(data.objectID) // Doesn't account for same item appearing twice in list
-      this.content.listItems.splice(listIndex, 1)
-    },
-    toggleListSearch: function() {
-      this.showListSearch = !this.showListSearch
-    },
+    }
   }
 }
 

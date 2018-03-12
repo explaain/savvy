@@ -12,7 +12,7 @@
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
-        <img :src="profileImage" class="profile">
+        <img @click.alt="forceUser('admin')" @click.shift="forceUser('member')" :src="profileImage" class="profile" :class="user && user.data && user.data.role">
       </div>
       <div class="greeting" slot="greeting">
         <h3><span>Hi.</span> What are we looking for?</h3>
@@ -119,6 +119,11 @@
       }, false)
     },
     methods: {
+      forceUser: async function(toForce) {
+        console.log('Forcing')
+        const user = await this.Controller.force({ user: toForce })
+        console.log('forced:', user)
+      },
       signIn: function() {
         const self = this
         console.log(self.Controller)
@@ -187,6 +192,10 @@
       height: 35px;
       border-radius: 50%;
       max-width: 120px;
+
+      &.manager {
+        box-shadow: 0px 0px 4px $savvy;
+      }
     }
   }
 

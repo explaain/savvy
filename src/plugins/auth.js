@@ -195,6 +195,8 @@ class Auth {
       try {
         if (forceRefresh || !self.user.lastRefreshed || new Date().getTime() - new Date(self.user.lastRefreshed).getTime() > 1000 * 60 * 30) {
           const token = await self.firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
+          if (self.user && self.user.auth && self.user.auth.stsTokenManager)
+            self.user.auth.stsTokenManager.accessToken = token
           console.log('New User Token!', token.substring(0, 100) + '...')
           self.user.lastRefreshed = new Date()
           return token
@@ -270,7 +272,7 @@ class Auth {
             return axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
               organisationID: self.organisation.id,
               user: { uid: self.user.auth.uid, idToken: idToken },
-              verifiedEmails: [ self.user.auth.email ] // Only working for Google Auth for now
+              verifiedEmails: self.user.auth.emails || [ self.user.auth.email ] // Only working for Google Auth for now
             })
           }).then(res => {
             console.log(res)
@@ -286,6 +288,13 @@ class Auth {
           console.log(e)
         }
       })
+    }
+    self.forceUser = async toForce => {
+      console.log('forceUser', toForce)
+      self.user.data.role = toForce
+      console.log('Forced user', self.user)
+      self.updateAuthState('loggedIn')
+      return self.user
     }
   }
 }

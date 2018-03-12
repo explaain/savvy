@@ -16,3 +16,7 @@ selenium-debug.log
 *.ntvs*
 *.njsproj
 *.sln
+
+# Ignoring Cypress videos and screenshots (for now)
+/cypress/videos/
+/cypress/screenshots/

@@ -39,9 +39,15 @@ class ControllerInterface {
   deleteCard(data) {
     return this.Controller.deleteCard(data)
   }
+  verifyCard(data) {
+    return this.Controller.verifyCard(data)
+  }
   addStateChangeListener(listenerFunction) {
     console.log('AAAA addStateChangeListener', listenerFunction)
     stateChangeListeners.push(listenerFunction)
+  }
+  force(toForce) {
+    return this.Controller.force(toForce)
   }
 }
 export default ControllerInterface

@@ -16,9 +16,9 @@ const firebaseConfig = {
   authDomain: 'savvy-96d8b.firebaseapp.com',
 }
 const authorConfig = {
-  url: '//' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/memories',
-  // url: 'http://localhost:5000/api/memories',
-  importUrl: '//' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/import'
+  // url: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/memories',
+  url: 'http://localhost:5000/api/memories',
+  importUrl: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/import'
 }
 
 console.log('STARTING')
@@ -76,22 +76,37 @@ class Controller {
     return this.Auth.refreshUserToken()
   }
   async saveCard(data) {
-    console.log('❇️ CONTROLLER ❇️ - saveCard')
+    console.log('❇️ CONTROLLER ❇️ - saveCard', data)
     const user = await this.Auth.getUser()
-    const idToken = await this.getAccessToken() // @TODO: Maybe move this to ExplaainAuthor?
-    data.sender = { uid: user.uid, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
-    data.organisationID = user.data.organisationID
-    const savedCard = await this.Author.saveCard(data)
-    return savedCard
+    const idToken = await this.getAccessToken()
+    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
+    const result = await this.Author.saveCard(data)
+    return result
   }
   async deleteCard(data) {
-    console.log('❇️ CONTROLLER ❇️ - deleteCard')
+    console.log('❇️ CONTROLLER ❇️ - deleteCard', data)
     const user = await this.Auth.getUser()
-    const idToken = await this.getAccessToken() // @TODO: Maybe move this to ExplaainAuthor?
-    data.sender = { uid: user.uid, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
+    const idToken = await this.getAccessToken()
+    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
     data.organisationID = user.data.organisationID
     const result = await this.Author.deleteCard(data)
     return result
+  }
+  async verifyCard(data) {
+    console.log('❇️ CONTROLLER ❇️ - verifyCard', data)
+    const user = await this.Auth.getUser()
+    const idToken = await this.getAccessToken()
+    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
+    data.organisationID = user.data.organisationID
+    const result = await this.Author.verifyCard(data)
+    return result
+  }
+  async force(toForce) {
+    if (toForce.user) {
+      const user = await this.Auth.forceUser(toForce.user)
+      return user
+    } else
+      return null
   }
 }
 

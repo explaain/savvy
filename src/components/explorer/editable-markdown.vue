@@ -9,7 +9,8 @@
     props: [
       'content',
       'editable',
-      'placeholder'
+      'placeholder',
+      'fieldName',
     ],
     data: function() {
       return {
@@ -29,12 +30,25 @@
     watch: {
       editable: function (val) {
         const self = this
-        const innerText = document.getElementsByClassName(self.myClass)[0].innerText
+        // self.myClass = String(Math.floor(Math.random() * 10000000000))
+        const innerText = document.getElementsByClassName(self.myClass)[0].innerText.replace(/^\s+|\s+$/g, '').trim() // Removes newlines and whitespaces from start/end of string
+        console.log('self.fieldName')
+        console.log(self.fieldName)
+        console.log('self.myClass')
+        console.log(self.myClass)
         console.log('innerText')
         console.log(innerText)
-        if (!self.editable) {
+        console.log('element')
+        console.log(document.getElementsByClassName(self.myClass)[0])
+        // We need to use something like "this.$nextTick": https://vuejs.org/v2/guide/reactivity.html
+        if (self.editable) {
+          setTimeout(function () {
+            document.getElementsByClassName(self.myClass)[0].innerText = innerText
+          }, 1)
+        } else {
           self.myContent = ''
-          this.$emit('update', innerText)
+          this.$emit('update', { field: this.fieldName, value: innerText })
+          // this.$emit('update', innerText)
           setTimeout(function() {
             self.myContent = self.content
           }, 1)
@@ -47,7 +61,7 @@
     },
     methods: {
       update: function(event) {
-        this.$emit('update', event.target.innerText)
+        // this.$emit('finishEdit', event.target.innerText)
       }
     }
   }

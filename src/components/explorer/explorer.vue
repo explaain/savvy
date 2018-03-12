@@ -3,37 +3,34 @@
     <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
       <div class="create-button">
         <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
-          <b-dropdown-item @click="createCard(null)">🔖 New Card</b-dropdown-item>
-          <b-dropdown-item @click="createCard('sifter')">🐞 New Bug</b-dropdown-item>
+          <b-dropdown-item class="basic" @click="createCard(null)">🔖 New Card</b-dropdown-item>
+          <b-dropdown-item class="issue" @click="createCard('sifter')">🐞 New Bug</b-dropdown-item>
         </b-dropdown>
       </div>
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
       <div class="header" v-if="!$route.query.q">
         <slot name="header"></slot>
-        <!-- <ibutton icon="history" text="" :click="searchRecent"></ibutton> -->
         <div class="search">
           <slot name="greeting"></slot>
           <input autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search">
           <a href="#" class="closeSearch" @click="closeSearch"><icon name="close"></icon></a>
         </div>
         <slot name="buttons"></slot>
-        <ibutton v-if="local" icon="code" text="Local" :click="searchTempLocal"></ibutton>
-        <!-- <ibutton icon="random" text="Random" :click="searchRandom"></ibutton> -->
         <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
       <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
 
-      <ul v-masonry transition-duration="0.3s" item-selector=".card" class="cards">
+      <ul v-masonry transition-duration="0.5s" item-selector=".card" class="cards">
         <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" @copy="copyAlert" :userRole="user.data.role"></card>
+        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :setCard="setCard" @copy="copyAlert" :userRole="user.data.role"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
@@ -44,7 +41,7 @@
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
-        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @deleteCard="beginDelete" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" :setCard="setCard" @copy="copyAlert" :userRole="user.data.role"></card>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []"></card>
       </ul>
     </div>
   </div>
@@ -92,13 +89,12 @@
     data () {
       return {
         algoliaParams: {
-          appID: 'D3AE3TSULH'
+          appID: 'D3AE3TSULH' // @TODO: Find a home for this!
         },
-        pageCards: [],
         allCards: {},
         mainCardList: [],
         pingCards: [],
-        popupCards: [],
+        popupCardList: [],
         popupClicked: false,
         popupShowTimeout: null,
         popupCloseTimeout: null,
@@ -125,8 +121,16 @@
       cards: function () {
         const self = this
         const watchThis = self.allCards // This does nothing other than force this function to watch for changes in self.allCards
-        console.log(watchThis)
+        console.log('watchThis', watchThis)
         return self.mainCardList ? self.mainCardList.map(function(objectID) {
+          return self.allCards[objectID] || { description: 'Card Not Found' }
+        }) : []
+      },
+      popupCards: function () {
+        const self = this
+        const watchThis = self.allCards // This does nothing other than force this function to watch for changes in self.allCards
+        console.log('watchThis', watchThis)
+        return self.popupCardList ? self.popupCardList.map(function(objectID) {
           return self.allCards[objectID] || { description: 'Card Not Found' }
         }) : []
       },
@@ -158,9 +162,14 @@
       setTimeout(() => {
         if (self.$route.query.q)
           self.search(self.$route.query.q)
-        // else if (!self.sidebar)
-        //   self.searchRecent()
       }, 200)
+    },
+    updated: function() {
+      const self = this
+      this.$nextTick(function () {
+        // Could this slow things down?
+        self.$redrawVueMasonry()
+      })
     },
     methods: {
       convertFileToCards: function(body, file) {
@@ -179,6 +188,15 @@
         })
         return cards
       },
+      fetchCard: async function(objectID) {
+        console.log('fetchCard1', objectID)
+        const self = this
+        const _highlightResult = self.allCards[objectID] && self.query === self.lastQuery ? self.allCards[objectID]._highlightResult : null // So that when a search is still active, popup cards etc don't lose their highlights
+        const card = await ExplaainSearch.getCard(objectID)
+        if (!card._highlightResult) card._highlightResult = _highlightResult
+        Vue.set(self.allCards, objectID, card) // Forces this to be watched @TODO: Find out whether Vue.set() is still necessary! In this place at least it seems to work without
+        return card
+      },
       getCard: function(objectID) {
         const self = this
         const card = JSON.parse(JSON.stringify(self.allCards[objectID] || null))
@@ -190,8 +208,12 @@
         return card
       },
       setCard: function(objectID, card) {
+        console.log('setCard')
         const self = this
         Vue.set(self.allCards, objectID, card) // Forces this to be watched
+        this.$nextTick(function () {
+          self.$redrawVueMasonry()
+        })
       },
       setCardProperty: function(objectID, property, value) {
         const self = this
@@ -240,17 +262,18 @@
         }, 1)
       },
       popupBack: function() {
-        this.popupCards.pop()
+        this.popupCardList.pop()
       },
       popupClickaway: function(event) {
+        console.log('popupClickaway', event)
         const self = this
         if (!this.sidebar) {
           self.closePopup()
         }
       },
       popupFrameClick: function () {
-        const self = this
         console.log('popupFrameClick')
+        const self = this
         if (this.sidebar) {
           self.closePopup(true)
           self.$emit('closeDrawer')
@@ -260,29 +283,30 @@
       },
       openPopup: function(c, append) {
         console.log('openPopup')
-        ExplaainSearch.getCard(c.objectID)
+        this.fetchCard(c.objectID)
         .then(card => {
-          console.log('ccccc', c)
-          card.files = [card.file] // @TODO: Sort this out! Currently just a hack
-          if (c._highlightResult) {
-            Object.keys(c._highlightResult).forEach(key => {
-              console.log(key)
-              if (key === 'fileTitle' && card.files && card.files.length)
-                card.files[0].title = c._highlightResult[key].value
-              else if (key === 'pendingContent')
-                Object.keys(card.pendingContent).forEach(pcKey => {
-                  card.pendingContent[pcKey] = c._highlightResult.pendingContent[pcKey].value
-                })
-              else
-                card[key === 'content' ? 'description' : key] = c._highlightResult[key].value
-            })
-          }
+          // if (card.file) card.files = [card.file] // @TODO: Sort this out! Currently just a hack
+
+          // if (c._highlightResult) {
+          //   Object.keys(c._highlightResult).forEach(key => {
+          //     console.log(key)
+          //     if (key === 'fileTitle' && card.files && card.files.length)
+          //       card.files[0].title = c._highlightResult[key].value
+          //     else if (key === 'pendingContent')
+          //       Object.keys(card.pendingContent).forEach(pcKey => {
+          //         if (c._highlightResult.pendingContent[pcKey])
+          //           card.pendingContent[pcKey] = c._highlightResult.pendingContent[pcKey].value
+          //       })
+          //     else if (key !== 'service')
+          //       card[key === 'content' ? 'description' : key] = c._highlightResult[key].value
+          //   })
+          // }
           console.log('card', card)
           if (append) {
-            if (!this.popupCards.length || this.popupCards[this.popupCards.length - 1].objectID !== c.objectID)
-              this.popupCards.push(card)
+            if (!this.popupCardList.length || this.popupCardList[this.popupCardList.length - 1] !== c.objectID)
+              this.popupCardList.push(card.objectID)
           } else
-            this.popupCards = [card]
+            this.popupCardList = [card.objectID]
         })
         clearTimeout(this.popupCloseTimeout)
       },
@@ -294,11 +318,11 @@
         if (this.sidebar && !instantly) {
           self.popupCloseTimeout = setTimeout(function () {
             self.popupClicked = false
-            self.popupCards = []
+            self.popupCardList = []
           }, 1000)
         } else {
           self.popupClicked = false
-          this.popupCards = []
+          this.popupCardList = []
         }
       },
       updateCards: function(data) {
@@ -332,7 +356,7 @@
         this.query = ''
         this.lastQuery = ''
         this.mainCardList = []
-        this.popupCards = []
+        this.popupCardList = []
       },
       search: function (optionalQuery) {
         console.log('SEARCHSEARCHSEARCH')
@@ -341,8 +365,10 @@
         if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
         const query = self.query
-        ExplaainSearch.searchCards(self.user, self.query, 12, true)
+        ExplaainSearch.searchCards(self.user, self.query, 12)
         .then(function(hits) {
+          console.log('hits')
+          console.log(hits)
           Mixpanel.track('Searched', {
             organisationID: self.user.data.organisationID,
             userID: self.user.uid,
@@ -355,7 +381,7 @@
           // self.cards = hits
           self.mainCardList = hits.filter(card => {
             return card.fetched !== true
-          }).map(function(card) { return card.objectID })
+          }).map(card => card.objectID)
           self.noCardMessage = 'No cards found'
           hits.forEach(function(hit) {
             self.setCard(hit.objectID, hit)
@@ -364,92 +390,13 @@
           console.log(err)
         })
       },
-      searchRecent: function () {
-        const self = this
-        self.setLoading()
-        ExplaainSearch.searchCards(self.user, '', 24, false)
-        .then(function(hits) {
-          Mixpanel.track('Recently Searched', {
-            organisationID: self.user.data.organisationID,
-            userID: self.user.uid
-          })
-          self.loading = false
-          console.log('hits')
-          console.log(hits)
-          self.pingCards = []
-          // self.cards = hits
-          self.mainCardList = hits.filter(card => {
-            return card.fetched !== true
-          }).map(function(card) { return card.objectID })
-          self.noCardMessage = 'No recent cards found'
-          hits.forEach(function(hit) {
-            self.setCard(hit.objectID, hit)
-          })
-        }).catch(function(err) {
-          console.log(err)
-        })
-      },
-      searchRandom: function () {
-        const self = this
-        self.setLoading()
-        var hits = []
-        const randomQuery = () => Math.random().toString(36).substring(7).substring(0, 1)
-        const params = {
-          restrictSearchableAttributes: [
-            'title',
-            'description'
-          ]
-        }
-        const promises = Array.apply(null, Array(4)).map(x => ExplaainSearch.searchCards(self.user, randomQuery(), 10, false, params))
-        console.log(promises)
-        Promise.all(promises)
-        .then(function(samplesOfHits) {
-          hits = [].concat.apply([], samplesOfHits)
-          hits = hits.filter(hit => hit.description.length > 10)
-          shuffleArray(hits)
-          console.log('hits')
-          console.log(hits)
-          self.loading = false
-          self.pingCards = []
-          // self.cards = hits
-          self.mainCardList = hits.filter(card => {
-            return card.fetched !== true
-          }).map(function(card) { return card.objectID })
-          self.noCardMessage = 'No recent cards found'
-          hits.forEach(function(hit) {
-            self.setCard(hit.objectID, hit)
-          })
-        }).catch(function(err) {
-          console.log(err)
-        })
-      },
-      searchTempLocal: function () {
-        const self = this
-        const hits = [{'intent': 'storeMemory', 'sender': '1627888800569309', 'listItems': ['620064670', '620064680', '620064690', '620064700'], 'hasAttachments': false, 'dateUpdated': 1508426117869, 'objectID': '619948630', 'description': 'Inject Meeting Notes'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508426117257, 'objectID': '620064700', 'description': 'Keep all signed timesheets and receipts'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508426117225, 'objectID': '620064690', 'description': 'Business model => pro version only'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508426117152, 'objectID': '620064680', 'description': 'Languages'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508426116967, 'objectID': '620064670', 'description': 'Finish card creation & editing'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateCreated': 1508425700874, 'dateUpdated': 1508425700874, 'objectID': '651610261', 'description': 'Asdf'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'listItems': ['645331361', '610938240', '610473050'], 'hasAttachments': false, 'dateUpdated': 1508421510702, 'objectID': '639442471', 'description': 'Here is a list'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508421509549, 'objectID': '610938240', 'description': 'This is a brand new list'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508421508835, 'objectID': '645331361', 'description': 'A serious item'}, {'intent': 'storeMemory', 'sender': '1627888800569309', 'hasAttachments': false, 'dateUpdated': 1508421508588, 'objectID': '610473050', 'description': 'Another list item'}]
-        // self.cards = hits
-        self.mainCardList = hits.map(function(card) { return card.objectID })
-        self.noCardMessage = 'No recent cards found'
-        hits.forEach(function(hit) {
-          self.setCard(hit.objectID, hit)
-        })
-      },
-      // beginCreate: function () {
-      //   this.modal.sender = this.user.uid
-      //   this.modal.show = true
-      //   console.log(222)
-      //   this.modal.submit = this.saveCard
-      //   // .then(function () {
-      //   //   console.log(333)
-      //   // })
-      //   delete this.modal.objectID
-      //   this.modal.text = ''
-      // },
       createCard: function (service) {
         const card = {
-          // objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
+          objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
           intent: 'store',
+          service: service || null,
+          temporary: true,
           newlyCreated: true,
-          service: service || null
         }
         // Currently have to do this so that card properties are registered when the card format vue component is created - otherwise the editable-markdown doesn't update the content properties!
         switch (card.service) {
@@ -463,48 +410,42 @@
             card.integrationFields = {}
             break
         }
-        // this.allCards[card.objectID] = card
-        this.popupCards = [card]
+        this.allCards[card.objectID] = card
+        this.popupCardList = [card.objectID]
       },
-      beginDelete: function(objectID) {
+      deleteCard: async function(objectID, callback) {
         const self = this
-        self.closePopup()
-        self.deleteCard(objectID)
-        .then(function () {
-          self.mainCardList.forEach(function(cardID, i) { // temporary - doesn't check to see whether it's actually been deleted!
-            if (cardID === objectID) {
-              self.cards.splice(i, 1)
+        if (confirm('Are you sure you want to delete this card?')) {
+          const data = {
+            sender: this.user.uid,
+            organisationID: self.user.data.organisationID,
+            objectID: objectID
+          }
+          console.log('data', data)
+          const result = await self.Controller.deleteCard(data)
+          console.log(result)
+          if (result.success) {
+            if (result.card) {
+              self.allCards[objectID] = result.card
+            } else {
+              self.mainCardList = self.mainCardList.filter(cardID => cardID !== objectID)
+              self.popupCardList = self.popupCardList.filter(cardID => cardID !== objectID)
+              self.pingCards = self.pingCards.filter(card => card.objectID !== objectID)
             }
-          })
-          self.pingCards.forEach(function(card, i) { // temporary - doesn't check to see whether it's actually been deleted!
-            if (card.objectID === objectID) {
-              self.pingCards.splice(i, 1)
-            }
-          })
-        })
-      },
-      deleteCard: function(objectID) {
-        const self = this
-        const d = Q.defer()
-        const data = {
-          sender: this.user.uid,
-          organisationID: self.user.data.organisationID,
-          objectID: objectID
+          }
+          callback(result)
+          return result
+        } else {
+          console.log('Decided against deleting!')
+          callback(null)
+          return null
         }
-        self.Controller.deleteCard(data)
-        .then(function () {
-          d.resolve()
-        }).catch(function(e) {
-          console.log(e)
-          d.reject(e)
-        })
-        return d.promise
       },
       deleteAllCards: function () {
         console.log('Deleting all cards...!!!')
         const d = Q.defer()
         const self = this
-        ExplaainSearch.searchCards(self.user, '', 1 /* 50 */, false) /* Have set this to be one at a time for now to avoid BAD THINGS */
+        ExplaainSearch.searchCards(self.user, '', 1 /* 50 */) /* Have set this to be one at a time for now to avoid BAD THINGS */
         .then(function(hits) {
           const promises = hits.map(function(card) {
             return self.deleteCard(card.objectID)
@@ -539,9 +480,9 @@
           })
         }
         try {
-          const savedCard = await self.saveCard(data)
-          callback()
-          return savedCard
+          const result = await self.saveCard(data)
+          callback(result)
+          return result
         } catch (e) {
           console.log(e)
           errorCallback(e)
@@ -551,19 +492,65 @@
       saveCard: async function(data) {
         const self = this
         if (data && data.listCards) delete data.listCards
-        if (data.newlyCreated) delete data.newlyCreated
-        if (self.getCard(data.objectID)) self.setCardProperty(data.objectID, 'updating', true)
-        console.log(self.user)
+        const objectID = data.objectID
+        if (data.temporary) {
+          delete data.objectID
+          delete data.temporary
+        }
+        if (data._highlightResult) delete data._highlightResult
         console.log('data to send with saveCard()', data)
         try {
-          const returnedCard = await self.Controller.saveCard(data)
-          console.log('returnedCard', returnedCard)
-          data.objectID = returnedCard.objectID
-          data.updating = false
-          self.setCard(returnedCard.objectID, data)
+          const result = await self.Controller.saveCard(data)
+          if (result.success) {
+            const returnedCard = result.card
+            console.log('returnedCard', returnedCard)
+            data.objectID = returnedCard.objectID
+            self.setCard(returnedCard.objectID, returnedCard)
+            self.popupCardList = JSON.parse(JSON.stringify(self.popupCardList))
+            self.popupCardList = self.popupCardList.map(id => id === objectID ? returnedCard.objectID : id)
+            // // @TODO: Delete the next line
+            // if (self.popupCardList.length === 1) self.popupCardList = [returnedCard.objectID] // @TODO: This is a hack because popupCardList isn't synced with allCards!
+          } else {
+            console.log(result.error && result.error.message)
+            if (result.error && result.error.message === 'Network Error') {
+              // @TODO: ??
+            }
+          }
+          return result
+
           // self.setCardProperty(returnedCard.objectID, 'objectID', returnedCard.objectID) // In case it was a new data
           // self.setCardProperty(returnedCard.objectID, 'updating', false)
-          return data
+        } catch (e) {
+          console.error(e)
+          return null
+        }
+      },
+      verifyCard: async function(data, callback, errorCallback) {
+        console.log('data to send with saveCard()', data)
+        const self = this
+        const objectID = data.objectID
+        try {
+          const result = await self.Controller.verifyCard(data)
+          if (result.success) {
+            const returnedCard = result.card
+            console.log('returnedCard', returnedCard)
+            self.setCard(returnedCard.objectID, returnedCard)
+            self.popupCardList = JSON.parse(JSON.stringify(self.popupCardList))
+            self.popupCardList = self.popupCardList.map(id => id === objectID ? returnedCard.objectID : id)
+            callback(result)
+            // // @TODO: Delete the next line
+            // if (self.popupCardList.length === 1) self.popupCardList = [returnedCard.objectID] // @TODO: This is a hack because popupCardList isn't synced with allCards!
+          } else {
+            console.log(result.error && result.error.message)
+            if (result.error && result.error.message === 'Network Error') {
+              // @TODO: ??
+            }
+            errorCallback(result)
+          }
+          return result
+
+          // self.setCardProperty(returnedCard.objectID, 'objectID', returnedCard.objectID) // In case it was a new data
+          // self.setCardProperty(returnedCard.objectID, 'updating', false)
         } catch (e) {
           console.error(e)
           return null
@@ -605,19 +592,6 @@
           searchQuery: self.query
         })
       }
-    }
-  }
-
-  /**
-   * Randomize array element order in-place.
-   * Using Durstenfeld shuffle algorithm.
-   */
-  function shuffleArray(array) {
-    for (var i = array.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1))
-      var temp = array[i]
-      array[i] = array[j]
-      array[j] = temp
     }
   }
 </script>
@@ -766,7 +740,7 @@
       @include blockShadow(2);
       max-width: 600px;
       margin: 0;
-      padding: 20px 20px 20px 45px;
+      padding: 20px 40px 20px 45px;
       font-size: 18px;
       background: url('/static/images/search-icon-1.png'); // //static//
       background-repeat: no-repeat;

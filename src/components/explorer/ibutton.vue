@@ -13,7 +13,8 @@
     props: [
       'icon',
       'text',
-      'click'
+      'click',
+      'clickProps',
     ],
     components: {
       icon: Icon
@@ -23,8 +24,12 @@
     },
     methods: {
       clickEvent: function() {
-        if (this.click) {
-          this.click()
+        const self = this
+        if (self.click) {
+          if (self.clickProps !== undefined)
+            self.click(self.clickProps)
+          else
+            self.click()
         }
       }
     }
