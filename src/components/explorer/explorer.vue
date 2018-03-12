@@ -50,8 +50,8 @@
 
 
 <script>
-  import Vue from 'vue'
   import log from 'loglevel'
+  import Vue from 'vue'
   import Q from 'q'
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'

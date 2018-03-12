@@ -168,3 +168,8 @@ table {
     }
   }
 }
+
+.dropdown .dropdown-menu .dropdown-item {
+  /* Stops Vue Boostrap items being wider than the dropdown itself */
+  width: auto;
+}

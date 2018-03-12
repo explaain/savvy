@@ -12,22 +12,34 @@
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
-        <img @click.alt="forceUser('admin')" @click.shift="forceUser('member')" :src="profileImage" class="profile" :class="user && user.data && user.data.role">
+        <b-dropdown id="user-ddown1" text="User" variant="link" class="profile" size="lg" no-caret>
+          <template slot="button-content">
+            <img :src="profileImage" :class="user && user.data && user.data.role">
+          </template>
+          <b-dropdown-item @click="showConnectPanel = true">🔌 Connect Services</b-dropdown-item>
+          <b-dropdown-item @click="forceUser('toggle')">🐞 Switch to {{user.data.role === 'admin' ? 'Member' : 'Admin'}}</b-dropdown-item>
+        </b-dropdown>
       </div>
       <div class="greeting" slot="greeting">
         <h3><span>Hi.</span> What are we looking for?</h3>
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
+    <div class="popup-panel" v-if="showConnectPanel" @click.self="showConnectPanel = false">
+      <connect :services="services"></connect>
+    </div>
   </div>
 </template>
 
 <script>
   import log from 'loglevel'
-  // import Vue from 'vue'
+  import Vue from 'vue'
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
+  import BootstrapVue from 'bootstrap-vue'
+
   import Explorer from '../explorer/explorer.vue'
+  import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
   console.log('chrome.vue running')
@@ -56,6 +68,29 @@
         cards: [], // ???
         // sidebar: true,
         justClicked: false,
+        showConnectPanel: false,
+        services: [
+          {
+            title: 'Google Drive',
+            id: 'gdrive',
+            logo: 'https://www.shareicon.net/download/2016/11/22/854958_drive_512x512.png',
+          },
+          {
+            title: 'Sifter',
+            id: 'sifter',
+            logo: 'https://www.pcmag.com/sm/pcmagus/photo/default/sifterlogo6_14fe.png',
+          },
+          {
+            title: 'Zoho',
+            id: 'zoho',
+            logo: 'https://d7uddx54veb4a.cloudfront.net/wp-content/uploads/2016/10/logo-zoho.png',
+          },
+          {
+            title: 'Confluence',
+            id: 'confluence',
+            logo: 'https://wac-cdn.atlassian.com/dam/jcr:a22c9f02-b225-4e34-9f1d-e5ac0265e543/confluence_rgb_slate.png',
+          },
+        ]
       }
     },
     computed: {
@@ -64,13 +99,16 @@
       }
     },
     components: {
-      Explorer,
+      BootstrapVue,
       Icon,
-      ibutton: IconButton
+      ibutton: IconButton,
+      Explorer,
+      Connect,
     },
     created: function(a) {
       const self = this
       console.log('chrome.vue created')
+      Vue.use(BootstrapVue)
       if (self.testing) {
         console.log('In Testing Mode!')
         self.organisation = {
@@ -121,6 +159,8 @@
     methods: {
       forceUser: async function(toForce) {
         console.log('Forcing')
+        if (toForce === 'toggle')
+          toForce = this.user.data.role === 'admin' ? 'member' : 'admin'
         const user = await this.Controller.force({ user: toForce })
         console.log('forced:', user)
       },
@@ -185,16 +225,30 @@
       left: 20px;
       max-width: 120px;
     }
-    img.profile {
+    .profile {
       position: absolute;
       right: 20px;
       width: 35px;
       height: 35px;
-      border-radius: 50%;
-      max-width: 120px;
 
       &.manager {
         box-shadow: 0px 0px 4px $savvy;
+      }
+
+      > button {
+        margin: 0;
+        padding: 0;
+        background: none;
+        border: none;
+        box-shadow: none;
+
+        img {
+          width: 40px;
+          border-radius: 50%;
+        }
+      }
+      > .dropdown-menu {
+        margin-top: 10px;
       }
     }
   }
@@ -236,6 +290,25 @@
     }
     .spinner-div {
       left: 50%;
+    }
+  }
+
+  .popup-panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 40px;
+    background-color: rgba(0,0,0,0.2);
+    text-align: center;
+
+    > .connect {
+      @extend .block;
+      display: inline-block;
+      width: auto;
+      padding: 40px;
     }
   }
 
