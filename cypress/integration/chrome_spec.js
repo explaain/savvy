@@ -36,61 +36,6 @@ describe('Logging In', () => {
       cy.get('button.login').should('not.have.attr', 'disabled')
     })
     it('click()', () => {
-      // const myController = new Controller({
-      //   firebaseInstance: {
-      //     apps: [
-      //       {
-      //         a: true
-      //       }
-      //     ],
-      //     auth: () => {
-      //       return {
-      //         getRedirectResult: () => new Promise((resolve, reject) => { resolve() }),
-      //         onAuthStateChanged: myFunc => {},
-      //       }
-      //     }
-      //   }
-      // })
-      // cy.stub(myController, 'signIn').resolve({
-      //   auth: {
-      //     apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
-      //     appName: '[DEFAULT]',
-      //     authDomain: 'savvy-96d8b.firebaseapp.com',
-      //     displayName: 'Jeremy Evans',
-      //     email: 'jeremy@explaain.com',
-      //     emailVerified: true,
-      //     isAnonymous: false,
-      //     phoneNumber: null,
-      //     photoURL: 'https://lh4.googleusercontent.com/-1K9EhRUQf8c/AAAAAAAAAAI/AAAAAAAAAC0/1fqqBt0FcFw/photo.jpg',
-      //     providerData: Array(1),
-      //     redirectEventId: null,
-      //     stsTokenManager: Object,
-      //     uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
-      //   },
-      //   data: {
-      //     algoliaApiKey: '88bd0a77faff65d4ace510fbf172a4e1',
-      //     email: 'jeremy@heysavvy.com',
-      //     firebase: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
-      //     first: 'Jeremy',
-      //     last: 'Evans',
-      //     notify: {
-      //       routes: [
-      //         {
-      //           enabled: 'true',
-      //           subscription: 'U04NVHJFD',
-      //           type: 'slack',
-      //         }
-      //       ]
-      //     },
-      //     objectID: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
-      //     organisationID: 'explaain',
-      //     slack: 'U04NVHJFD',
-      //   },
-      //   lastRefreshed: '2018-02-24T13:14:41.234Z',
-      //   organisation: {id: 'explaain'},
-      //   uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
-      // })
-      // cy.stub(myController, 'getAccessToken').resolve('MY_TOKEN')
       cy.get('button.login').click()
     })
   })
