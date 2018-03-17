@@ -47,6 +47,7 @@ export default {
       this.$emit('select', card)
     },
     search: function() {
+      console.log('searchsearchsearch')
       const self = this
       self.loading = true
       ExplaainSearch.searchCards(self.auth.user, self.query, 6)

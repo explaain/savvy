@@ -9,6 +9,8 @@
         </div>
         <p>{{service.title}}</p>
       </a>
+      <p class="spinner" v-if="loading"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+      <p class="message-block success" v-if="message"></icon>{{message}}</p>
     </section>
   </div>
 </template>
@@ -16,13 +18,24 @@
 <script>
 /* global Kloudless */
 import axios from 'axios'
+import 'vue-awesome/icons'
+import Icon from 'vue-awesome/components/Icon.vue'
 import '../scripts/kloudless.authenticator.js'
+require('log-suppress').init(console)
 
 export default {
   props: [
-    'services'
+    'services',
+    'organisationID',
   ],
+  data: function() {
+    return {
+      loading: false,
+      message: null,
+    }
+  },
   components: {
+    Icon,
   },
   methods: {
     connectSource: function(service) {
@@ -42,19 +55,28 @@ export default {
     addSource: function(result) {
       console.log(result)
       const self = this
-      self.doneMessage = true
-      if (!self.addingSource) {
-        self.addingSource = true
+      self.message = null
+      if (!self.loading) {
+        self.loading = true
         // axios.post('http://localhost:5050/add-source', {
+        setTimeout(function () {
+          console.log('5 second timeout')
+          if (self.loading) {
+            console.log('hi')
+            self.loading = false
+            self.message = 'Source Connected!'
+          }
+        }, 5000)
         axios.post('//savvy-nlp--staging.herokuapp.com/add-source', {
-          organisationID: self.organisation.id === 'connect' ? getParameterByName('org') : self.organisation.id,
+          organisationID: self.organisationID === 'connect' ? getParameterByName('org') : self.organisationID,
           superService: 'kloudless',
           source: result
         }).then(res => {
-          self.addingSource = false
+          self.loading = false
+          self.message = 'Source Connected!'
           console.log(res.data.results)
         }).catch(e => {
-          self.addingSource = false
+          self.loading = false
           console.log(e)
         })
       }
@@ -107,6 +129,32 @@ function getParameterByName(name, url) {
       }
     }
 
+  }
+
+  .message-block {
+    position: relative;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+    text-align: center;
+    white-space: normal;
+
+    &.error {
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    &.warning {
+      color: #856404;
+      background-color: #fff3cd;
+      border-color: #ffeeba;
+    }
+    &.success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
   }
 }
 </style>

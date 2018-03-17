@@ -54,6 +54,7 @@ export default {
     },
     cardletClick: function() {
       const self = this
+      console.log('cardletClick')
       self.$emit('cardletClick', self.card)
     },
   }

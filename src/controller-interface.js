@@ -42,6 +42,9 @@ class ControllerInterface {
   verifyCard(data) {
     return this.Controller.verifyCard(data)
   }
+  searchCards(data) {
+    return this.Controller.searchCards(data)
+  }
   addStateChangeListener(listenerFunction) {
     console.log('AAAA addStateChangeListener', listenerFunction)
     stateChangeListeners.push(listenerFunction)

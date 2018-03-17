@@ -17,7 +17,9 @@
             <img :src="profileImage" :class="user && user.data && user.data.role">
           </template>
           <b-dropdown-item @click="showConnectPanel = true">🔌 Connect Services</b-dropdown-item>
-          <b-dropdown-item @click="forceUser('toggle')">🐞 Switch to {{user.data.role === 'admin' ? 'Member' : 'Admin'}}</b-dropdown-item>
+          <!-- <b-dropdown-item @click="forceUser('toggle')">🐞 Switch to {{user.data.role === 'admin' ? 'Member' : 'Admin'}}</b-dropdown-item> -->
+          <b-dropdown-item href="https://heysavvy.drift.com/matt" target="_blank">👋 Contact Us</b-dropdown-item>
+          <b-dropdown-item @click="signOut">⚓️ Log Out</b-dropdown-item>
         </b-dropdown>
       </div>
       <div class="greeting" slot="greeting">
@@ -26,7 +28,7 @@
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
     <div class="popup-panel" v-if="showConnectPanel" @click.self="showConnectPanel = false">
-      <connect :services="services"></connect>
+      <connect :services="services" :organisationID="user.data.organisationID"></connect>
     </div>
   </div>
 </template>
@@ -303,6 +305,7 @@
     padding: 40px;
     background-color: rgba(0,0,0,0.2);
     text-align: center;
+    z-index: 100000;
 
     > .connect {
       @extend .block;

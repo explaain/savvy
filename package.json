@@ -90,6 +90,7 @@
     "less": "^2.7.3",
     "less-loader": "^4.0.5",
     "lodash": "^4.17.4",
+    "log-suppress": "^1.0.3",
     "loglevel": "^1.5.0",
     "logrocket": "^0.6.3",
     "merge": "^1.2.0",

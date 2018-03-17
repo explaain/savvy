@@ -66,7 +66,7 @@ export default {
     },
     cardletClick: function(card) {
       if (card.objectID === 0) this.listFull = true
-      else if (!this.editing) this.$emit('cardClick', card)
+      else if (!this.editing) this.$emit('cardletClick', card)
     },
     addListItem: function(card) {
       console.log(card)

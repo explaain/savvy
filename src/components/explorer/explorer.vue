@@ -365,8 +365,11 @@
         if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
         const query = self.query
-        ExplaainSearch.searchCards(self.user, self.query, 12)
-        .then(function(hits) {
+        self.Controller.searchCards({
+          user: self.user,
+          query: self.query,
+          numberOfResults: 12
+        }).then(function(hits) {
           console.log('hits')
           console.log(hits)
           Mixpanel.track('Searched', {

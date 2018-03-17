@@ -81,6 +81,7 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
  * Starts the sign-in process.
  */
 const startSignIn = () => new Promise((resolve, reject) => {
+  console.log('startSignIn (event-page.js)')
   if (!myController.signedIn()) {
     console.log('yo')
     startAuth(true)
@@ -100,12 +101,12 @@ const startSignIn = () => new Promise((resolve, reject) => {
 if (allowContinue) {
   console.log('Allow signin')
   // Not sure whether this should be in or not!
-  // startSignIn()
-  // .then(res => {
-  //   log.info(res)
-  // }).catch(e => {
-  //   log.info(e)
-  // })
+  startSignIn()
+  .then(res => {
+    console.log(res)
+  }).catch(e => {
+    console.log(e)
+  })
 
   /* ----------------------- */
   /* ----------------------- */
@@ -152,6 +153,9 @@ if (allowContinue) {
           break
         case 'verifyCard':
           promiseFunction = myController.verifyCard(request.data)
+          break
+        case 'searchCards':
+          promiseFunction = myController.searchCards(request.data)
           break
         case 'force':
           promiseFunction = myController.force(request.data)

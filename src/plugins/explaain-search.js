@@ -272,7 +272,15 @@ const Search = {
         delete params.hitsPerPage
       AlgoliaCardsIndex.clearCache()
       console.log(params)
-      const content = await new Promise((resolve, reject) => {
+      const content = params && params.includeNlp
+      ? await axios.post('https://savvy-api--live.herokuapp.com/api/memories/', {
+        sender: params.sender,
+        parameters: params,
+        intent: 'query',
+        query: params.query,
+        organisationID: params.organisationID
+      })
+      : await new Promise((resolve, reject) => {
         AlgoliaCardsIndex.search(params, (e, content) => {
           if (e) {
             log.trace(e)
@@ -281,7 +289,10 @@ const Search = {
             resolve(content)
         })
       })
-      await content.hits.forEach(async hit => {
+      console.log('content')
+      console.log(content)
+      const hits = content.hits || (content.data && content.data.memories) || [] // Accounts for the fact that we are often now using savvy-api for this
+      await hits.forEach(async hit => {
         const correctedCard = await correctCard(hit, false)
         cards.push(correctedCard)
       })

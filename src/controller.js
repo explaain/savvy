@@ -1,13 +1,13 @@
 // @TODO: Remove toggleSignIn() from everywhere
 // @TODO: Remove signedIn() from everywhere
 
-// import Vue from 'vue'
+import Vue from 'vue'
 import log from 'loglevel'
 import Auth from './plugins/auth' // Need to concolidate this + 'auth'
 import Author from './author.js'
 // import * as firebase from 'firebase'
 // import CardDetection from '../plugins/card-detection.js'
-// import ExplaainSearch from '../plugins/explaain-search.js'
+import ExplaainSearch from './plugins/explaain-search.js'
 
 log.setLevel('debug')
 
@@ -19,6 +19,10 @@ const authorConfig = {
   url: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/memories',
   // url: 'http://localhost:5000/api/memories',
   importUrl: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/import'
+}
+
+const algoliaParams = {
+  appID: 'D3AE3TSULH' // @TODO: Find a home for this!
 }
 
 console.log('STARTING')
@@ -63,9 +67,12 @@ class Controller {
     console.log('❇️ CONTROLLER ❇️ - signedIn')
     return this.Auth.signedIn()
   }
-  getUser() {
+  async getUser() {
     console.log('❇️ CONTROLLER ❇️ - getUser')
-    return this.Auth.getUser()
+    const user = await this.Auth.getUser()
+    if (!ExplaainSearch.searchCards && user)
+      Vue.use(ExplaainSearch, algoliaParams, user) // Bit of hack - shouldn't be using Vue at all!
+    return user
   }
   getAccessToken() {
     console.log('❇️ CONTROLLER ❇️ - getAccessToken')
@@ -99,6 +106,19 @@ class Controller {
     data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
     data.organisationID = user.data.organisationID
     const result = await this.Author.verifyCard(data)
+    return result
+  }
+  async searchCards(data) {
+    console.log('❇️ CONTROLLER ❇️ - searchCards', data)
+    const user = await this.Auth.getUser()
+    const idToken = await this.getAccessToken()
+    data.includeNlp = true
+    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken }
+    data.organisationID = user.data.organisationID
+    console.log('data', data)
+    console.log('ExplaainSearch', ExplaainSearch)
+    console.log('ExplaainSearch.searchCards', ExplaainSearch.searchCards)
+    const result = await ExplaainSearch.searchCards(data.user, data.query, data.numberOfResults, data)
     return result
   }
   async force(toForce) {

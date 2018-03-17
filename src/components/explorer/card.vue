@@ -11,7 +11,7 @@
       <img :src="cardIcon" alt="" class="file-icons">
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <h3 v-if="editing" style="margin: 15px 10px 10px;">Enter your card details:</h3>
-      <component v-bind:is="format" :showPending="showPending" :content="content" :full="full" @update="update" :allCards="allCards" @contentUpdate="contentUpdate" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
+      <component v-bind:is="format" :showPending="showPending" :content="content" :full="full" @update="update" :allCards="allCards" @contentUpdate="contentUpdate" @cardletClick="cardletClick" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
       <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
       <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
       <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
@@ -321,6 +321,10 @@ export default {
           name: 'Zoho',
           icon: '/static/images/icons/zoho.png'
         },
+        gsites: {
+          name: 'Google Sites',
+          icon: '/static/images/icons/gsites.png'
+        },
       }
       if (file && file.folder)
         return { name: '📂 ' + file.folder + ' Drive' }
@@ -382,6 +386,7 @@ export default {
       this.$emit('showCard', data)
     },
     cardletClick: function(card) {
+      console.log('cardletClick', card)
       if (!this.editing) this.$emit('cardClick', card)
     },
     createCard: function() {

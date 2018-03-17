@@ -79,8 +79,8 @@ class Auth {
 
     self.signIn = () => new Promise((resolve, reject) => {
       console.log('🔑 Auth 🔑 - signIn')
-      self.updateAuthState('pending')
       if (!self.firebase.auth().currentUser) {
+        self.updateAuthState('pending')
         var provider = new self.firebase.auth.GoogleAuthProvider()
         // provider.addScope('https://www.googleapis.com/auth/userinfo.email') // Experimenting with Gmail API
         // provider.addScope('https://www.googleapis.com/auth/gmail.readonly')
@@ -224,6 +224,7 @@ class Auth {
       } else if (idToken) {
         var response
         try {
+          // response = await axios.post('http://localhost:5050/get-user', { idToken: idToken })
           response = await axios.post('https://savvy-nlp--staging.herokuapp.com/get-user', { idToken: idToken })
           console.log('📪  The response data!', response.data)
           return response.data.results
@@ -269,7 +270,7 @@ class Auth {
           self.updateAuthState('pending')
           self.refreshUserToken()
           .then(idToken => {
-            return axios.post('//forget-me-not--staging.herokuapp.com/api/user/add', {
+            return axios.post('https://forget-me-not--staging.herokuapp.com/api/user/add', {
               organisationID: self.organisation.id,
               user: { uid: self.user.auth.uid, idToken: idToken },
               verifiedEmails: self.user.auth.emails || [ self.user.auth.email ] // Only working for Google Auth for now
