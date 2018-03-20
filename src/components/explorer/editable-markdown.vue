@@ -48,9 +48,9 @@
         } else {
           // self.myContent = ''
           // // this.$emit('update', innerText)
-          // setTimeout(function() {
-          //   self.myContent = self.content
-          // }, 1)
+          setTimeout(function() {
+            self.myContent = self.content
+          }, 1)
         }
       },
       content: function(val) {

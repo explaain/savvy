@@ -209,7 +209,7 @@
         return card
       },
       setCard: function(objectID, card) {
-        console.log('setCard')
+        console.log('setCard', objectID, card)
         const self = this
         Vue.set(self.allCards, objectID, card) // Forces this to be watched
         this.$nextTick(function () {
