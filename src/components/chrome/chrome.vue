@@ -12,6 +12,7 @@
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
+        <ibutton v-if="demo" icon="question-circle" text="Demo Info" :click="setShowDemoInfoPanel" style="margin: 0;"></ibutton>
         <b-dropdown id="user-ddown1" text="User" variant="link" class="profile" size="lg" no-caret>
           <template slot="button-content">
             <img :src="profileImage" :class="user && user.data && user.data.role">
@@ -27,8 +28,11 @@
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
-    <div class="popup-panel" v-if="showConnectPanel" @click.self="showConnectPanel = false">
+    <div class="popup-panel-container" v-if="showConnectPanel" @click.self="showConnectPanel = false">
       <connect :services="services" :organisationID="user.data.organisationID"></connect>
+    </div>
+    <div class="popup-panel-container" v-if="showDemoInfoPanel" @click.self="showDemoInfoPanel = false">
+      <popup-panel title="Info on the demo" description="Here's some stuff"></popup-panel>
     </div>
   </div>
 </template>
@@ -41,6 +45,7 @@
   import BootstrapVue from 'bootstrap-vue'
 
   import Explorer from '../explorer/explorer.vue'
+  import PopupPanel from '../popup-panel.vue'
   // import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
@@ -56,7 +61,8 @@
       'Controller',
       'authState',
       'user',
-      'LogRocket'
+      'LogRocket',
+      'demo',
     ],
     data() {
       return {
@@ -71,6 +77,7 @@
         // sidebar: true,
         justClicked: false,
         showConnectPanel: false,
+        showDemoInfoPanel: false,
         services: [
           {
             title: 'Google Drive',
@@ -105,6 +112,7 @@
       Icon,
       ibutton: IconButton,
       Explorer,
+      PopupPanel,
       // Connect,
     },
     created: function(a) {
@@ -194,6 +202,9 @@
         console.log('closeDrawer')
         const message = {action: 'closeDrawer'}
         window.parent.postMessage(message, '*')
+      },
+      setShowDemoInfoPanel: function () {
+        this.showDemoInfoPanel = true
       }
     }
   }
@@ -295,7 +306,7 @@
     }
   }
 
-  .popup-panel {
+  .popup-panel-container {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -307,7 +318,7 @@
     text-align: center;
     z-index: 100000;
 
-    > .connect {
+    > .panel {
       @extend .block;
       display: inline-block;
       width: auto;

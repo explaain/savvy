@@ -1,5 +1,5 @@
 <template lang="html">
-  <div class="connect">
+  <div class="panel connect">
     <h3>Connect to your work apps here</h3>
     <section class="services">
       <a v-for="service in services" @click="connectSource(service)">

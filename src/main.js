@@ -46,6 +46,7 @@ class Main {
             user: this.user,
             sidebar: props.sidebar,
             LogRocket: LogRocket,
+            demo: props.demo || false
           }
         })
       },
