@@ -300,6 +300,7 @@ export default {
   },
   methods: {
     update: function(data) {
+      console.log('update (card)', data)
       this.card[data.field] = data.value
     },
     getServiceName(card, file) {
@@ -387,6 +388,7 @@ export default {
     },
     cardletClick: function(card) {
       console.log('cardletClick', card)
+      card.parentCard = this.card
       if (!this.editing) this.$emit('cardClick', card)
     },
     createCard: function() {

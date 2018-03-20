@@ -28,3 +28,9 @@ npm test
 ```
 
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+
+
+## To Deploy Demo Version
+
+1. Comment out everything in `src/chrome-newtab.js` and `src/chrome-sidebar.js`
+2. Set `props.demo = true` in `src/webapp.js`

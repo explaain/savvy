@@ -252,6 +252,13 @@
         setTimeout(function () { // Is this timeout stil necessary?
           self.popupClicked = true
           self.openPopup(card, fromPopup)
+          try {
+            self.openPopup(card, fromPopup)
+          } catch (e) {
+            console.log('Caught cardlet failing to open - opening parent card instead')
+            if (card.parentCard && card.parentCard.objectID)
+              self.openPopup(card.parentCard, fromPopup)
+          }
           Mixpanel.track('Card Clicked', {
             organisationID: self.user.data.organisationID,
             userID: self.user.uid,

@@ -31,6 +31,7 @@ class Author {
       if (data.temporary) delete data.temporary
       if (data.newlyCreated) delete data.newlyCreated
       // @TODO: Move this error logic to a new library called Connect
+      // axios.post('http://localhost:5000/api/memories', data)
       axios.post(self.options.url, data)
       .then(response => {
         console.log('Card Saved!', response)
@@ -71,6 +72,7 @@ class Author {
   }
   verifyCard(data) {
     console.log('verifyCard', data)
+    // return this.rest.post('http://localhost:5000/api/verify', data)
     return this.rest.post('https://savvy-api--live.herokuapp.com/api/verify', data)
   }
 }

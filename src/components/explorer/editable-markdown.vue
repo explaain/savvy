@@ -32,26 +32,25 @@
         const self = this
         // self.myClass = String(Math.floor(Math.random() * 10000000000))
         const innerText = document.getElementsByClassName(self.myClass)[0].innerText.replace(/^\s+|\s+$/g, '').trim() // Removes newlines and whitespaces from start/end of string
-        console.log('self.fieldName')
-        console.log(self.fieldName)
-        console.log('self.myClass')
-        console.log(self.myClass)
-        console.log('innerText')
-        console.log(innerText)
-        console.log('element')
-        console.log(document.getElementsByClassName(self.myClass)[0])
+        // console.log('self.fieldName')
+        // console.log(self.fieldName)
+        // console.log('self.myClass')
+        // console.log(self.myClass)
+        // console.log('innerText')
+        // console.log(innerText)
+        // console.log('element')
+        // console.log(document.getElementsByClassName(self.myClass)[0])
         // We need to use something like "this.$nextTick": https://vuejs.org/v2/guide/reactivity.html
         if (self.editable) {
           setTimeout(function () {
             document.getElementsByClassName(self.myClass)[0].innerText = innerText
           }, 1)
         } else {
-          self.myContent = ''
-          this.$emit('update', { field: this.fieldName, value: innerText })
-          // this.$emit('update', innerText)
-          setTimeout(function() {
-            self.myContent = self.content
-          }, 1)
+          // self.myContent = ''
+          // // this.$emit('update', innerText)
+          // setTimeout(function() {
+          //   self.myContent = self.content
+          // }, 1)
         }
       },
       content: function(val) {
@@ -61,6 +60,10 @@
     },
     methods: {
       update: function(event) {
+        const self = this
+        const innerText = document.getElementsByClassName(self.myClass)[0].innerText.replace(/^\s+|\s+$/g, '').trim() // Removes newlines and whitespaces from start/end of string
+        console.log('update (editable-markdown.vue)', innerText)
+        this.$emit('update', { field: this.fieldName, value: innerText })
         // this.$emit('finishEdit', event.target.innerText)
       }
     }

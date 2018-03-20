@@ -1,11 +1,11 @@
 <template lang="html">
-  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === 0 }">
-    <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton>
-    <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton>
+  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === -1 }">
+    <!-- <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton> -->
+    <!-- <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton> -->
     <!-- <editable :content="card.description" :editable="editing && editable" @update="card.description = $event"></editable> -->
-    <editable-markdown v-if="card.label" class="label" :content="card.label.replace(':', '')" :editable="editing && editable" @update="card.label = $event" :class="{ greyed: greyed }"></editable-markdown>
-    <editable-markdown v-if="card.value" class="value" :content="card.value" :editable="editing && editable" @update="card.value = $event" :class="{ greyed: greyed }"></editable-markdown>
-    <editable-markdown v-if="card.description" :content="text" :editable="editing && editable" @update="card.description = $event" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.label" class="label" :content="card.label.replace(':', '')" :editable="false" @update="update" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.value || (editable && editing)" class="value" :content="card.value" :editable="editing && editable" @update="update" :fieldName="card.label.split(' ').join('_')" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.description" :content="text" :editable="editing && editable" @update="update" :class="{ greyed: greyed }"></editable-markdown>
   </div>
 </template>
 
@@ -57,6 +57,14 @@ export default {
       console.log('cardletClick')
       self.$emit('cardletClick', self.card)
     },
+    update: function(data) {
+      if (this.card.label) {
+        this.card.value = data.value
+        this.card.content = this.card.label + ': ' + this.card.value
+      }
+      console.log('update (cardlet.vue)', this.card)
+      this.$emit('update', this.card)
+    }
   }
 }
 

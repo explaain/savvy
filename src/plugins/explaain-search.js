@@ -273,6 +273,7 @@ const Search = {
       AlgoliaCardsIndex.clearCache()
       console.log(params)
       const content = params && params.includeNlp
+      // ? await axios.post('http://localhost:5000/api/memories/', {
       ? await axios.post('https://savvy-api--live.herokuapp.com/api/memories/', {
         sender: params.sender,
         parameters: params,

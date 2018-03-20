@@ -20,7 +20,9 @@ class Main {
   constructor(props) {
     const mainSelf = this
     // @TODO: This should choose Controller not just for testing but also for webapp
-    const ControllerInterfaceClass = props.env === 'testing' ? ControllerInterface : ChromeControllerInterface
+    console.log('props')
+    console.log(props)
+    const ControllerInterfaceClass = (props.env === 'testing' || props.demo) ? ControllerInterface : ChromeControllerInterface
     mainSelf.Controller = new ControllerInterfaceClass({})
 
     Vue.filter('capitalise', (value, initial) => {
@@ -37,7 +39,7 @@ class Main {
       el: '#app',
       router,
       render(h) {
-        return h(props.plugin ? Chrome : Dashboard, {
+        return h(props.plugin || props.demo ? Chrome : Dashboard, {
           props: {
             Controller: mainSelf.Controller,
             authState: this.authState,

@@ -5,7 +5,8 @@ const props = {
   plugin: process.env.CHROME || false,
   // env: 'production',
   // plugin: false,
-  sidebar: false
+  sidebar: false,
+  // demo: true // @TODO: Set this back to false when we're not doing demo!
 }
 
 console.log('Running Web App')

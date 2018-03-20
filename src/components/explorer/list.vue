@@ -1,6 +1,6 @@
 <template lang="html">
   <draggable v-model="listCards.value" :options="{ disabled: !editing, handle: '.drag', draggable: '.cardlet' }" class="list" v-if="listCards.value.length || editing">
-    <cardlet v-for="item in (full || listFull || listCards.value.length <= 6 ? listCards.value : listCards.value.slice(0, 6).concat([{ objectID: 0, description: 'Show more...' }]))" :editing="editing" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
+    <cardlet v-for="item in (full || listFull || listCards.value.length <= 6 ? listCards.value : listCards.value.slice(0, 6).concat([{ objectID: -1, description: 'Show more...' }]))" :editing="editing" :editable="editing" @update="updateItem" :card="item" :key="item.objectID" @cardletClick="cardletClick" @remove="removeListItem"></cardlet>
     <section class="buttons" v-if="editing">
       <!-- <ibutton class="left" icon="plus" text="Create List Item" :click="addListItem"></ibutton>
       <ibutton class="right" icon="search" text="Insert Card Into List" :click="toggleListSearch" :class="{selected: showListSearch}"></ibutton> -->
@@ -45,24 +45,28 @@ export default {
   },
   data: function() {
     return {
-      tempListCards: {},
+      listContent: {},
       showListSearch: false,
       listFull: false,
     }
   },
   watch: {
     editing: function(val) {
-      const self = this
       if (val)
-        self.listCards.value.forEach(function(listCard) {
-          self.tempListCards[listCard.objectID] = JSON.parse(JSON.stringify(listCard))
-        })
+        this.listContent = this.listCards.value.map(card => card)
+      // @TODO: Figure out whether the below stuff is necessary (and if so then how to cope without objectIDs)
+        // self.listCards.value.forEach(function(listCard) {
+        //   self.listContent[listCard.objectID] = JSON.parse(JSON.stringify(listCard))
+        // })
     }
   },
   methods: {
-    update: function(data) {
-      console.log('update (basic)', data)
-      this.$emit('update', data)
+    updateItem: function(data) {
+      console.log('updateItem (list)', data)
+      this.listContent[data.objectID] = data
+      console.log('this.listContent')
+      console.log(this.listContent)
+      this.$emit('update', { field: 'list', value: this.listContent })
     },
     cardletClick: function(card) {
       if (card.objectID === 0) this.listFull = true
@@ -77,7 +81,7 @@ export default {
           intent: 'store',
           description: ''
         }
-      self.tempListCards[card.objectID] = card
+      self.listContent[card.objectID] = card
       if (!self.listItems) Vue.set(self.content, 'listItems', [])
       self.listItems.push(card.objectID)
     },
