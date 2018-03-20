@@ -1,5 +1,5 @@
 <template lang="html">
-  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === -1 }">
+  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === -1, 'empty': (!card.value || !card.value.length) && card.objectID !== -1 }">
     <!-- <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton> -->
     <!-- <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton> -->
     <!-- <editable :content="card.description" :editable="editing && editable" @update="card.description = $event"></editable> -->
@@ -93,6 +93,17 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     &.show-more {
       text-align: center;
       color: #aaa;
+    }
+    &.empty {
+      background: #fbfbfb;
+      > div {
+        color: #ddd;
+        padding: 5px 10px;
+        &.value {
+          padding: 2px 10px;
+          vertical-align: top;
+        }
+      }
     }
     &:first-of-type {
       border-top-left-radius: $radiusLarge;
