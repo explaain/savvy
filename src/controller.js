@@ -25,8 +25,8 @@ const algoliaParams = {
   appID: 'D3AE3TSULH' // @TODO: Find a home for this!
 }
 
-// const userForcedFromUrl = window && window.location && window.location.href.search('http://localhost:8080') > -1 ? {
-const userForcedFromUrl = window && window.location && window.location.href.search('https://yc.heysavvy.com') > -1 ? {
+// const userForcedFromUrl = window && window.location && window.location.href.search('localhost:8080') > -1 ? {
+const userForcedFromUrl = window && window.location && window.location.href.search('yc.heysavvy.com') > -1 ? {
   auth: {
     apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
     appName: '[DEFAULT]',
