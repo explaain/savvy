@@ -69,8 +69,11 @@ export default {
       this.$emit('update', { field: 'list', value: this.listContent })
     },
     cardletClick: function(card) {
-      if (card.objectID === 0) this.listFull = true
-      else if (!this.editing) this.$emit('cardletClick', card)
+      console.log('cardletClick (list.vue)', card)
+      if (card.objectID === -1)
+        this.listFull = true
+      else if (!this.editing)
+        this.$emit('cardletClick', card)
     },
     addListItem: function(card) {
       console.log(card)

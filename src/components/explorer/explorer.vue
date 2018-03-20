@@ -247,26 +247,23 @@
       cardClickFromPopup: function(card) {
         this.cardClick(card, true)
       },
-      cardClick: function(card, fromPopup) {
+      cardClick: async function(card, fromPopup) {
         const self = this
-        setTimeout(function () { // Is this timeout stil necessary?
-          self.popupClicked = true
-          self.openPopup(card, fromPopup)
-          try {
-            self.openPopup(card, fromPopup)
-          } catch (e) {
-            console.log('Caught cardlet failing to open - opening parent card instead')
-            if (card.parentCard && card.parentCard.objectID)
-              self.openPopup(card.parentCard, fromPopup)
-          }
-          Mixpanel.track('Card Clicked', {
-            organisationID: self.user.data.organisationID,
-            userID: self.user.uid,
-            cardID: card.objectID,
-            description: card.description,
-            listItems: card.listItems
-          })
-        }, 1)
+        console.log('cardClick', card, fromPopup)
+        self.popupClicked = true
+        var openedCard = await self.openPopup(card, fromPopup)
+        if (!openedCard) {
+          console.log('Caught cardlet failing to open - opening parent card instead')
+          if (card.parentCard && card.parentCard.objectID)
+            openedCard = await self.openPopup(card.parentCard, fromPopup)
+        }
+        Mixpanel.track('Card Clicked', {
+          organisationID: self.user.data.organisationID,
+          userID: self.user.uid,
+          cardID: openedCard.objectID,
+          description: openedCard.description,
+          listItems: openedCard.listItems
+        })
       },
       popupBack: function() {
         this.popupCardList.pop()
@@ -288,34 +285,40 @@
           self.closePopup()
         }
       },
-      openPopup: function(c, append) {
+      openPopup: async function(c, append) {
         console.log('openPopup')
-        this.fetchCard(c.objectID)
-        .then(card => {
-          // if (card.file) card.files = [card.file] // @TODO: Sort this out! Currently just a hack
+        clearTimeout(this.popupCloseTimeout)
+        var card = null
+        try {
+          card = await this.fetchCard(c.objectID)
+        } catch (e) {
+          console.log(e)
+        }
+        // if (card.file) card.files = [card.file] // @TODO: Sort this out! Currently just a hack
 
-          // if (c._highlightResult) {
-          //   Object.keys(c._highlightResult).forEach(key => {
-          //     console.log(key)
-          //     if (key === 'fileTitle' && card.files && card.files.length)
-          //       card.files[0].title = c._highlightResult[key].value
-          //     else if (key === 'pendingContent')
-          //       Object.keys(card.pendingContent).forEach(pcKey => {
-          //         if (c._highlightResult.pendingContent[pcKey])
-          //           card.pendingContent[pcKey] = c._highlightResult.pendingContent[pcKey].value
-          //       })
-          //     else if (key !== 'service')
-          //       card[key === 'content' ? 'description' : key] = c._highlightResult[key].value
-          //   })
-          // }
-          console.log('card', card)
+        // if (c._highlightResult) {
+        //   Object.keys(c._highlightResult).forEach(key => {
+        //     console.log(key)
+        //     if (key === 'fileTitle' && card.files && card.files.length)
+        //       card.files[0].title = c._highlightResult[key].value
+        //     else if (key === 'pendingContent')
+        //       Object.keys(card.pendingContent).forEach(pcKey => {
+        //         if (c._highlightResult.pendingContent[pcKey])
+        //           card.pendingContent[pcKey] = c._highlightResult.pendingContent[pcKey].value
+        //       })
+        //     else if (key !== 'service')
+        //       card[key === 'content' ? 'description' : key] = c._highlightResult[key].value
+        //   })
+        // }
+        console.log('card', card)
+        if (card) {
           if (append) {
             if (!this.popupCardList.length || this.popupCardList[this.popupCardList.length - 1] !== c.objectID)
               this.popupCardList.push(card.objectID)
           } else
             this.popupCardList = [card.objectID]
-        })
-        clearTimeout(this.popupCloseTimeout)
+        }
+        return card
       },
       closePopup: function(instantly) {
         console.log('closePopup')

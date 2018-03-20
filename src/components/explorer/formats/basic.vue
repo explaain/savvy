@@ -28,6 +28,7 @@ export default {
       this.$emit('update', data)
     },
     cardletClick: function(card) {
+      console.log('cardletClick (basic.vue)', card)
       this.$emit('cardletClick', card)
     },
   }

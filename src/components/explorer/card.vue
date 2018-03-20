@@ -387,7 +387,7 @@ export default {
       this.$emit('showCard', data)
     },
     cardletClick: function(card) {
-      console.log('cardletClick', card)
+      console.log('cardletClick (card.vue)', card)
       card.parentCard = this.card
       if (!this.editing) this.$emit('cardClick', card)
     },

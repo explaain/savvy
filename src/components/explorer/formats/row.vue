@@ -1,7 +1,7 @@
 <template lang="html">
   <div class="content">
     <field v-show="!editing" class="row-header" label="description" :content="content.description" :editing="editing" @update="update" :truncate="full"></field>
-    <list v-if="content.cells" :listItems="{value: content.cells.value.map((cell, i) => i), state: 'pending'}" :listCards="{value: content.cells.value.map((cell, i) => { if (!cell.objectID) cell.objectID = i; return cell }), state: 'pending'}" :full="full" :allCards="allCards" @update="update" :editing="editing"></list>
+    <list v-if="content.cells" :listItems="{value: content.cells.value.map((cell, i) => i), state: 'pending'}" :listCards="{value: content.cells.value.map((cell, i) => { if (!cell.objectID) cell.objectID = i; return cell }), state: 'pending'}" :full="full" :allCards="allCards" @update="update" @cardletClick="cardletClick" :editing="editing"></list>
   </div>
 </template>
 
@@ -26,6 +26,10 @@ export default {
       console.log('update (row)', data)
       if (data.field === 'list') data.field = 'cells'
       this.$emit('update', data)
+    },
+    cardletClick: function(card) {
+      console.log('cardletClick (row.vue)', card)
+      this.$emit('cardletClick', card)
     },
   }
 }
