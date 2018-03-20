@@ -1,5 +1,5 @@
 <template lang="html">
-  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === -1, 'empty': (!card.value || !card.value.length) && card.objectID !== -1 }">
+  <div class="cardlet" @click.stop="cardletClick" :class="{ 'show-more': card.objectID === -1, 'empty': (!card.description || !card.description.length) && (!card.value || !card.value.length) && card.objectID !== -1 }">
     <!-- <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton> -->
     <!-- <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton> -->
     <!-- <editable :content="card.description" :editable="editing && editable" @update="card.description = $event"></editable> -->

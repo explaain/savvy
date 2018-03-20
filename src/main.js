@@ -23,7 +23,7 @@ class Main {
     console.log('props')
     console.log(props)
     const ControllerInterfaceClass = (props.env === 'testing' || props.demo) ? ControllerInterface : ChromeControllerInterface
-    mainSelf.Controller = new ControllerInterfaceClass({})
+    mainSelf.Controller = new ControllerInterfaceClass({ demo: props.demo })
 
     Vue.filter('capitalise', (value, initial) => {
       if (!value) return ''

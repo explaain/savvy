@@ -25,8 +25,10 @@ const algoliaParams = {
   appID: 'D3AE3TSULH' // @TODO: Find a home for this!
 }
 
-// const userForcedFromUrl = window && window.location && window.location.href.search('localhost:8080') > -1 ? {
-const userForcedFromUrl = window && window.location && window.location.href.search('yc.heysavvy.com') > -1 ? {
+// var userForcedFromUrl = window && window.location && window.location.href.search('localhost:8080') > -1 ? {
+// var userForcedFromUrl = window && window.location && window.location.href.search('ngrok') > -1 ? {
+// var userForcedFromUrl = window && window.location && window.location.href.search('yc.heysavvy.com') > -1 ? {
+var userForcedFromUrl = {
   auth: {
     apiKey: 'AIzaSyDbf9kOP-Mb5qroUdCkup00DFya0OP5Dls',
     appName: '[DEFAULT]',
@@ -59,7 +61,8 @@ const userForcedFromUrl = window && window.location && window.location.href.sear
     slack: '',
   },
   uid: 'paul_graham',
-} : false
+}
+// } : false
 
 console.log('STARTING1')
 console.log(userForcedFromUrl)
@@ -69,6 +72,7 @@ class Controller {
   constructor(config) {
     console.log('Controller Constructed')
     config.firebaseConfig = firebaseConfig
+    if (!config.demo) userForcedFromUrl = false
     const stateChangeCallback = (state, user) => {
       const userToReturn = userForcedFromUrl || user
       const stateToReturn = userForcedFromUrl ? 'loggedIn' : state

@@ -4,7 +4,7 @@
       <div class="create-button">
         <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
           <b-dropdown-item class="basic" @click="createCard(null)">🔖 New Card</b-dropdown-item>
-          <b-dropdown-item class="issue" @click="createCard('sifter')">🐞 New Bug</b-dropdown-item>
+          <!-- <b-dropdown-item class="issue" @click="createCard('sifter')">🐞 New Bug</b-dropdown-item> -->
         </b-dropdown>
       </div>
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
@@ -13,8 +13,8 @@
         <slot name="header"></slot>
         <div class="search">
           <slot name="greeting"></slot>
-          <input autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search">
           <a href="#" class="closeSearch" @click="closeSearch"><icon name="close"></icon></a>
+          <input autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search">
         </div>
         <slot name="buttons"></slot>
         <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
@@ -28,9 +28,9 @@
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []"></card>
+        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
@@ -41,7 +41,7 @@
       <ul @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
-        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []"></card>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
       </ul>
     </div>
   </div>
@@ -84,7 +84,8 @@
       'authState',
       'sidebar',
       'local',
-      'testing'
+      'testing',
+      'demo',
     ],
     data () {
       return {
@@ -738,6 +739,8 @@
     margin: 180px auto 20px;
     // width: calc(100% - 77px);
     transition: margin .5s;
+    max-width: 640px;
+    width: calc(100% - 100px);
 
     .greeting h3 {
       margin: -40px 20px 30px;
@@ -751,8 +754,9 @@
     }
     input {
       @include blockShadow(2);
-      max-width: 600px;
       margin: 0;
+      width: 100%;
+      box-sizing: border-box;
       padding: 20px 40px 20px 45px;
       font-size: 18px;
       background: url('/static/images/search-icon-1.png'); // //static//
@@ -760,7 +764,6 @@
       background-position: center left;
       background-size: 40px;
       background-color: white;
-      width: calc(100% - 67px);
       transition: padding .5s, box-shadow .5s, filter .5s, max-width .5s;
     }
   }
@@ -770,17 +773,19 @@
   .closeSearch {
     display: inline-block;
     position: absolute;
-    right: 35px;
+    margin: 13px 4px;
+    right: calc(50% - 192px);
     top: auto;
-    margin-top: -31px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity .5s;
+    // transition: opacity .5s;
     color: #999;
+    z-index: 1000;
   }
   .search-results {
     .search {
-      margin-top: 60px;
+      margin-top: 10px;
+      max-width: 400px;
 
       .greeting {
         pointer-events: none;
@@ -791,7 +796,7 @@
         }
       }
       input {
-        max-width: 400px;
+        width: 100%;
         padding-top: 10px;
         padding-bottom: 10px;
         @include blockShadow(0.5);
@@ -864,11 +869,6 @@
   }
 
   .explorer:not(.sidebar) {
-    .search .closeSearch {
-      position: relative;
-      top: -1px;
-      right: 32px;
-    }
     .no-cards {
       img {
         opacity: 0.6;
@@ -879,6 +879,11 @@
     }
     > .popup.active {
       background: rgba(0,0,0,0.2);
+    }
+  }
+  @media (max-width: 538px) {
+    .search .closeSearch {
+      right: 78px;
     }
   }
 </style>

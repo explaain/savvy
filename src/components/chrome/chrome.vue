@@ -9,10 +9,10 @@
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
     <div class="spinner-div" v-if="authState === 'pending'"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
-    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing">
+    <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing" :demo="demo">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
-        <ibutton v-if="demo" icon="question-circle" text="Demo Info" :click="setShowDemoInfoPanel" style="margin: 0;"></ibutton>
+        <ibutton v-if="demo" icon="question-circle" text="Demo Info" :click="setShowDemoInfoPanel" class="demo-info"></ibutton>
         <b-dropdown id="user-ddown1" text="User" variant="link" class="profile" size="lg" no-caret>
           <template slot="button-content">
             <img :src="profileImage" :class="user && user.data && user.data.role">
@@ -24,7 +24,7 @@
         </b-dropdown>
       </div>
       <div class="greeting" slot="greeting">
-        <h3><span>Hi.</span> What are we looking for?</h3>
+        <h3><span v-if="demo">Hey YC.</span><span v-else>Hi.</span> What are we looking for?</h3>
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
@@ -77,7 +77,7 @@
         // sidebar: true,
         justClicked: false,
         showConnectPanel: false,
-        showDemoInfoPanel: false,
+        showDemoInfoPanel: this.demo,
         services: [
           {
             title: 'Google Drive',
@@ -222,6 +222,7 @@
   }
   html, body, body > .app, body > .app > .explorer, body > .app > .explorer > .main-explorer {
     height: 100%;
+    position: relative;
   }
   body > div.app {
     margin: auto;
@@ -238,11 +239,16 @@
       left: 20px;
       max-width: 120px;
     }
+    .demo-info {
+      margin: 0;
+    }
     .profile {
       position: absolute;
       right: 20px;
       width: 35px;
       height: 35px;
+      margin: 0;
+      margin-top: -3px;
 
       &.manager {
         box-shadow: 0px 0px 4px $savvy;
@@ -323,6 +329,26 @@
       display: inline-block;
       width: auto;
       padding: 40px;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .chrome-header {
+      margin-top: -5px;
+      img.savvy-logo {
+        margin-top: 5px;
+        max-width: 100px;
+      }
+      .demo-info {
+        font-size: 14px;
+        padding: 10px 15px;
+      }
+      .profile {
+        margin-top: 2px;
+      }
+    }
+    .create-button {
+      display: none;
     }
   }
 

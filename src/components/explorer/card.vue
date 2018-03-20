@@ -2,12 +2,12 @@
   <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, loading: loading || card.loading, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <div class="buttons-top-right edit-buttons">
-      <ibutton class="small left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
-      <ibutton v-if="!editing" class="small center create" icon="plus" text="Add" :click="createCard"></ibutton>
-      <ibutton v-if="!editing" class="small right edit" icon="pencil" text="Edit" :click="editCard"></ibutton>
+      <ibutton v-if="!demo" class="small left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
+      <!-- <ibutton v-if="!editing" class="small center create" icon="plus" text="Add" :click="createCard"></ibutton> -->
+      <ibutton v-if="!editing" class="small edit" :class="{ right: !demo }" icon="pencil" text="Edit" :click="editCard"></ibutton>
       <button v-if="!explaain" class="small copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
-    <section style="overflow: hidden" @click="linkClick">
+    <section v-if="!fileFormat" style="overflow: hidden" @click="linkClick">
       <img :src="cardIcon" alt="" class="file-icons">
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <h3 v-if="editing" style="margin: 15px 10px 10px;">Enter your card details:</h3>
@@ -16,16 +16,21 @@
       <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
       <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
     </section>
-    <a v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
-      <!-- <img :src="fileIcons[i]" alt=""> -->
-      <h4><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
-      <h5><img v-if="getServiceName(card, file).icon" :src="getServiceName(card, file).icon" alt="">{{getServiceName(card, file).name}}</h5>
-    </a>
-    <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     <p class="message-block warning" v-if="warningMessage"><icon name="exclamation-circle"></icon>{{warningMessage}}
       <ibutton v-if="card.pendingDelete" class="small" icon="close" text="Cancel" :click="cancelPendingDelete"></ibutton>
     </p>
     <p class="message-block error" v-if="errorMessage"><icon name="exclamation-triangle"></icon>{{errorMessage}}</p>
+    <a @click.stop="" v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
+      <section class="file-card-body" v-if="fileFormat">
+        <img :src="cardIcon" alt="" class="file-icons">
+        <h3>{{card.title}}</h3>
+        <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
+      </section>
+      <!-- <img :src="fileIcons[i]" alt=""> -->
+      <h4 v-if="!fileFormat"><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
+      <h5><img v-if="getServiceName(card, file).icon" :src="getServiceName(card, file).icon" alt="">{{getServiceName(card, file).name}}</h5>
+    </a>
+    <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
     <footer v-if="full">
       <div class="sources" v-if="card.sources && card.sources.length">
         Source{{card.sources.length > 1 ? 's' : ''}}: <span v-for="source, i in card.sources"><a :href="source.url" target="_blank">{{source.name}}</a>{{i < card.sources.length - 1 ? ', ' : '' }}</span>
@@ -93,6 +98,7 @@ export default {
     'userTopics',
     'creating',
     'highlightResult',
+    'demo',
   ],
   components: {
     Icon,
@@ -120,6 +126,7 @@ export default {
       highlightedContent: {},
       loading: false,
       error: null,
+      triedtoEdit: false,
     }
   },
   computed: {
@@ -172,22 +179,36 @@ export default {
       return content
     },
     format: function() {
-      const service = this.data.cells ? 'gsheets' : this.data.service
-      const fileCardServices = [
-        'gsheets'
-      ]
-      if (fileCardServices.indexOf(service) > -1 && this.data.type === 'file')
-        return 'basic'
-      else
+      const service = this.data.cells
+      ? 'gsheets' : (this.data.fileType ? {
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'gdocs'
+      }[this.data.fileType] || this.data.service
+      : this.data.service)
+      // const fileCardServices = [
+      //   'gsheets'
+      // ]
+      if (this.data.type === 'file') {
         switch (service) {
           case 'sifter':
           case 'zoho':
             return 'issue'
+          case 'gdocs':
+            return 'doc'
+          case 'gsheets':
+            return 'sheet'
+          case 'gslides':
+            return 'slide'
+          default:
+            return 'basic'
+        }
+      } else {
+        switch (service) {
           case 'gsheets':
             return 'row'
           default:
             return 'basic'
         }
+      }
     },
     text: {
       get: function() {
@@ -202,10 +223,19 @@ export default {
       }
     },
     cardIcon: function() {
-      if (this.format === 'issue')
-        return '/static/images/icons/bug.png'
-      else
-        return this.fileIcons
+      return {
+        doc: '/static/images/icons/formats/doc.png',
+        sheet: '/static/images/icons/formats/sheet.png',
+        row: '/static/images/icons/formats/row.png',
+        issue: '/static/images/icons/formats/bug.png',
+      }[this.format] || {
+        webpage: '/static/images/icons/formats/webpage.png',
+        file: '/static/images/icons/formats/file.png',
+      }[this.data.type] || {
+        gdrive: '/static/images/icons/formats/doc.png',
+        gdocs: '/static/images/icons/formats/doc.png',
+        gslides: '/static/images/icons/formats/doc.png',
+      }[this.data.service] || (this.data.fileID ? '/static/images/icons/formats/file.png' : '/static/images/iconGrey.png')
     },
     fileIcons: function() {
       return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
@@ -234,6 +264,8 @@ export default {
     },
     fullText: function() {
       return (this.card.title ? this.card.title + '\n\n' : '') + this.text
+        + (this.card.cardList && this.card.cardList.length ? '\n- ' + (this.card.cardList || []).map(item => item.description).join('\n- ') : '')
+        + (this.card.cells && this.card.cells.length ? '\n- ' + (this.card.cells || []).filter(cell => cell.content.length).map(cell => cell.content).join('\n- ') : '')
       //  + this.listCards.map(function(listCard) {
       //   return '\n- ' + listCard.description
       // })
@@ -249,7 +281,7 @@ export default {
     },
     warningMessage: function() {
       const self = this
-      return self.card.pendingDelete ? 'This card is pending deletion' : null
+      return self.card.pendingDelete ? 'This card is pending deletion' : (this.triedtoEdit ? 'Docs editing is coming soon! Try editing a Google Sheet card.' : null)
     },
     numberOfPendingChanges: function() {
       return Object.keys(this.card.pendingContent).filter(key => this.card.pendingContent[key] && this.card.pendingContent[key].length && this.card.pendingContent[key] !== this.card[key]).length
@@ -271,6 +303,9 @@ export default {
     },
     userIsSavvy: function () {
       return !!(this.userRole === 'admin' || (this.card && (!this.card.topics || !this.card.topics.length || (this.userTopics && typeof this.userTopics === 'object' && this.userTopics.constructor === Array && this.userTopics.filter(topic => this.card.topics.indexOf(topic) > -1).length))))
+    },
+    fileFormat: function () {
+      return this.card.type === 'file' && ['sifter', 'zoho'].indexOf(this.card.service) === -1
     }
   },
   watch: {
@@ -304,12 +339,21 @@ export default {
       this.card[data.field] = data.value
     },
     getServiceName(card, file) {
+      const defaultService = {
+        name: '📂 ' + (this && this.user && this.user.data && this.user.data.organisation && this.user.data.organisation.id ? this.user.data.organisation.id : 'Team') + ' Drive'
+      }
       const services = {
         gdocs: {
-          name: '📂 Google Drive',
+          name: 'Google Docs',
+          icon: '/static/images/icons/gdocs.png'
         },
         gsheets: {
-          name: '📂 Google Drive',
+          name: 'Google Sheets',
+          icon: '/static/images/icons/gsheets.png'
+        },
+        gslides: {
+          name: 'Google Slides',
+          icon: '/static/images/icons/gslides.png'
         },
         sifter: {
           name: 'Sifter',
@@ -327,14 +371,19 @@ export default {
           icon: '/static/images/icons/gsites.png'
         },
       }
+      const fileTypes = {
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'gdocs'
+      }
       if (file && file.folder)
         return { name: '📂 ' + file.folder + ' Drive' }
       else if (file && file.service)
         return services[file.service]
       else if (card && card.service)
         return services[card.service]
+      else if (card && card.fileType)
+        return services[fileTypes[card.fileType]] || defaultService
       else
-        return { name: '📂 ' + (this && this.user && this.user.data && this.user.data.organisation && this.user.data.organisation.id ? this.user.data.organisation.id : 'Team') + ' Drive' }
+        return defaultService
     },
     getFileTitle: function(file) {
       return this.format === 'issue' ? 'Issue #' + (this.card.integrationFields.key || this.card.integrationFields.number) : file && file.title ? file.title : ''
@@ -395,7 +444,10 @@ export default {
       // Hi
     },
     editCard: function() {
-      this.editing = true
+      if (this.card.fileType !== 'application/vnd.google-apps.document')
+        this.editing = true
+      else
+        this.triedtoEdit = true
     },
     deleteCard: function() {
       const self = this
@@ -530,7 +582,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     position: relative;
     display: inline-block;
     vertical-align: top;
-    margin: 10px calc(50% - 203px);
+    margin: 10px;
     width: calc(100% - 60px);
     max-width: 380px;
     padding: 0;
@@ -656,6 +708,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       position: absolute;
       top: 5px;
       right: 5px;
+      margin: 5px;
       // margin: -5px -5px 10px 20px;
       button {
         display: none;
@@ -807,6 +860,24 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         background: #f5f5f5;
       }
 
+      section.file-card-body {
+        overflow: hidden;
+        padding: 5px;
+        margin: 5px;
+
+        > img.file-icons {
+          height: 60px;
+          max-height: none;
+          max-width: none;
+          padding-left: 0;
+        }
+        > h3 {
+          min-height: 50px;
+        }
+        > p.modified {
+          padding: 0;
+        }
+      }
       img {
         height: 25px;
         float: left;
@@ -930,6 +1001,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
   .explorer {
     .card:hover {
       .buttons-top-right .copy {
+        margin-left: 5px;
         display: inline-block;
       }
     }
@@ -960,6 +1032,11 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     width: calc(100% - 50px);
     box-shadow: 0px 0px 30px rgba(150,150,150,0.5);
     border: none;
+  }
+  @media (min-width: 430px) {
+    .explorer:not(.sidebar) .main-explorer .card:not(.cardlet) {
+      margin: 10px calc(50% - 203px);
+    }
   }
   @media (min-width: 600px) {
     .explorer:not(.sidebar) .main-explorer .card:not(.cardlet) {
