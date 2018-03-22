@@ -12,7 +12,7 @@
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing" :demo="demo">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
-        <ibutton v-if="demo" icon="question-circle" text="Demo Info" :click="setShowDemoInfoPanel" class="demo-info"></ibutton>
+        <ibutton v-if="demo" icon="question-circle" text="Demo Info" :click="showDemoInfoPanel" class="demo-info"></ibutton>
         <b-dropdown id="user-ddown1" text="User" variant="link" class="profile" size="lg" no-caret>
           <template slot="button-content">
             <img :src="profileImage" :class="user && user.data && user.data.role">
@@ -31,8 +31,19 @@
     <div class="popup-panel-container" v-if="showConnectPanel" @click.self="showConnectPanel = false">
       <connect :services="services" :organisationID="user.data.organisationID"></connect>
     </div>
-    <div class="popup-panel-container" v-if="showDemoInfoPanel" @click.self="showDemoInfoPanel = false">
-      <popup-panel title="Info on the demo" description="Here's some stuff"></popup-panel>
+    <div class="popup-panel-container demo-info" v-if="demoInfoPanel" @click.self="demoInfoPanel = false">
+      <popup-panel title="👋🏼 Hello Y Combinator">
+        <div>
+          <p style="margin-top: 30px;">We've connected up to a fictional Google Drive and populated it with various docs, sheets, images and more for you to play with.</p>
+          <p>On this version you can:</p>
+          <ul>
+            <li>🔍 <b>Search</b> - files, content within files, paragraphs and sentences, records in a spreadsheet</li>
+            <li>🖊 <b>Edit</b> - spreadsheets only on this version but watch how it automatically syncs with the master copy (e.g. <a href="https://docs.google.com/spreadsheets/d/1v7uDscxKm8aXmbCv13wLB9q1na_zXqA1VxRMTHW1wVg" target="_blank">here</a> and <a href="https://docs.google.com/spreadsheets/d/1YZWZl7y2cmPi33lBgVwejTl61L3EP1G3V8u9kdndxrc/" target="_blank">here</a>)</li>
+            <li>🗂 <b>Create</b> - a new plain text card and assign tags etc.</li>
+          </ul>
+          <ibutton text="Have a play" icon="arrow-right" :click="hideDemoInfoPanel"></ibutton>
+        </div>
+      </popup-panel>
     </div>
   </div>
 </template>
@@ -77,7 +88,7 @@
         // sidebar: true,
         justClicked: false,
         showConnectPanel: false,
-        showDemoInfoPanel: this.demo,
+        demoInfoPanel: this.demo,
         services: [
           {
             title: 'Google Drive',
@@ -203,8 +214,11 @@
         const message = {action: 'closeDrawer'}
         window.parent.postMessage(message, '*')
       },
-      setShowDemoInfoPanel: function () {
-        this.showDemoInfoPanel = true
+      showDemoInfoPanel: function () {
+        this.demoInfoPanel = true
+      },
+      hideDemoInfoPanel: function () {
+        this.demoInfoPanel = false
       }
     }
   }
@@ -323,6 +337,14 @@
     background-color: rgba(0,0,0,0.2);
     text-align: center;
     z-index: 100000;
+
+    &.demo-info > .panel {
+      max-width: 500px;
+
+      ul {
+        text-align: left;
+      }
+    }
 
     > .panel {
       @extend .block;

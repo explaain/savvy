@@ -1,7 +1,10 @@
 <template lang="html">
   <div class="panel popup-panel">
-    <h3>{{title}}</h3>
-    <p>{{description}}</p>
+    <h3 v-if="title">{{title}}</h3>
+    <p v-if="description">{{description}}</p>
+    <slot>
+
+    </slot>
   </div>
 </template>
 

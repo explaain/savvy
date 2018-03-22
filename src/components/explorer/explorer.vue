@@ -33,6 +33,14 @@
         <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
+          <div v-if="demo" class="search-suggestions">
+            <p>Try searching for:</p>
+            <p>'What batch was Stripe in'</p>
+            <p>'When did Sam go to Waterloo'</p>
+            <!-- <p>'Who was in 2017 batch'</p> -->
+            <p>'How did the Savvy team meet?'</p>
+            <p>'Get me the YC logo'</p>
+          </div>
           <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
         </div>
       </ul>
@@ -132,11 +140,14 @@
         const watchThis = self.allCards // This does nothing other than force this function to watch for changes in self.allCards
         console.log('watchThis', watchThis)
         return self.popupCardList ? self.popupCardList.map(function(objectID) {
-          return self.allCards[objectID] || { description: 'Card Not Found' }
+          const card = self.allCards[objectID] || { description: 'Card Not Found' }
+          if (card._highlightResult) delete card._highlightResult
+          return card
         }) : []
       },
       searchPlaceholder: function() {
-        return document.documentElement.clientWidth > 850 ? 'Find anything (like holiday pay, product specs and brand colours)' : 'Find anything...'
+        // return document.documentElement.clientWidth > 850 ? 'Find anything (like holiday pay, product specs and brand colours)' : 'Find anything...'
+        return 'Find anything...'
       }
     },
     created: function () {
@@ -842,6 +853,29 @@
     img {
       width: calc(100% - 80px);
       max-width: 300px;
+    }
+    .search-suggestions {
+      // position: relative;
+      float: right;
+      margin: auto;
+      // margin-top: -40px;
+      // margin-bottom: -110px;
+      margin-left: -250px;
+      margin-top: 10px;
+      z-index: 100;
+      width: 50%;
+
+      p {
+        margin: 20px;
+        font-size: 18px;
+        text-align: left;
+        color: #999;
+
+        &:first-child {
+          font-size: 20px;
+          font-weight: bold;
+        }
+      }
     }
   }
 

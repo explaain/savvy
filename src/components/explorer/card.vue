@@ -78,6 +78,7 @@ import Search from './search.vue'
 import Topics from './topics.vue'
 
 import Basic from './formats/basic'
+import Media from './formats/media'
 import Issue from './formats/issue'
 import Row from './formats/row'
 
@@ -111,6 +112,7 @@ export default {
     bAlert,
     Topics,
     Basic,
+    Media,
     Issue,
     Row,
   },
@@ -187,7 +189,9 @@ export default {
       // const fileCardServices = [
       //   'gsheets'
       // ]
-      if (this.data.type === 'file') {
+      if (this.data.imageUrl)
+        return 'media'
+      else if (this.data.type === 'file') {
         switch (service) {
           case 'sifter':
           case 'zoho':
@@ -305,7 +309,7 @@ export default {
       return !!(this.userRole === 'admin' || (this.card && (!this.card.topics || !this.card.topics.length || (this.userTopics && typeof this.userTopics === 'object' && this.userTopics.constructor === Array && this.userTopics.filter(topic => this.card.topics.indexOf(topic) > -1).length))))
     },
     fileFormat: function () {
-      return this.card.type === 'file' && ['sifter', 'zoho'].indexOf(this.card.service) === -1
+      return this.data.type === 'file' && ['sifter', 'zoho'].indexOf(this.data.service) === -1 && this.format !== 'media'
     }
   },
   watch: {
