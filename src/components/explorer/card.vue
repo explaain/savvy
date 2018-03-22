@@ -1022,6 +1022,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
     > .popup .card {
       padding-top: 10px;
+      max-width: 480px;
       &:hover {
         .buttons-top-right button {
           display: inline-block;

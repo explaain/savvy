@@ -17,7 +17,7 @@
           <template slot="button-content">
             <img :src="profileImage" :class="user && user.data && user.data.role">
           </template>
-          <!-- <b-dropdown-item @click="showConnectPanel = true">🔌 Connect Services</b-dropdown-item> -->
+          <b-dropdown-item @click="showConnectPanel = true">🔌 Connect Services</b-dropdown-item>
           <!-- <b-dropdown-item @click="forceUser('toggle')">🐞 Switch to {{user.data.role === 'admin' ? 'Member' : 'Admin'}}</b-dropdown-item> -->
           <b-dropdown-item href="https://heysavvy.drift.com/matt" target="_blank">👋 Contact Us</b-dropdown-item>
           <!-- <b-dropdown-item @click="signOut">⚓️ Log Out</b-dropdown-item> -->
@@ -57,7 +57,7 @@
 
   import Explorer from '../explorer/explorer.vue'
   import PopupPanel from '../popup-panel.vue'
-  // import Connect from '../connect.vue'
+  import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
   console.log('chrome.vue running')
@@ -124,7 +124,7 @@
       ibutton: IconButton,
       Explorer,
       PopupPanel,
-      // Connect,
+      Connect,
     },
     created: function(a) {
       const self = this

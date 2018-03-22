@@ -58,22 +58,22 @@ export default {
       self.message = null
       if (!self.loading) {
         self.loading = true
-        // axios.post('http://localhost:5050/add-source', {
         setTimeout(function () {
           console.log('5 second timeout')
           if (self.loading) {
             console.log('hi')
             self.loading = false
-            self.message = 'Source Connected!'
+            self.message = 'Thanks for connecting up your Google Drive! We\'re indexing your content right now and it\'ll be ready for you within a few minutes. ☕️'
           }
         }, 5000)
-        axios.post('//savvy-nlp--staging.herokuapp.com/add-source', {
+        // axios.post('http://localhost:5050/add-source', {
+        axios.post('https://savvy-nlp--staging.herokuapp.com/add-source', {
           organisationID: self.organisationID === 'connect' ? getParameterByName('org') : self.organisationID,
           superService: 'kloudless',
           source: result
         }).then(res => {
           self.loading = false
-          self.message = 'Source Connected!'
+          self.message = 'Great news - your files are now indexed and ready to search!'
           console.log(res.data.results)
         }).catch(e => {
           self.loading = false
@@ -100,6 +100,7 @@ function getParameterByName(name, url) {
 
 .services {
   text-align: center;
+  max-width: 640px;
 
   a {
     @extend .block;
@@ -134,6 +135,7 @@ function getParameterByName(name, url) {
   .message-block {
     position: relative;
     padding: .75rem 1.25rem;
+    margin-top: 1rem;
     margin-bottom: 1rem;
     border: 1px solid transparent;
     border-radius: .25rem;
