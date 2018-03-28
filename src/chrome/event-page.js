@@ -7,15 +7,15 @@ import Controller from '../controller'
 
 log.setLevel('debug')
 
-chrome.tabs.query({}, function(tabs) {
-  console.log('tabs', tabs)
-  tabs.forEach((tab, i) => {
-    if (tab.url.indexOf('chrome://') !== 0 && tab.url.indexOf('chrome-extension://') !== 0)
-      chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
-        console.log('executed', i, tab.id)
-      })
-  })
-})
+// chrome.tabs.query({}, function(tabs) {
+//   console.log('tabs', tabs)
+//   tabs.forEach((tab, i) => {
+//     if (tab.url.indexOf('chrome://') !== 0 && tab.url.indexOf('chrome-extension://') !== 0)
+//       chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
+//         console.log('executed', i, tab.id)
+//       })
+//   })
+// })
 
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
@@ -128,8 +128,18 @@ if (allowContinue) {
 
   chrome.browserAction.onClicked.addListener(tab => {
     chrome.tabs.query({active: true, currentWindow: true}, tabs => { // Couldn't we just use 'tab' from the line above?
-      chrome.tabs.sendMessage(tabs[0].id, {action: 'toggleDrawer'}, res => {
-        log.info(res)
+      const tabID = tabs[0].id
+      chrome.tabs.sendMessage(tabID, {action: 'toggleDrawer'}, res => {
+        console.log(res)
+        if ((!res || !res.togglingDrawer) && tab.url.indexOf('chrome://') !== 0 && tab.url.indexOf('chrome-extension://') !== 0) {
+          console.log('Beginning script on page', tab.id)
+          chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
+            console.log('Begun script on page', tab.id)
+            chrome.tabs.sendMessage(tabID, {action: 'toggleDrawer'}, res => {
+              console.log('res2', res)
+            })
+          })
+        }
       })
     })
   })
@@ -147,6 +157,9 @@ if (allowContinue) {
     var promiseFunction
     if (request.action)
       switch (request.action) {
+        // case 'startExtensionScript':
+        //   promiseFunction =
+        //   break
         case 'signIn':
           promiseFunction = myController.signIn(startSignIn)
           break

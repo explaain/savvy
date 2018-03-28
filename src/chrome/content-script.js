@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       //   break
       case 'toggleDrawer':
         toggleDrawer()
+        sendResponse({ togglingDrawer: true })
         break
     }
   if (request.event)
