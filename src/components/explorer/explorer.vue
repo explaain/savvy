@@ -689,11 +689,11 @@
       z-index: 1;
       pointer-events: all;
       background: $background;
-      overflow: hidden;
+      overflow: scroll;
 
-      &.mouseover {
-        overflow: scroll;
-      }
+      // &.mouseover {
+      //   overflow: scroll;
+      // }
     }
     > .popup {
       position: fixed;
@@ -804,6 +804,7 @@
         h3 {
           opacity: 0;
           font-size: 28px;
+          transition: margin .5s;
         }
       }
       input {
@@ -927,6 +928,25 @@
   @media (max-width: 800px) {
     .explorer.sidebar .search .closeSearch {
       right: 46px;
+    }
+    .explorer .search {
+      margin-top: 100px;
+    }
+    .no-cards .search-suggestions {
+      float: none;
+      width: auto;
+      margin: 20px;
+      p {
+        text-align: center;
+      }
+    }
+    .search .greeting h3 {
+      font-size: 30px;
+    }
+    .search-results {
+      .search .greeting h3 {
+        margin: 0;
+      }
     }
   }
 </style>

@@ -1,0 +1,10 @@
+{
+    "src": "./src/",
+    "dist": "./dist/",
+    "jsBudgetLimit": 200,
+    "jsBudgetPath": "./dist/static/chrome/*.js",
+    "manifestPath": "./api/views/manifest.json",
+    "readableAssets": {
+        "./src/assets/": "/assets/"
+    }
+}

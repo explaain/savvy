@@ -338,6 +338,7 @@
     background-color: rgba(0,0,0,0.2);
     text-align: center;
     z-index: 100000;
+    overflow: scroll;
 
     &.demo-info > .panel {
       max-width: 500px;
@@ -359,8 +360,8 @@
     .chrome-header {
       margin-top: -5px;
       img.savvy-logo {
-        margin-top: 5px;
-        max-width: 100px;
+        margin-top: 8px;
+        max-width: 80px;
       }
       .demo-info {
         font-size: 14px;
@@ -372,6 +373,16 @@
     }
     .create-button {
       display: none;
+    }
+    .popup-panel-container {
+      padding: 10px;
+      .panel.popup-panel {
+        padding: 20px;
+        .btn {
+          font-size: 14px;
+          margin: 10px 0;
+        }
+      }
     }
   }
 
