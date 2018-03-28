@@ -34,14 +34,15 @@
     <div class="popup-panel-container demo-info" v-if="demoInfoPanel" @click.self="demoInfoPanel = false">
       <popup-panel title="👋🏼 Hello Y Combinator">
         <div>
-          <p style="margin-top: 30px;">We've connected up to a fictional Google Drive and populated it with various docs, sheets, images and more for you to play with.</p>
-          <p>On this version you can:</p>
+          <p style="margin-top: 30px;">We've added a mixture of spreadsheets, docs and images to a fictional Google Drive.</p>
+          <ibutton text="You can see the files here" image="/static/images/icons/gdrive.png" link="https://drive.google.com/drive/folders/1IImIf4ttNiE3PPnd6K_34qWS8ALpbweE?usp=sharing"></ibutton>
+          <p>On this version of Savvy you can:</p>
           <ul>
             <li>🔍 <b>Search</b> - files, content within files, paragraphs and sentences, records in a spreadsheet</li>
             <li>🖊 <b>Edit</b> - spreadsheets only on this version but watch how it automatically syncs with the master copy (e.g. <a href="https://docs.google.com/spreadsheets/d/1v7uDscxKm8aXmbCv13wLB9q1na_zXqA1VxRMTHW1wVg" target="_blank">here</a> and <a href="https://docs.google.com/spreadsheets/d/1YZWZl7y2cmPi33lBgVwejTl61L3EP1G3V8u9kdndxrc/" target="_blank">here</a>)</li>
             <li>🗂 <b>Create</b> - a new plain text card and assign tags etc.</li>
           </ul>
-          <ibutton text="Have a play" icon="arrow-right" :click="hideDemoInfoPanel"></ibutton>
+          <ibutton text="Have a play" class="primary action" icon="arrow-right" :click="hideDemoInfoPanel"></ibutton>
         </div>
       </popup-panel>
     </div>
@@ -234,7 +235,7 @@
     margin: 0;
     background: none;
   }
-  html, body, body > .app, body > .app > .explorer, body > .app > .explorer > .main-explorer {
+  html, body, body > .app, body > .app > .explorer, body > .app > .explorer:not(.sidebar) > .main-explorer {
     height: 100%;
     position: relative;
   }

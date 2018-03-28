@@ -40,33 +40,18 @@
     "sidebar.html"
   ],
   "permissions": [
-    "bookmarks",
     "clipboardRead",
     "clipboardWrite",
-    "commands",
-    "contentSettings",
-    "contextMenus",
     "cookies",
-    "debugger",
     "declarativeContent",
-    "history",
     "identity",
     "management",
     "notifications",
-    "pageCapture",
     "proxy",
-    "tabCapture",
     "tabs",
     "topSites",
     "webNavigation",
-    "http://localhost:5000/*",
-    "http://localhost:3000/*",
-    "http://savvy-nlp--staging.herokuapp.com/*",
-    "https://savvy-nlp--staging.herokuapp.com/*",
-    "http://forget-me-not--staging.herokuapp.com/*",
-    "https://forget-me-not--staging.herokuapp.com/*",
-    "webRequestBlocking",
-    "<all_urls>"
+    "webRequestBlocking"
   ],
   "oauth2": {
     "client_id": "704974264220-bjqgp1g3aljp865ehn2kd5s2og2qkuqf.apps.googleusercontent.com",
@@ -75,5 +60,5 @@
       "https://www.googleapis.com/auth/userinfo.profile"
     ]
   },
-  "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp+80s08L2avOI6qgyaMN6xrx5B2gZU+xp7tbtiJHKDpY5XHGSvEJYshV6V+ddNidO9i8zQt6trNR+1ysHTJxTlU67J7UCU+qdUUc4iyQE4ng5Qw0DHX79lvYGJJ5KZz8sUSKwlrU0LQA5+av36P6G6rvbN2QxjrN6q/ACu4geeZ0srw7yxi992OIyg+YX6Fp7tkc1s+YX1cVUxwsTjsrd8rn0CAeDbawhdko6Kk1OblkBu6sVkIZ2IhzcyHpEblJC/lI0kigHPd/Z5bpQIqRs6MrvUrpE7FUfKbo8l067vnzkz0OgJdzCwmQwhMmxCPiSr030ODnMf26w5LsnZJ95QIDAQAB-----END PUBLIC KEY-----"
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy1wxuVB5VCoeBhfarx40etu18sOBiE8Tozzlg4qLFJA7h7PVtbYnE2HSqnXKdAMY/YHy/GsGud5zZ6hl3hh8GzxUlwbUelnegcnQPW++3iMTvZY+3PNcWyqDH5/empQJcoHM02tM/W4ZzzSCWXRh2QbUONtdCA5yH7cV8aCMpkuqj7KTnfjc7m9LOKJ5NHvjxiZkfjIPxvGsN57YPMatX4BRQCma8ypkbkLhDn99++F9eFrnjF+BERROA7dXHl8D9TS36JeDHgY176tjEkVlI52ah+AwDSDQmlX/VAAgbPYRJxQlx7FLLVEEWr7Tpf+y1HWyqrTX+IQy2ZA7Sfn8jwIDAQAB"
 }

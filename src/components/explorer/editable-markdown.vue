@@ -1,5 +1,5 @@
 <template lang="html">
-  <component v-bind:is="component" :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" :placeholder="placeholder" @input="update" :watches="['myContent']" :source="myContent" :linkify="false" :emoji="false"></component>
+  <component v-bind:is="component" :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" :placeholder="placeholder" @input="update" :watches="['myContent']" :source="myContent" :linkify="true" :emoji="false" :anchorAttributes="{ target: '_blank' }"></component>
   <!-- <vue-markdown :class="[{ editable: !(editable === false) }, myClass]" :contenteditable="!(editable === false)" :placeholder="placeholder" @input="update" :watches="['myContent']" :source="myContent" :linkify="false" :emoji="false"></vue-markdown> -->
 </template>
 
@@ -14,7 +14,7 @@
     ],
     data: function() {
       return {
-        myContent: this.content,
+        myContent: this.content || '',
         myClass: String(Math.floor(Math.random() * 10000000000))
       }
     },

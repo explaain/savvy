@@ -3,9 +3,9 @@
     <!-- <ibutton v-if="editing" class="drag" icon="bars" text=""></ibutton> -->
     <!-- <ibutton v-if="editing" class="remove" icon="close" text="" :click="removeCardlet"></ibutton> -->
     <!-- <editable :content="card.description" :editable="editing && editable" @update="card.description = $event"></editable> -->
-    <editable-markdown v-if="card.label" class="label" :content="card.label.replace(':', '')" :editable="false" @update="update" :class="{ greyed: greyed }"></editable-markdown>
-    <editable-markdown v-if="card.value || (editable && editing)" class="value" :content="card.value" :editable="editing && editable" @update="update" :fieldName="card.label.split(' ').join('_')" :class="{ greyed: greyed }"></editable-markdown>
-    <editable-markdown v-if="card.description" :content="text" :editable="editing && editable" @update="update" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.label && card.label.length" class="label" :content="card.label.replace(':', '')" :editable="false" @update="update" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="(card.value && card.value.length) || (editable && editing)" class="value" :content="card.value" :editable="editing && editable" @update="update" :fieldName="card.label.split(' ').join('_')" :class="{ greyed: greyed }"></editable-markdown>
+    <editable-markdown v-if="card.description && card.description.length" :content="text" :editable="editing && editable" @update="update" :class="{ greyed: greyed }"></editable-markdown>
   </div>
 </template>
 
@@ -106,12 +106,12 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
     &:first-of-type {
-      border-top-left-radius: $radiusLarge;
-      border-top-right-radius: $radiusLarge;
+      border-top-left-radius: $radius;
+      border-top-right-radius: $radius;
     }
     &:last-of-type {
-      border-bottom-left-radius: $radiusLarge;
-      border-bottom-right-radius: $radiusLarge;
+      border-bottom-left-radius: $radius;
+      border-bottom-right-radius: $radius;
     }
     > div {
       padding: 10px;

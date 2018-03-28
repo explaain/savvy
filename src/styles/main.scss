@@ -8,8 +8,7 @@ $shadow: hsla(0, 0%, 63%, .95);
 // $background: url("/static/images/background2.png"); // //static//
 $background: #fcfcfc;
 $explaainLink: #eee;
-$radiusSmall: 4px;
-$radiusLarge: 6px;
+$radius: 6px;
 
 @mixin blockShadow($n: 1, $color: $shadow) {
   box-shadow: 0 0 $n * 17px -5px $color;
@@ -33,6 +32,17 @@ $radiusLarge: 6px;
   box-sizing: content-box;
 }
 
+a {
+  color: $savvy;
+
+  &:hover {
+    color: $savvy;
+  }
+  &:focus {
+    outline: 0;
+  }
+}
+
 h1, h2, h3, h4, h5 {
   font-size: inherit;
   font-weight: 600;
@@ -51,13 +61,17 @@ h3 {
   font-family: "Lato", Arial, sans-serif;
   font-size: 16px;
   color: $grey;
+
+  &:hover {
+    color: $grey;
+  }
 }
 .blockSpacing {
   margin: 10px;
   padding: 10px;
 }
 .blockStyle {
-  border-radius: 4px;
+  border-radius: $radius;
   background-color: #fff;
   @include blockShadow(1);
   transition: background-color .3s, box-shadow .3s, border .3s;
@@ -76,12 +90,12 @@ h3 {
 body {
   @extend .defaultFont;
 }
-button, input, textarea, select {
+button, .btn, input, textarea, select {
   @extend .block;
   @extend .defaultFont;
   border: 1px solid #ddd;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: $radius;
 
   &.highlight {
     background: $savvy;
@@ -93,7 +107,7 @@ button, input, textarea, select {
     }
   }
 }
-button {
+button, .btn {
   cursor: pointer;
 
   &:hover {
@@ -119,13 +133,27 @@ button {
     font-size: 12px;
     box-shadow: none;
   }
+
+  &.primary {
+    border-color: $savvy;
+    color: $savvy;
+
+    &.action {
+      background-color: $savvy;
+      color: white;
+
+      &:hover {
+        background-color: white;
+        color: $savvy;
+      }
+    }
+  }
 }
 input {
   &::placeholder {
     color: #bbb;
   }
 }
-a:focus {outline:0;}
 select {
   @extend .block;
   @extend .defaultFont;
@@ -167,6 +195,13 @@ table {
       }
     }
   }
+}
+
+p {
+  margin: 0.5em 0;
+}
+li {
+  margin: 0.3em 0;
 }
 
 .dropdown .dropdown-menu .dropdown-item {

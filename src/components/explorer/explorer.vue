@@ -30,7 +30,7 @@
         <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
         <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <div v-if="demo" class="search-suggestions">
@@ -751,7 +751,7 @@
     // width: calc(100% - 77px);
     transition: margin .5s;
     max-width: 640px;
-    width: calc(100% - 100px);
+    width: calc(100% - 40px);
 
     .greeting h3 {
       margin: -40px 20px 30px;
@@ -880,12 +880,16 @@
   }
 
   .explorer.sidebar {
+    .search-results .search {
+      margin-top: 60px;
+    }
     > .main-explorer {
       position: absolute;
       top: 0;
       bottom: 0;
       left: 50%;
       right: 0;
+
 
       .header > button {
         margin: 10px 2px;
@@ -918,6 +922,11 @@
   @media (max-width: 538px) {
     .search .closeSearch {
       right: 78px;
+    }
+  }
+  @media (max-width: 800px) {
+    .explorer.sidebar .search .closeSearch {
+      right: 46px;
     }
   }
 </style>

@@ -41,7 +41,7 @@
       </div>
       <div class="buttons reaction" v-if="!reacted && !explaain && !editing">
         <!-- <p>How well did this match what you were looking for?</p> -->
-        <button class="" @click="react('great')">😍&nbsp;&nbsp; That's what I needed</button>
+        <button class="" @click.stop="react('great')">😍&nbsp;&nbsp; That's what I needed</button>
         <!-- <button class="" @click="react('ok')">😐</button>
         <button class="" @click="react('bad')">😢</button> -->
       </div>
@@ -767,7 +767,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 
       img {
         max-width: calc(100% - 10px);
-        border-radius: 5px;
+        border-radius: $radius;
       }
     }
     .label {
