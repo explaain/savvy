@@ -10,7 +10,7 @@ log.setLevel('debug')
 chrome.tabs.query({}, function(tabs) {
   console.log('tabs', tabs)
   tabs.forEach((tab, i) => {
-    if (tab.url.indexOf('chrome://' !== 0))
+    if (tab.url.indexOf('chrome://') !== 0 && tab.url.indexOf('chrome-extension://') !== 0)
       chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
         console.log('executed', i, tab.id)
       })
