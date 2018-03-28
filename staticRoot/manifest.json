@@ -51,7 +51,8 @@
     "tabs",
     "topSites",
     "webNavigation",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "<all_urls>"
   ],
   "oauth2": {
     "client_id": "704974264220-bjqgp1g3aljp865ehn2kd5s2og2qkuqf.apps.googleusercontent.com",

@@ -5,6 +5,16 @@ import Controller from '../controller'
 
 log.setLevel('debug')
 
+chrome.tabs.query({}, function(tabs) {
+  console.log('tabs', tabs)
+  tabs.forEach((tab, i) => {
+    if (tab.url.indexOf('chrome://' !== 0))
+      chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
+        console.log('executed', i, tab.id)
+      })
+  })
+})
+
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
   sendMessageToAllTabs({
@@ -26,13 +36,15 @@ var allowContinue = true // Controller.initialise()
 
 const sendMessageToCurrentTab = messageData => {
   chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-    chrome.tabs.sendMessage(tabs[0].id, messageData, response => {})
+    if (tabs.length && tabs[0].id)
+      chrome.tabs.sendMessage(tabs[0].id, messageData, response => {})
   })
 }
 
 const sendMessageToAllTabs = messageData => {
   console.log('sendMessageToAllTabs (event-page.js):', messageData)
   chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+    console.log('tabs (sendMessageToAllTabs)', tabs)
     tabs.forEach(tab => {
       console.log('sending message to tab ' + tab.id + ' (event-page.js):', messageData)
       chrome.tabs.sendMessage(tab.id, messageData, response => {})

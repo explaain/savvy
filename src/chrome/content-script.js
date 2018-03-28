@@ -2,6 +2,8 @@
 import log from 'loglevel'
 log.setLevel('debug')
 
+console.log('starting content-script.js')
+
 const getPageText = () => document.body.innerText
 const getUrl = () => window.location.href
 const getBaseUrl = () => window.location.host.replace('www.', '')
