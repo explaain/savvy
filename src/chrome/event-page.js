@@ -1,5 +1,7 @@
 /* global chrome */
 
+// @TODO Probably worth moving to this https://developer.chrome.com/extensions/activeTab
+
 import log from 'loglevel'
 import Controller from '../controller'
 
