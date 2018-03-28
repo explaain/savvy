@@ -1,6 +1,7 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import LogRocket from 'logrocket'
+import Airship from 'airship-js'
 import Vue from 'vue'
 import router from './router'
 import Dashboard from './dashboard'
@@ -13,6 +14,10 @@ import ControllerInterface from './controller-interface' // Ideally this is only
 require('./styles/index.css')
 
 LogRocket.init('cqmhn2/savvy-development')
+
+// Create an instance with webApiKey and envKey
+let airship = new Airship({webApiKey: 'yqfb07697ad5lak33tu75docb2duty5f', envKey: 'ky4t3nn8vp56n169'})
+// Should be used as a singleton
 
 Vue.config.productionTip = false
 
