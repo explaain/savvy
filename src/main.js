@@ -74,11 +74,33 @@ class Main {
       if (state) v.authState = state
       v.user = user
       if (user && user.auth) {
+        console.log(111)
         LogRocket.identify(user.uid, {
           name: user.auth.displayName,
           email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
           organisation: user.data ? user.data.organisationID : null
         })
+        console.log(222)
+        if (user.data) {
+          // Identifty the user, returns a Promise.
+          airship.identify({
+            type: 'User',
+            id: user.uid,
+            displayName: user.auth.emails ? user.auth.emails[0] : user.auth.email,
+            attributes: {
+              organisationID: user.data ? user.data.organisationID : '0',
+            },
+            // group: {
+            //   type: 'Organisation',
+            //   id: user.data ? user.data.organisationID : '0',
+            //   displayName: 'SF Homeowners Club'
+            // }
+          }).then(() => {
+            console.log(333)
+            console.log('airship.isEnabled(\'new-design-ideas\')')
+            console.log(airship.isEnabled('new-design-ideas'))
+          })
+        }
       }
       console.log('Current authState and user: ', v.authState, v.user)
     }
