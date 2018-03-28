@@ -690,6 +690,7 @@
       pointer-events: all;
       background: $background;
       overflow: scroll;
+      -webkit-overflow-scrolling: touch;
 
       // &.mouseover {
       //   overflow: scroll;
@@ -709,6 +710,7 @@
       &.active {
         pointer-events: all;
         overflow: scroll;
+        -webkit-overflow-scrolling: touch;
       }
 
       .popup-back {
