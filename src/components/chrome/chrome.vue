@@ -339,6 +339,7 @@
     text-align: center;
     z-index: 100000;
     overflow: scroll;
+    -webkit-overflow-scrolling: touch;
 
     &.demo-info > .panel {
       max-width: 500px;

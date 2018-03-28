@@ -438,6 +438,7 @@
       &.active {
         pointer-events: all;
         overflow: scroll;
+        -webkit-overflow-scrolling: touch;
       }
 
       .card {
