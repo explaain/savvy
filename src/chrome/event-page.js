@@ -45,7 +45,7 @@ const sendMessageToCurrentTab = messageData => {
 
 const sendMessageToAllTabs = messageData => {
   console.log('sendMessageToAllTabs (event-page.js):', messageData)
-  chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+  chrome.tabs.query({}, tabs => {
     console.log('tabs (sendMessageToAllTabs)', tabs)
     tabs.forEach(tab => {
       console.log('sending message to tab ' + tab.id + ' (event-page.js):', messageData)

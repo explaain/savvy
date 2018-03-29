@@ -25,9 +25,12 @@ const iframe = document.createElement('iframe')
 /* --- Event Listeners --- */
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  log.trace('Request received', request)
+  console.log('Request received (content-script.js)', request)
   if (request.action)
     switch (request.action) {
+      case 'stateChanged':
+        sendToFrame({ action: 'stateChanged' })
+        break
       // case 'getPageData':
       //   sendResponse(collectPageData())
       //   break

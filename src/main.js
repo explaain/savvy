@@ -1,3 +1,4 @@
+/* global window, chrome */
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import LogRocket from 'logrocket'
@@ -85,6 +86,26 @@ class Main {
       const authState = user && user.uid && user.data.organisationID ? 'loggedIn' : null
       console.log('Forcing onAuthStateChanged()')
       onAuthStateChanged(authState, user)
+    })
+
+    window.addEventListener('message', function(event) {
+      switch (event.data.action) {
+        case 'stateChanged':
+          console.log('stateChanged', event.data)
+          onAuthStateChanged(event.data.data.state, event.data.data.user)
+          break
+      }
+    })
+
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      console.log('Request received (main.js)', request)
+      if (request.action)
+        switch (request.action) {
+          case 'stateChanged':
+            onAuthStateChanged(request.data.state, request.data.user)
+            break
+        }
+      return true
     })
   }
 }
