@@ -17,6 +17,12 @@ log.setLevel('debug')
 //   })
 // })
 
+chrome.runtime.onInstalled.addListener(object => {
+  chrome.tabs.create({url: 'https://heysavvy.com/chrome-installed'}, tab => {
+    console.log('New tab launched with https://heysavvy.com/chrome-installed')
+  })
+})
+
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
   sendMessageToAllTabs({

@@ -58,7 +58,7 @@
 
   import Explorer from '../explorer/explorer.vue'
   import PopupPanel from '../popup-panel.vue'
-  import Connect from '../connect.vue'
+  // import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
   console.log('chrome.vue running')
@@ -94,7 +94,12 @@
           {
             title: 'Google Drive',
             id: 'gdrive',
-            logo: 'https://www.shareicon.net/download/2016/11/22/854958_drive_512x512.png',
+            logo: '/static/images/icons/gdrive.png',
+          },
+          {
+            title: 'Trello',
+            id: 'trello',
+            logo: '/static/images/icons/trello.png',
           },
           {
             title: 'Sifter',
@@ -125,7 +130,8 @@
       ibutton: IconButton,
       Explorer,
       PopupPanel,
-      Connect,
+      // Connect,
+      Connect: () => import('../connect.vue'),
     },
     created: function(a) {
       const self = this

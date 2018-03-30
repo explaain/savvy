@@ -232,6 +232,7 @@ export default {
         sheet: '/static/images/icons/formats/sheet.png',
         row: '/static/images/icons/formats/row.png',
         issue: '/static/images/icons/formats/bug.png',
+        card: '/static/images/icons/formats/card.png',
       }[this.format] || {
         webpage: '/static/images/icons/formats/webpage.png',
         file: '/static/images/icons/formats/file.png',
@@ -239,6 +240,7 @@ export default {
         gdrive: '/static/images/icons/formats/doc.png',
         gdocs: '/static/images/icons/formats/doc.png',
         gslides: '/static/images/icons/formats/doc.png',
+        trello: '/static/images/icons/formats/card.png',
       }[this.data.service] || (this.data.fileID ? '/static/images/icons/formats/file.png' : '/static/images/iconGrey.png')
     },
     fileIcons: function() {
@@ -374,6 +376,10 @@ export default {
           name: 'Google Sites',
           icon: '/static/images/icons/gsites.png'
         },
+        trello: {
+          name: 'Trello',
+          icon: '/static/images/icons/trello.png'
+        },
       }
       const fileTypes = {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'gdocs'
@@ -381,9 +387,9 @@ export default {
       if (file && file.folder)
         return { name: '📂 ' + file.folder + ' Drive' }
       else if (file && file.service)
-        return services[file.service]
+        return services[file.service] || defaultService
       else if (card && card.service)
-        return services[card.service]
+        return services[card.service] || defaultService
       else if (card && card.fileType)
         return services[fileTypes[card.fileType]] || defaultService
       else
