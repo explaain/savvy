@@ -14,22 +14,19 @@
         <div class="search">
           <slot name="greeting"></slot>
           <a href="#" class="closeSearch" @click="closeSearch"><icon name="close"></icon></a>
-          <input autofocus type="text" :placeholder="searchPlaceholder" v-model="query" @keyup.enter="search">
+          <input autofocus type="text" tabindex="1" :placeholder="searchPlaceholder" v-model="query" @keyup.shift.enter="searchGoogle" @keyup.enter.exact="search">
+          <label v-if="!sidebar && !cards.length">Savvy Hint: {{hint}}</label>
         </div>
         <slot name="buttons"></slot>
         <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
       </div>
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
       <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
-
-      <ul v-masonry transition-duration="0.5s" item-selector=".card" class="cards">
+      <div v-masonry transition-duration="0.5s" item-selector=".card" class="cards">
         <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
-        <p class="cards-label" v-if="pingCards.length">Match to content on the page 🙌</p>
-        <card v-masonry-tile v-for="(card, index) in pingCards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
-        <p class="cards-label" v-if="pingCards.length && cards.length">Other potentially relevant information:</p>
         <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
@@ -43,14 +40,14 @@
           </div>
           <img src="/static/images/search-graphic.png" alt=""> <!-- //static// -->
         </div>
-      </ul>
+      </div stagger="500">
     </div>
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
-      <ul @click.self="popupFrameClick" class="cards">
+      <div @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
         <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
-      </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -123,7 +120,12 @@
           type: '',
           title: ''
         },
-        noCardMessage: '' // 'Type above to search for cards',
+        noCardMessage: '', // 'Type above to search for cards'
+        hint: [
+          'press Shift+Enter to search Google instead',
+          'press the TAB key once to move the cursor to this search box',
+          'to see recent updated cards, don\'t type anything, just press Enter',
+        ][Math.floor(Math.random() * 2)] // Update this number with the number of hints!
       }
     },
     computed: {
@@ -415,6 +417,10 @@
           console.log(err)
         })
       },
+      searchGoogle: function(optionalQuery) {
+        const query = optionalQuery && typeof optionalQuery === 'string' ? optionalQuery : this.query
+        window.open('https://www.google.com/search?q=' + query, '_parent')
+      },
       createCard: function (service) {
         const card = {
           objectID: 'TEMP_' + Math.floor(Math.random() * 10000000000),
@@ -681,6 +687,15 @@
   .header {
     text-align: center;
     padding: 20px;
+
+    label {
+      display: block;
+      text-align: right;
+      font-size: 13px;
+      margin-top: 10px;
+      font-style: italic;
+      color: #aaa;
+    }
   }
 
   .explorer {

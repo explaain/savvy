@@ -240,6 +240,7 @@ export default {
         gdrive: '/static/images/icons/formats/doc.png',
         gdocs: '/static/images/icons/formats/doc.png',
         gslides: '/static/images/icons/formats/doc.png',
+        dropbox: '/static/images/icons/formats/doc.png',
         trello: '/static/images/icons/formats/card.png',
       }[this.data.service] || (this.data.fileID ? '/static/images/icons/formats/file.png' : '/static/images/iconGrey.png')
     },
@@ -349,6 +350,10 @@ export default {
         name: '📂 ' + (this && this.user && this.user.data && this.user.data.organisation && this.user.data.organisation.id ? this.user.data.organisation.id : 'Team') + ' Drive'
       }
       const services = {
+        gdrive: {
+          name: 'Google Drive',
+          icon: '/static/images/icons/gdrive.png'
+        },
         gdocs: {
           name: 'Google Docs',
           icon: '/static/images/icons/gdocs.png'
@@ -380,14 +385,22 @@ export default {
           name: 'Trello',
           icon: '/static/images/icons/trello.png'
         },
+        dropbox: {
+          name: 'Dropbox',
+          icon: '/static/images/icons/dropbox.png'
+        },
       }
       const fileTypes = {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'gdocs'
       }
       if (file && file.folder)
         return { name: '📂 ' + file.folder + ' Drive' }
+      else if (file && file.subService)
+        return services[file.subService] || defaultService
       else if (file && file.service)
         return services[file.service] || defaultService
+      else if (card && card.subService)
+        return services[card.subService] || defaultService
       else if (card && card.service)
         return services[card.service] || defaultService
       else if (card && card.fileType)
@@ -852,6 +865,9 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       .title {
         font-weight: bold;
         font-size: 1.2em;
+      }
+      .description ul {
+        padding-left: 30px;
       }
     }
     a.file {

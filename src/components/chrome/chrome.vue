@@ -102,6 +102,11 @@
             logo: '/static/images/icons/trello.png',
           },
           {
+            title: 'Dropbox',
+            id: 'dropbox',
+            logo: '/static/images/icons/dropbox.png',
+          },
+          {
             title: 'Sifter',
             id: 'sifter',
             logo: 'https://www.pcmag.com/sm/pcmagus/photo/default/sifterlogo6_14fe.png',

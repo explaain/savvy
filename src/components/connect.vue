@@ -46,9 +46,10 @@ export default {
       console.log(service)
       switch (service.id) {
         case 'gdrive':
+        case 'dropbox':
           const params = {
             'client_id': '245u1N7lejDTHB0VtkNReEIpUItQLEs67I20xL0XD5DN0QDj',
-            'scope': 'gdrive:normal.storage'
+            'scope': service.id + ':normal.storage',
           }
           const auth = Kloudless.authenticator(null, params, this.fromKloudless)
           auth.launch()
@@ -73,8 +74,8 @@ export default {
       }
       switch (result.origin) {
         case 'kloudless':
-          source.superservice = 'kloudless'
-          source.service = 'gdrive'
+          source.superService = 'kloudless'
+          source.service = result.account.service
           source.accountID = result.account.id
           source.access_token = result.access_token
           source.account = result.account
@@ -86,7 +87,7 @@ export default {
           source.token = result.data
           break
       }
-      if (source.service || source.superservice) {
+      if (source.service || source.superService) {
         source.title = this.services.find(service => service.id === source.service).title
         this.addSource(source)
       }
@@ -112,8 +113,8 @@ export default {
             }
           }
         }, 5000)
-        axios.post('http://localhost:5050/add-source'
-        // axios.post('https://savvy-nlp--staging.herokuapp.com/add-source'
+        // axios.post('http://localhost:5050/add-source'
+        axios.post('https://savvy-nlp--staging.herokuapp.com/add-source'
         , source).then(res => {
           console.log('res')
           console.log(res)

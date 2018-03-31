@@ -97,16 +97,18 @@ class Main {
       }
     })
 
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      console.log('Request received (main.js)', request)
-      if (request.action)
-        switch (request.action) {
-          case 'stateChanged':
-            onAuthStateChanged(request.data.state, request.data.user)
-            break
-        }
-      return true
-    })
+    if (chrome && chrome.runtime && chrome.runtime.onMessage) {
+      chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        console.log('Request received (main.js)', request)
+        if (request.action)
+          switch (request.action) {
+            case 'stateChanged':
+              onAuthStateChanged(request.data.state, request.data.user)
+              break
+          }
+        return true
+      })
+    }
   }
 }
 
