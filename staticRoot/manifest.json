@@ -2,7 +2,7 @@
   "name": "Savvy",
   "short_name": "Savvy",
   "description": "Smart team knowledge management",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "manifest_version": 2,
   "icons": {
     "16": "static/chrome/images/icon16.png",
@@ -51,7 +51,8 @@
     "tabs",
     "topSites",
     "webNavigation",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "<all_urls>"
   ],
   "oauth2": {
     "client_id": "704974264220-bjqgp1g3aljp865ehn2kd5s2og2qkuqf.apps.googleusercontent.com",

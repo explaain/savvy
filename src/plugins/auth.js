@@ -237,14 +237,26 @@ class Auth {
         return null
       }
     }
-    self.getUser = async () => { // Trying to migrate TO this!
+    self.getUser = async (attemptNumber) => { // Trying to migrate TO this!
       const randomID = parseInt(Math.random() * 10000)
-      console.log('🔑 Auth 🔑 - self.getUser, id:', randomID)
+      if (!attemptNumber) attemptNumber = 0
+      console.log('🔑 Auth 🔑 - self.getUser, attempt: ' + attemptNumber + ' id:', randomID)
       const self = this
       const user = self.user ? JSON.parse(JSON.stringify(self.user)) : null
       if (!user.auth) {
-        console.log('🔑 Auth 🔑 -  Don\'t even have user.auth yet! Sending back null.')
-        return null
+        if (self.authState && self.authState === 'pending' && attemptNumber < 2) {
+          console.log('Will wait to attempt #', attemptNumber)
+          // const inceptionUser = await new Promise((resolve, reject) => {
+          //   setTimeout(() => {
+          //     console.log('Now attempting #', attemptNumber)
+          //     self.getUser(attemptNumber + 1).then(resolve).catch(reject)
+          //   }, 5000)
+          // })
+          // return inceptionUser
+        } else {
+          console.log('🔑 Auth 🔑 -  Don\'t even have user.auth yet! (Previous Attempts: ' + attemptNumber + ') Sending back null.')
+          return null
+        }
       }
       if (!user.data || (user.lastRefreshed && new Date() - user.lastRefreshed > 1000 * 60 * 30)) { // Refreshes every 30 mins, since auth token expires every 60 mins
         console.log('♻️  Refreshing User Token!')

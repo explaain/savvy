@@ -24,7 +24,7 @@
         </b-dropdown>
       </div>
       <div class="greeting" slot="greeting">
-        <h3><span v-if="demo">Hey YC.</span><span v-else>Hi.</span> What are we looking for?</h3>
+        <h3><span v-if="demo">Hey YC.</span><span v-else>Hi{{user && user.auth && user.auth.displayName ? ' ' + user.auth.displayName.split(' ')[0] : ''}}.</span> What are we looking for?</h3>
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
@@ -58,7 +58,7 @@
 
   import Explorer from '../explorer/explorer.vue'
   import PopupPanel from '../popup-panel.vue'
-  import Connect from '../connect.vue'
+  // import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
   console.log('chrome.vue running')
@@ -94,22 +94,41 @@
           {
             title: 'Google Drive',
             id: 'gdrive',
-            logo: 'https://www.shareicon.net/download/2016/11/22/854958_drive_512x512.png',
+            logo: '/static/images/icons/gdrive.png',
+          },
+          {
+            title: 'Trello',
+            id: 'trello',
+            logo: '/static/images/icons/trello.png',
+          },
+          {
+            title: 'Dropbox',
+            id: 'dropbox',
+            logo: '/static/images/icons/dropbox.png',
+          },
+          {
+            title: 'Asana',
+            id: 'asana',
+            logo: '/static/images/icons/asana.png',
+            comingSoon: true,
           },
           {
             title: 'Sifter',
             id: 'sifter',
             logo: 'https://www.pcmag.com/sm/pcmagus/photo/default/sifterlogo6_14fe.png',
+            comingSoon: true,
           },
           {
             title: 'Zoho',
             id: 'zoho',
             logo: 'https://d7uddx54veb4a.cloudfront.net/wp-content/uploads/2016/10/logo-zoho.png',
+            comingSoon: true,
           },
           {
             title: 'Confluence',
             id: 'confluence',
             logo: 'https://wac-cdn.atlassian.com/dam/jcr:a22c9f02-b225-4e34-9f1d-e5ac0265e543/confluence_rgb_slate.png',
+            comingSoon: true,
           },
         ]
       }
@@ -125,7 +144,8 @@
       ibutton: IconButton,
       Explorer,
       PopupPanel,
-      Connect,
+      // Connect,
+      Connect: () => import('../connect.vue'),
     },
     created: function(a) {
       const self = this

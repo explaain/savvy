@@ -1,9 +1,27 @@
 /* global chrome */
 
+// @TODO Probably worth moving to this https://developer.chrome.com/extensions/activeTab
+
 import log from 'loglevel'
 import Controller from '../controller'
 
 log.setLevel('debug')
+
+// chrome.tabs.query({}, function(tabs) {
+//   console.log('tabs', tabs)
+//   tabs.forEach((tab, i) => {
+//     if (tab.url.indexOf('chrome://') !== 0 && tab.url.indexOf('chrome-extension://') !== 0)
+//       chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
+//         console.log('executed', i, tab.id)
+//       })
+//   })
+// })
+
+chrome.runtime.onInstalled.addListener(object => {
+  chrome.tabs.create({url: 'https://heysavvy.com/chrome-installed'}, tab => {
+    console.log('New tab launched with https://heysavvy.com/chrome-installed')
+  })
+})
 
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
@@ -26,13 +44,15 @@ var allowContinue = true // Controller.initialise()
 
 const sendMessageToCurrentTab = messageData => {
   chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-    chrome.tabs.sendMessage(tabs[0].id, messageData, response => {})
+    if (tabs.length && tabs[0].id)
+      chrome.tabs.sendMessage(tabs[0].id, messageData, response => {})
   })
 }
 
 const sendMessageToAllTabs = messageData => {
   console.log('sendMessageToAllTabs (event-page.js):', messageData)
-  chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+  chrome.tabs.query({}, tabs => {
+    console.log('tabs (sendMessageToAllTabs)', tabs)
     tabs.forEach(tab => {
       console.log('sending message to tab ' + tab.id + ' (event-page.js):', messageData)
       chrome.tabs.sendMessage(tab.id, messageData, response => {})
@@ -114,8 +134,18 @@ if (allowContinue) {
 
   chrome.browserAction.onClicked.addListener(tab => {
     chrome.tabs.query({active: true, currentWindow: true}, tabs => { // Couldn't we just use 'tab' from the line above?
-      chrome.tabs.sendMessage(tabs[0].id, {action: 'toggleDrawer'}, res => {
-        log.info(res)
+      const tabID = tabs[0].id
+      chrome.tabs.sendMessage(tabID, {action: 'toggleDrawer'}, res => {
+        console.log(res)
+        if ((!res || !res.togglingDrawer) && tab.url.indexOf('chrome://') !== 0 && tab.url.indexOf('chrome-extension://') !== 0) {
+          console.log('Beginning script on page', tab.id)
+          chrome.tabs.executeScript(tab.id, { file: 'static/chrome/contentScript.js' }, () => {
+            console.log('Begun script on page', tab.id)
+            chrome.tabs.sendMessage(tabID, {action: 'toggleDrawer'}, res => {
+              console.log('res2', res)
+            })
+          })
+        }
       })
     })
   })
@@ -133,6 +163,9 @@ if (allowContinue) {
     var promiseFunction
     if (request.action)
       switch (request.action) {
+        // case 'startExtensionScript':
+        //   promiseFunction =
+        //   break
         case 'signIn':
           promiseFunction = myController.signIn(startSignIn)
           break
