@@ -125,7 +125,7 @@
           'press Shift+Enter to search Google instead',
           'press the TAB key once to move the cursor to this search box',
           'to see recent updated cards, don\'t type anything, just press Enter',
-        ][Math.floor(Math.random() * 2)] // Update this number with the number of hints!
+        ][Math.floor(Math.random() * 1)] // Update this number with the number of hints!
       }
     },
     computed: {
@@ -693,6 +693,7 @@
       text-align: right;
       font-size: 13px;
       margin-top: 10px;
+      margin-right: 50px;
       font-style: italic;
       color: #aaa;
     }
@@ -766,8 +767,8 @@
   .search {
     margin: 180px auto 20px;
     // width: calc(100% - 77px);
-    transition: margin .5s;
-    max-width: 640px;
+    transition: margin .5s, max-width .5s;
+    max-width: 740px;
     width: calc(100% - 40px);
 
     .greeting h3 {
@@ -783,7 +784,7 @@
     input {
       @include blockShadow(2);
       margin: 0;
-      width: 100%;
+      width: calc(100% - 100px);
       box-sizing: border-box;
       padding: 20px 40px 20px 45px;
       font-size: 18px;
@@ -792,7 +793,7 @@
       background-position: center left;
       background-size: 40px;
       background-color: white;
-      transition: padding .5s, box-shadow .5s, filter .5s, max-width .5s;
+      transition: padding .5s, box-shadow .5s, filter .5s, width .5s, margin .5s;
     }
   }
   input:focus {
@@ -899,7 +900,7 @@
 
   .explorer.sidebar {
     .search-results .search {
-      margin-top: 60px;
+      margin-top: 80px;
     }
     > .main-explorer {
       position: absolute;
@@ -947,7 +948,7 @@
       right: 46px;
     }
     .explorer .search {
-      margin-top: 100px;
+      margin-top: 160px;
     }
     .no-cards .search-suggestions {
       float: none;
@@ -957,8 +958,13 @@
         text-align: center;
       }
     }
-    .search .greeting h3 {
-      font-size: 30px;
+    .search {
+      .greeting h3 {
+        font-size: 30px;
+      }
+      input {
+        width: 100%;
+      }
     }
     .search-results {
       .search .greeting h3 {

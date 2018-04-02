@@ -109,7 +109,7 @@ const showPingAlert = (number) => {
     + 'box-shadow: rgba(50, 50, 50, 0.95) 0px 0px 30px;'
     + 'border: none;'
     + 'border-radius: 10px;'
-    + 'z-index: 10000000000000000;'
+    + 'z-index: 100000000000000;'
     + 'background: white;'
     + 'cursor: pointer;'
     + 'line-height: 1.4;'
@@ -147,7 +147,7 @@ const createDrawer = () => {
       + 'right: -400px;'
       + 'height: 100%;'
       + 'width: 400px;'
-      + 'z-index: 1000000000000000;'
+      + 'z-index: 100000000000000;'
       + 'background: white;'
       + 'box-shadow: rgba(0, 0, 0, 0.4) -1px 3px 50px 0px;'
       + 'transition: right 0.6s ease 0s;'
@@ -171,7 +171,7 @@ const createDrawer = () => {
       + 'position: absolute;'
       + 'top: 6px;'
       + 'left: 4px;'
-      + 'z-index: 2147483647;'
+      + 'z-index: 100000000000000;'
       + 'font-size: 20px;'
       + 'color: #999;'
       + 'font-family: Arial;'
@@ -267,5 +267,11 @@ const toggleDrawer = e => {
 /* --- ONLOAD Functions -- */
 
 createDrawer()
+
+// Add style component to set drift to be lower z-index
+const divNode = document.createElement('div')
+divNode.innerHTML = '<br><style>#drift-widget-container { z-index: 100000 !important }</style>'
+document.body.appendChild(divNode)
+
 // getPageResults()
 // window.onload = e => getPageResults()

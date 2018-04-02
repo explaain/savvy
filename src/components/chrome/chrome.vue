@@ -24,7 +24,7 @@
         </b-dropdown>
       </div>
       <div class="greeting" slot="greeting">
-        <h3><span v-if="demo">Hey YC.</span><span v-else>Hi.</span> What are we looking for?</h3>
+        <h3><span v-if="demo">Hey YC.</span><span v-else>Hi{{user && user.auth && user.auth.displayName ? ' ' + user.auth.displayName.split(' ')[0] : ''}}.</span> What are we looking for?</h3>
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
@@ -105,6 +105,11 @@
             title: 'Dropbox',
             id: 'dropbox',
             logo: '/static/images/icons/dropbox.png',
+          },
+          {
+            title: 'Asana',
+            id: 'asana',
+            logo: '/static/images/icons/asana.png',
           },
           {
             title: 'Sifter',

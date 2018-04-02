@@ -60,6 +60,12 @@ export default {
           this.authPopup = window.open('https://trello.com/1/authorize?expiration=never&name=Savvy&scope=read,write&response_type=token&key=40bf04080255c5fe6b5e9643a9b9011b&return_url=' + encodeURIComponent(window.location.href) + '%2F&callback_method=postMessage', '_blank')
           // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
           break
+        case 'asana':
+          // window.addEventListener('message', this.retrieveTokenFromPopup, { once: true })
+          // console.log('added event listener')
+          // this.authPopup = window.open('https://app.asana.com/-/oauth_authorize?client_id=615384312271855&redirect_uri=https%3A%2F%2Fconnect.heysavvy.com%2F&response_type=token&state="123=456"', '_blank')
+          // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
+          break
         default:
           break
       }
