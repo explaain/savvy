@@ -269,6 +269,12 @@
   }
 
   .chrome-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+
     img.savvy-logo {
       position: absolute;
       left: 20px;
@@ -283,7 +289,6 @@
       width: 35px;
       height: 35px;
       margin: 0;
-      margin-top: -3px;
 
       &.manager {
         box-shadow: 0px 0px 4px $savvy;

@@ -86,7 +86,7 @@ export default {
           source.service = result.account.service
           source.accountID = result.account.id
           source.access_token = result.access_token
-          source.account = result.account
+          source.raw_source = result.account
           source.scope = result.scope
           source.addedBy = result.account.account
           break

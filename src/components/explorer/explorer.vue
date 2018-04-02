@@ -15,7 +15,16 @@
           <slot name="greeting"></slot>
           <a href="#" class="closeSearch" @click="closeSearch"><icon name="close"></icon></a>
           <input autofocus type="text" tabindex="1" :placeholder="searchPlaceholder" v-model="query" @keyup.shift.enter="searchGoogle" @keyup.enter.exact="search">
-          <label v-if="!sidebar && !cards.length">Savvy Hint: {{hint}}</label>
+          <div class="search-options" v-if="!sidebar">
+            <label class="hint">Savvy Hint: {{hint}}</label>
+            <b-form-group v-if="allowSearchStrategy" class="search-strategy-buttons">
+              <b-form-radio-group id="btnradios1"
+              buttons
+              v-model="searchStrategy"
+              :options="searchStrategyOptions"
+              name="radiosBtnDefault" />
+            </b-form-group>
+          </div>
         </div>
         <slot name="buttons"></slot>
         <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
@@ -57,6 +66,7 @@
 <script>
   import log from 'loglevel'
   import Vue from 'vue'
+  import Airship from 'airship-js'
   import Q from 'q'
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'
@@ -64,6 +74,7 @@
   import BootstrapVue from 'bootstrap-vue'
   import Mixpanel from 'mixpanel-browser'
   import {VueMasonryPlugin} from 'vue-masonry'
+
   import Card from './card.vue'
   import IconButton from './ibutton.vue'
   import Modal from './modal.vue'
@@ -125,7 +136,13 @@
           'press Shift+Enter to search Google instead',
           'press the TAB key once to move the cursor to this search box',
           'to see recent updated cards, don\'t type anything, just press Enter',
-        ][Math.floor(Math.random() * 1)] // Update this number with the number of hints!
+        ][Math.floor(Math.random() * 1)], // Update this number with the number of hints!
+        searchStrategy: 'algolia',
+        searchStrategyOptions: [
+          { text: 'Algolia', value: 'algolia' },
+          { text: 'ElasticSearch', value: 'elasticsearch' }
+        ],
+        allowSearchStrategy: false,
       }
     },
     computed: {
@@ -171,6 +188,22 @@
       self.$parent.$on('search', function(query) {
         self.search(self.$route.query.q)
       })
+
+      // Load Airship Stuff
+      let airship = new Airship({webApiKey: 'yqfb07697ad5lak33tu75docb2duty5f', envKey: 'ky4t3nn8vp56n169'})
+      airship.identify({
+        type: 'User',
+        id: this.user.uid,
+        displayName: this.user.auth.emails ? this.user.auth.emails[0] : this.user.auth.email,
+        attributes: {
+          organisationID: this.user.data ? this.user.data.organisationID : '0',
+        }
+      }).then(() => {
+        self.allowSearchStrategy = airship.isEnabled('choose-search-strategy')
+        console.log('airship.isEnabled(\'choose-search-strategy\')')
+        console.log(airship.isEnabled('choose-search-strategy'))
+      })
+
       // SavvyImport.beginImport()
       Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
       setTimeout(() => {
@@ -684,21 +717,6 @@
     }
   }
 
-  .header {
-    text-align: center;
-    padding: 20px;
-
-    label {
-      display: block;
-      text-align: right;
-      font-size: 13px;
-      margin-top: 10px;
-      margin-right: 50px;
-      font-style: italic;
-      color: #aaa;
-    }
-  }
-
   .explorer {
     > .main-explorer {
       // position: absolute;
@@ -711,6 +729,127 @@
       // &.mouseover {
       //   overflow: scroll;
       // }
+      .search {
+        margin: 180px auto 20px;
+        // width: calc(100% - 77px);
+        transition: margin .5s, max-width .5s;
+        max-width: 740px;
+        width: calc(100% - 40px);
+
+        .header {
+          text-align: center;
+          padding: 20px;
+        }
+
+        .greeting h3 {
+          margin: -40px 20px 30px;
+          font-size: 40px;
+          color: #999;
+          transition: opacity .5s, font-size .5s;
+
+          span {
+            color: $savvy;
+          }
+        }
+        input {
+          @include blockShadow(2);
+          margin: 0;
+          width: calc(100% - 100px);
+          box-sizing: border-box;
+          padding: 20px 40px 20px 45px;
+          font-size: 18px;
+          background: url('/static/images/search-icon-1.png'); // //static//
+          background-repeat: no-repeat;
+          background-position: center left;
+          background-size: 40px;
+          background-color: white;
+          transition: padding .5s, box-shadow .5s, filter .5s, width .5s, margin .5s;
+        }
+        .search-options {
+          text-align: right;
+          margin-right: 50px;
+          transition: margin-right .5s;
+
+          > label.hint {
+            font-size: 13px;
+            opacity: 1;
+            margin-top: 10px;
+            font-style: italic;
+            color: #aaa;
+            transition: font-size .5s, opacity .5s;
+          }
+          .search-strategy-buttons {
+            display: inline-block;
+
+            .btn-group-toggle.btn-group {
+              margin-right: 0;
+
+              label {
+                font-size: 13px;
+                display: inline-block;
+                margin: 0;
+                font-style: normal;
+                padding: 5px 15px;
+              }
+            }
+          }
+        }
+      }
+      input:focus {
+        outline:none;
+      }
+      .closeSearch {
+        display: inline-block;
+        position: absolute;
+        margin: 13px 4px;
+        right: calc(50% - 192px);
+        top: auto;
+        pointer-events: none;
+        opacity: 0;
+        // transition: opacity .5s;
+        color: #999;
+        z-index: 1000;
+      }
+      &.search-results {
+        .search {
+          margin-top: 10px;
+          max-width: 400px;
+
+          .greeting {
+            pointer-events: none;
+
+            h3 {
+              opacity: 0;
+              font-size: 28px;
+              transition: margin .5s;
+            }
+          }
+          input {
+            width: 100%;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            @include blockShadow(0.5);
+            filter: grayscale(100%);
+          }
+          .closeSearch {
+            pointer-events: all;
+            opacity: 1;
+            cursor: pointer;
+
+            &:hover {
+              color: $savvy;
+            }
+          }
+          .search-options {
+            margin-right: 0;
+
+            label.hint {
+              font-size: 1px;
+              opacity: 0;
+            }
+          }
+        }
+      }
     }
     > .popup {
       position: fixed;
@@ -763,85 +902,6 @@
 
   input, .card {
     text-align: left;
-  }
-  .search {
-    margin: 180px auto 20px;
-    // width: calc(100% - 77px);
-    transition: margin .5s, max-width .5s;
-    max-width: 740px;
-    width: calc(100% - 40px);
-
-    .greeting h3 {
-      margin: -40px 20px 30px;
-      font-size: 40px;
-      color: #999;
-      transition: opacity .5s, font-size .5s;
-
-      span {
-        color: $savvy;
-      }
-    }
-    input {
-      @include blockShadow(2);
-      margin: 0;
-      width: calc(100% - 100px);
-      box-sizing: border-box;
-      padding: 20px 40px 20px 45px;
-      font-size: 18px;
-      background: url('/static/images/search-icon-1.png'); // //static//
-      background-repeat: no-repeat;
-      background-position: center left;
-      background-size: 40px;
-      background-color: white;
-      transition: padding .5s, box-shadow .5s, filter .5s, width .5s, margin .5s;
-    }
-  }
-  input:focus {
-    outline:none;
-  }
-  .closeSearch {
-    display: inline-block;
-    position: absolute;
-    margin: 13px 4px;
-    right: calc(50% - 192px);
-    top: auto;
-    pointer-events: none;
-    opacity: 0;
-    // transition: opacity .5s;
-    color: #999;
-    z-index: 1000;
-  }
-  .search-results {
-    .search {
-      margin-top: 10px;
-      max-width: 400px;
-
-      .greeting {
-        pointer-events: none;
-
-        h3 {
-          opacity: 0;
-          font-size: 28px;
-          transition: margin .5s;
-        }
-      }
-      input {
-        width: 100%;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        @include blockShadow(0.5);
-        filter: grayscale(100%);
-      }
-      .closeSearch {
-        pointer-events: all;
-        opacity: 1;
-        cursor: pointer;
-
-        &:hover {
-          color: $savvy;
-        }
-      }
-    }
   }
   p.results-label {
     margin: 0 25px 0;
