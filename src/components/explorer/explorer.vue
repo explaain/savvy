@@ -169,6 +169,14 @@
         return 'Find anything...'
       }
     },
+    watch: {
+      searchStrategy: function(val) {
+        console.log(111222)
+        console.log(this.query)
+        if (this.query)
+          this.search()
+      }
+    },
     created: function () {
       console.log('Starting Explorer')
       const self = this
@@ -425,7 +433,8 @@
         self.Controller.searchCards({
           user: self.user,
           query: self.query,
-          numberOfResults: 12
+          numberOfResults: 12,
+          searchStrategy: self.searchStrategy,
         }).then(function(hits) {
           console.log('hits')
           console.log(hits)
