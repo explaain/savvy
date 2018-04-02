@@ -2,7 +2,7 @@
   <div class="panel connect">
     <h3>Connect to your work apps here</h3>
     <section class="services">
-      <a v-for="service in services" @click="connectSource(service)">
+      <a class="service" :class="{'coming-soon': service.comingSoon}" v-for="service in services" @click="connectSource(service)">
         <div class="logo">
           <span class="helper"></span>
           <img :src="service.logo" alt="">
@@ -44,6 +44,8 @@ export default {
     connectSource: function(service) {
       console.log('service')
       console.log(service)
+      if (service.comingSoon)
+        return
       switch (service.id) {
         case 'gdrive':
         case 'dropbox':
@@ -63,7 +65,7 @@ export default {
         case 'asana':
           // window.addEventListener('message', this.retrieveTokenFromPopup, { once: true })
           // console.log('added event listener')
-          // this.authPopup = window.open('https://app.asana.com/-/oauth_authorize?client_id=615384312271855&redirect_uri=https%3A%2F%2Fconnect.heysavvy.com%2F&response_type=token&state="123=456"', '_blank')
+          this.authPopup = window.open('https://app.asana.com/-/oauth_authorize?client_id=615384312271855&redirect_uri=https%3A%2F%2Fconnect.heysavvy.com%2F&response_type=token&state="123=456"', '_blank')
           // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
           break
         default:
@@ -166,7 +168,7 @@ function getParameterByName(name, url) {
   text-align: center;
   max-width: 640px;
 
-  a {
+  a.service {
     @extend .block;
     display: inline-block;
     width: 120px;
@@ -176,6 +178,29 @@ function getParameterByName(name, url) {
     &:hover {
       background: #f3f3f3;
       // opacity: 0.7;
+    }
+    &::after {
+      content: ".";
+      opacity: 0;
+    }
+    &.coming-soon {
+      background: #f3f3f3;
+
+      &:hover {
+        background: #e9e9e9;
+      }
+      &::after {
+        content: "Coming Soon";
+        opacity: 1;
+        position: relative;
+        top: -170px;
+        font-weight: bold;
+        color: #aaa;
+      }
+
+      > div.logo, p {
+        opacity: 0.2;
+      }
     }
 
     > div.logo {

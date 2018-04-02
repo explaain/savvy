@@ -110,21 +110,25 @@
             title: 'Asana',
             id: 'asana',
             logo: '/static/images/icons/asana.png',
+            comingSoon: true,
           },
           {
             title: 'Sifter',
             id: 'sifter',
             logo: 'https://www.pcmag.com/sm/pcmagus/photo/default/sifterlogo6_14fe.png',
+            comingSoon: true,
           },
           {
             title: 'Zoho',
             id: 'zoho',
             logo: 'https://d7uddx54veb4a.cloudfront.net/wp-content/uploads/2016/10/logo-zoho.png',
+            comingSoon: true,
           },
           {
             title: 'Confluence',
             id: 'confluence',
             logo: 'https://wac-cdn.atlassian.com/dam/jcr:a22c9f02-b225-4e34-9f1d-e5ac0265e543/confluence_rgb_slate.png',
+            comingSoon: true,
           },
         ]
       }
