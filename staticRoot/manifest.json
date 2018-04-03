@@ -2,7 +2,7 @@
   "name": "Savvy",
   "short_name": "Savvy",
   "description": "Smart team knowledge management",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "manifest_version": 2,
   "icons": {
     "16": "static/chrome/images/icon16.png",
@@ -34,7 +34,7 @@
   "chrome_url_overrides" : {
     "newtab": "newtab.html"
   },
-  "content_security_policy": "script-src 'self' https://savvy-nlp--staging.herokuapp.com/ https://*.logrocket.io https://www.gstatic.com/ https://*.firebaseio.com https://*.intercom.io https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com https://savvy-api--live.herokuapp.com; object-src 'self'; child-src 'self' https://api.kloudless.com/ blob:; worker-src 'self' blob:; connect-src https://*.googleapis.com https://savvy-nlp--staging.herokuapp.com https://api.kloudless.com/ https://*.logrocket.io https://*.intercom.io https://api.mixpanel.com https://*.algolia.net https://savvy-api--live.herokuapp.com;",
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://savvy-nlp--staging.herokuapp.com/ https://*.logrocket.io https://www.gstatic.com/ https://*.firebaseio.com https://*.intercom.io https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com https://savvy-api--live.herokuapp.com; object-src 'self'; child-src 'self' https://api.kloudless.com/ blob:; worker-src 'self' blob:; connect-src https://api.airshiphq.com/ https://*.googleapis.com https://savvy-nlp--staging.herokuapp.com https://api.kloudless.com/ https://*.logrocket.io https://*.intercom.io https://api.mixpanel.com https://*.algolia.net https://savvy-api--live.herokuapp.com;",
   "web_accessible_resources": [
     "newtab.html",
     "sidebar.html"

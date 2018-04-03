@@ -1013,8 +1013,13 @@
     }
   }
   @media (max-width: 800px) {
-    .explorer.sidebar .search .closeSearch {
-      right: 46px;
+    .explorer.sidebar .search {
+      input {
+        width: calc(100% - 20px)
+      }
+      .closeSearch {
+        right: 46px;
+      }
     }
     .explorer .search {
       margin-top: 160px;

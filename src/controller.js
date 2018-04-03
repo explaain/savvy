@@ -65,7 +65,7 @@ var userForcedFromUrl = {
 // } : false
 
 console.log('STARTING1')
-console.log(userForcedFromUrl)
+// console.log(userForcedFromUrl)
 console.log(window.location.href)
 
 class Controller {
