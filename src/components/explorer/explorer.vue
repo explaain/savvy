@@ -36,7 +36,7 @@
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <div v-if="demo" class="search-suggestions">
@@ -55,7 +55,7 @@
       <div @click.self="popupFrameClick" class="cards">
         <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
-        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
       </div>
     </div>
   </div>
@@ -65,6 +65,7 @@
 
 <script>
   import log from 'loglevel'
+  import Mixpanel from 'mixpanel-browser'
   import Vue from 'vue'
   import Airship from 'airship-js'
   import Q from 'q'
@@ -72,7 +73,6 @@
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
   import BootstrapVue from 'bootstrap-vue'
-  import Mixpanel from 'mixpanel-browser'
   import {VueMasonryPlugin} from 'vue-masonry'
 
   import Card from './card.vue'
@@ -317,8 +317,28 @@
           userID: self.user.uid,
           cardID: openedCard.objectID,
           description: openedCard.description,
+          title: openedCard.title,
           listItems: openedCard.listItems
         })
+      },
+      fileClick: function (card, file) {
+        console.log('File Clicked', file)
+        if (file && file.url) {
+          console.log('Opening File', file)
+          Mixpanel.track('File Opened', {
+            organisationID: this.user.data.organisationID,
+            userID: this.user.uid,
+            cardID: card.objectID,
+            description: card.description,
+            title: card.title,
+            listItems: card.listItems,
+            fileTitle: card.fileTitle,
+            fileUrl: card.fileUrl,
+            fileType: card.fileType,
+            fileFormat: card.fileFormat,
+          })
+          window.open(file.url, '_blank')
+        }
       },
       popupBack: function() {
         this.popupCardList.pop()

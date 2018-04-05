@@ -20,7 +20,7 @@
       <ibutton v-if="card.pendingDelete" class="small" icon="close" text="Cancel" :click="cancelPendingDelete"></ibutton>
     </p>
     <p class="message-block error" v-if="errorMessage"><icon name="exclamation-triangle"></icon>{{errorMessage}}</p>
-    <a @click.stop="" v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file" target="_blank" :href="file && file.url || 'https://docs.google.com/document/d/15WQ-3weCzF7kmi9FzMJwN6XH1K_ly6cvBM_NuFZtJsw/edit?usp=sharing'">
+    <a @click.stop="fileClick(file)" v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file">
       <section class="file-card-body" v-if="fileFormat">
         <img :src="cardIcon" alt="" class="file-icons">
         <h3>{{card.title}}</h3>
@@ -462,6 +462,9 @@ export default {
       console.log('cardletClick (card.vue)', card)
       card.parentCard = this.card
       if (!this.editing) this.$emit('cardClick', card)
+    },
+    fileClick: function (file) {
+      this.$emit('fileClick', this.card, file)
     },
     createCard: function() {
       // Hi
