@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
-    <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length}">
+    <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length, 'demo': demo}">
       <div class="create-button">
         <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
           <b-dropdown-item class="basic" @click="createCard(null)">🔖 New Card</b-dropdown-item>
@@ -32,7 +32,8 @@
       <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
       <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
       <div v-masonry transition-duration="0.5s" item-selector=".card" class="cards">
-        <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+        <spinner v-if="loading && loader == -1"></spinner>
+        <!-- <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p> -->
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
@@ -53,7 +54,8 @@
     </div>
     <div class="popup" v-bind:class="{ active: popupCards.length }" @click.self="popupFrameClick">
       <div @click.self="popupFrameClick" class="cards">
-        <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p>
+        <spinner class="div-spinner" v-if="popupLoading"></spinner>
+        <!-- <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p> -->
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
         <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
       </div>
@@ -75,6 +77,7 @@
   import BootstrapVue from 'bootstrap-vue'
   import {VueMasonryPlugin} from 'vue-masonry'
 
+  import Spinner from '../spinner.vue'
   import Card from './card.vue'
   import IconButton from './ibutton.vue'
   import Modal from './modal.vue'
@@ -90,7 +93,8 @@
       BootstrapVue,
       Modal,
       Alert,
-      Draggable
+      Draggable,
+      Spinner,
     },
     props: [
       'plugin',
@@ -732,20 +736,6 @@
     }
   }
 
-  .spinner {
-    margin: 60px auto;
-    text-align: center;
-    font-size: 40px;
-
-    svg {
-      width: auto;
-      height: 1em;
-      /* The following two lines make this work in Safari */
-      max-width: 100%;
-      max-height: 100%;
-    }
-  }
-
   .explorer {
     > .main-explorer {
       // position: absolute;
@@ -758,6 +748,9 @@
       // &.mouseover {
       //   overflow: scroll;
       // }
+      .spinner {
+        margin: 0 30px;
+      }
       .search {
         margin: 180px auto 20px;
         // width: calc(100% - 77px);
@@ -897,6 +890,9 @@
         -webkit-overflow-scrolling: touch;
       }
 
+      > .cards {
+        pointer-events: none;
+      }
       .popup-back {
         text-align: left; width: 100%; max-width: 380px; margin: 5px auto;
         cursor: pointer;
@@ -908,7 +904,6 @@
           font-weight: bold;
         }
       }
-
       .card {
         pointer-events: all;
         // width: auto;
@@ -1011,6 +1006,10 @@
     > .popup {
       right: 50%;
       pointer-events: all;
+
+      > .cards {
+        pointer-events: all;
+      }
     }
   }
 
@@ -1064,6 +1063,11 @@
       .search .greeting h3 {
         margin: 0;
       }
+    }
+  }
+  .main-explorer.demo.search-results {
+    .search {
+      margin-top: 30px;
     }
   }
 </style>

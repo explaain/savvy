@@ -8,7 +8,7 @@
       <button class="login" :disabled="authState === 'pending'" @click="signIn">Sign In</button>
       <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
     </section>
-    <div class="spinner-div" v-if="authState === 'pending'"><icon name="spinner" class="fa-spin fa-3x"></icon></div>
+    <spinner class="div-spinner" v-if="authState === 'pending'"></spinner>
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing" :demo="demo">
       <div class="chrome-header" slot="header">
         <img :src="logo" class="savvy-logo" alt=""> <!-- //static// -->
@@ -57,6 +57,7 @@
   import BootstrapVue from 'bootstrap-vue'
 
   import Explorer from '../explorer/explorer.vue'
+  import Spinner from '../spinner.vue'
   import PopupPanel from '../popup-panel.vue'
   // import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
@@ -107,6 +108,11 @@
             logo: '/static/images/icons/dropbox.png',
           },
           {
+            title: 'Gmail',
+            id: 'gmail',
+            logo: '/static/images/icons/gmail.png',
+          },
+          {
             title: 'Asana',
             id: 'asana',
             logo: '/static/images/icons/asana.png',
@@ -144,6 +150,7 @@
       ibutton: IconButton,
       Explorer,
       PopupPanel,
+      Spinner,
       // Connect,
       Connect: () => import('../connect.vue'),
     },
@@ -324,22 +331,13 @@
       color: red;
     }
   }
-  .spinner-div {
+  .spinner.div-spinner {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     padding: 180px 0;
-    font-size: 80px;
     background: rgba(255,255,255,0.5);
-
-    svg {
-      width: auto;
-      height: 1em;
-      /* The following two lines make this work in Safari */
-      max-width: 100%;
-      max-height: 100%;
-    }
   }
   .sidebar-true {
     section.chooseOrg {
@@ -347,7 +345,7 @@
       position: absolute;
       right: 0
     }
-    .spinner-div {
+    .div-spinner {
       left: 50%;
     }
   }

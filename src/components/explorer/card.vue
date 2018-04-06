@@ -14,7 +14,8 @@
       <component v-bind:is="format" :showPending="showPending" :content="content" :full="full" @update="update" :allCards="allCards" @contentUpdate="contentUpdate" @cardletClick="cardletClick" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
       <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
       <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
-      <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+      <!-- <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p> -->
+      <spinner></spinner>
     </section>
     <p class="message-block warning" v-if="warningMessage"><icon name="exclamation-circle"></icon>{{warningMessage}}
       <ibutton v-if="card.pendingDelete" class="small" icon="close" text="Cancel" :click="cancelPendingDelete"></ibutton>
@@ -71,6 +72,7 @@ import Draggable from 'vuedraggable'
 import ToggleButton from 'vue-js-toggle-button'
 import bAlert from 'bootstrap-vue/es/components/alert/alert'
 
+import Spinner from '../spinner.vue'
 import IconButton from './ibutton.vue'
 import Cardlet from './cardlet.vue'
 import Editable from './editable.vue'
@@ -115,6 +117,7 @@ export default {
     Media,
     Issue,
     Row,
+    Spinner,
   },
   data: function() {
     return {
@@ -635,9 +638,10 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       div, img, p {
         opacity: 0.5;
       }
-      p.spinner {
+      .spinner {
         display: block;
         opacity: 1;
+        padding: 20px 0;
       }
     }
     &:not(.editing) {

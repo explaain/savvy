@@ -1,5 +1,5 @@
 <template lang="html">
-  <div class="panel connect">
+  <div class="panel connect" :class="{'loading': loading}">
     <h3>Connect to your work apps here</h3>
     <section class="services">
       <a class="service" :class="{'coming-soon': service.comingSoon}" v-for="service in services" @click="connectSource(service)">
@@ -9,7 +9,8 @@
         </div>
         <p>{{service.title}}</p>
       </a>
-      <p class="spinner" v-if="loading"><icon name="refresh" class="fa-spin fa-3x"></icon></p>
+      <spinner v-if="loading"></spinner>
+      <!-- <p class="spinner" v-if="loading"><img src="static/iconGrey.png" alt=""> <icon name="refresh" class="fa-spin fa-3x"></icon></p> -->
       <p v-if="message && message.text" class="message-block" :class="message.type || 'success'" ></icon>{{message.text}}</p>
     </section>
   </div>
@@ -23,6 +24,7 @@ import Icon from 'vue-awesome/components/Icon.vue'
 import '../scripts/jquery.js'
 import '../scripts/kloudless.authenticator.js'
 import '../scripts/trello.js'
+import Spinner from './spinner.vue'
 require('log-suppress').init(console)
 
 export default {
@@ -39,6 +41,7 @@ export default {
   },
   components: {
     Icon,
+    Spinner,
   },
   methods: {
     connectSource: function(service) {
@@ -57,13 +60,21 @@ export default {
           auth.launch()
           break
         case 'trello':
-          window.addEventListener('message', this.retrieveTokenFromPopup, { once: true })
+          window.addEventListener('message', this.useTokenFromPopup, { once: true })
           console.log('added event listener')
           this.authPopup = window.open('https://trello.com/1/authorize?expiration=never&name=Savvy&scope=read,write&response_type=token&key=40bf04080255c5fe6b5e9643a9b9011b&return_url=' + encodeURIComponent(window.location.href) + '%2F&callback_method=postMessage', '_blank')
           // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
           break
+        case 'gmail':
+          console.log('added event listener')
+          this.authPopup = window.open('https://accounts.google.com/o/oauth2/auth?client_id=704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8080&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&access_type=offline&response_type=code', '_blank')
+          // this.authPopup = window.open('https://accounts.google.com/o/oauth2/auth?client_id=704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2F&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&access_type=offline&response_type=code', '_blank')
+          this.repeatTokenCollection('gmail', 'code')
+          // this.authPopup = window.open('https://accounts.google.com/o/oauth2/auth?client_id=704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fconnect.heysavvy.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&access_type=offline&response_type=code', '_blank')
+          // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
+          break
         case 'asana':
-          // window.addEventListener('message', this.retrieveTokenFromPopup, { once: true })
+          // window.addEventListener('message', this.useTokenFromPopup, { once: true })
           // console.log('added event listener')
           this.authPopup = window.open('https://app.asana.com/-/oauth_authorize?client_id=615384312271855&redirect_uri=https%3A%2F%2Fconnect.heysavvy.com%2F&response_type=token&state="123=456"', '_blank')
           // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
@@ -72,9 +83,31 @@ export default {
           break
       }
     },
-    retrieveTokenFromPopup: function(result) {
+    repeatTokenCollection: function(serviceName, tokenName, counter) {
+      if (!counter) counter = 0
+      setTimeout(() => {
+        try {
+          const popupHref = this.authPopup.location.href
+          console.log('tokenName', tokenName)
+          console.log('popupHref', popupHref)
+          const token = getParameterByName(tokenName, popupHref)
+          console.log('token', token)
+          const result = {
+            origin: serviceName
+          }
+          result[tokenName] = token
+          // this.useTokenFromPopup(result)
+        } catch (e) {
+          if (counter < 30)
+            this.repeatTokenCollection(serviceName, tokenName, counter + 1)
+        }
+      }, 1000)
+    },
+    useTokenFromPopup: function(result) {
       console.log('result11')
       console.log(result)
+      console.log(this.authPopup)
+      console.log(this.authPopup.location.href)
       if (this.authPopup)
         this.authPopup.close()
       const source = {
@@ -94,6 +127,10 @@ export default {
           source.service = 'trello'
           source.token = result.data
           break
+        case 'gmail':
+          source.service = 'gmail'
+          source.token = result.code
+          break
       }
       if (source.service || source.superService) {
         source.title = this.services.find(service => service.id === source.service).title
@@ -101,8 +138,9 @@ export default {
       }
     },
     fromKloudless: function(result) {
+      console.log('fromKloudless')
       result.origin = 'kloudless'
-      this.retrieveTokenFromPopup(result)
+      this.useTokenFromPopup(result)
     },
     addSource: function(source) {
       console.log('source')
@@ -121,8 +159,8 @@ export default {
             }
           }
         }, 5000)
-        // axios.post('http://localhost:5050/add-source'
-        axios.post('https://savvy-nlp--staging.herokuapp.com/add-source'
+        axios.post('http://localhost:5050/add-source'
+        // axios.post('https://savvy-nlp--staging.herokuapp.com/add-source'
         , source).then(res => {
           console.log('res')
           console.log(res)
@@ -164,87 +202,108 @@ function getParameterByName(name, url) {
 <style lang="scss">
 @import '../styles/main.scss';
 
-.services {
-  text-align: center;
-  max-width: 640px;
-
-  a.service {
-    @extend .block;
-    display: inline-block;
-    width: 120px;
-    height: 160px;
-    cursor: pointer;
-
-    &:hover {
-      background: #f3f3f3;
-      // opacity: 0.7;
-    }
-    &::after {
-      content: ".";
-      opacity: 0;
-    }
-    &.coming-soon {
-      background: #f3f3f3;
-
-      &:hover {
-        background: #e9e9e9;
-      }
-      &::after {
-        content: "Coming Soon";
-        opacity: 1;
-        position: relative;
-        top: -170px;
-        font-weight: bold;
-        color: #aaa;
-      }
-
-      > div.logo, p {
-        opacity: 0.2;
-      }
-    }
-
-    > div.logo {
-      height: 120px;
-      padding: 5px;
-      white-space: nowrap; /* this is required unless you put the helper span closely near the img */
-
-      > span.helper {
-        display: inline-block;
-        height: 100%;
-        vertical-align: middle;
-      }
-      > img {
-        max-width: 100%;
-        vertical-align: middle;
-      }
-    }
-
+.panel {
+  &.loading .services a.service {
+    opacity: 0.5;
   }
 
-  .message-block {
-    position: relative;
-    padding: .75rem 1.25rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid transparent;
-    border-radius: .25rem;
+  .services {
     text-align: center;
-    white-space: normal;
+    max-width: 640px;
 
-    &.error {
-      color: #721c24;
-      background-color: #f8d7da;
-      border-color: #f5c6cb;
+    a.service {
+      @extend .block;
+      display: inline-block;
+      width: 120px;
+      height: 160px;
+      cursor: pointer;
+
+      &:hover {
+        background: #f3f3f3;
+        // opacity: 0.7;
+      }
+      &::after {
+        content: ".";
+        opacity: 0;
+      }
+      &.coming-soon {
+        background: #f3f3f3;
+
+        &:hover {
+          background: #e9e9e9;
+        }
+        &::after {
+          content: "Coming Soon";
+          opacity: 1;
+          position: relative;
+          top: -170px;
+          font-weight: bold;
+          color: #aaa;
+        }
+
+        > div.logo, p {
+          opacity: 0.2;
+        }
+      }
+
+      > div.logo {
+        height: 120px;
+        padding: 5px;
+        white-space: nowrap; /* this is required unless you put the helper span closely near the img */
+
+        > span.helper {
+          display: inline-block;
+          height: 100%;
+          vertical-align: middle;
+        }
+        > img {
+          max-width: 100%;
+          vertical-align: middle;
+        }
+      }
+
     }
-    &.warning {
-      color: #856404;
-      background-color: #fff3cd;
-      border-color: #ffeeba;
+
+    .message-block {
+      position: relative;
+      padding: .75rem 1.25rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid transparent;
+      border-radius: .25rem;
+      text-align: center;
+      white-space: normal;
+
+      &.error {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      &.warning {
+        color: #856404;
+        background-color: #fff3cd;
+        border-color: #ffeeba;
+      }
+      &.success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+      }
     }
-    &.success {
-      color: #155724;
-      background-color: #d4edda;
-      border-color: #c3e6cb;
+
+    .spinner {
+      position: absolute;
+      opacity: 1;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 160px 0;
+
+      img {
+        opacity: 1;
+        filter: grayscale(0);
+      }
     }
   }
 }
