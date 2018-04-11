@@ -1,6 +1,7 @@
 /* global firebase */
 // import Vue from 'vue'
 // import * as firebase from 'firebase'
+import LogRocket from 'logrocket'
 import axios from 'axios'
 // import VueAxios from 'vue-axios'
 
@@ -181,8 +182,15 @@ class Auth {
         // myAuth.initApp(false, onAuthStateChanged, { firebaseConfig: self.firebaseConfig, organisation: organisation })
         // console.log('Auth done')
         resolve(res)
-      }).catch(e => {
-        reject(e)
+      }).catch(err => {
+        console.error(`Couldn't sign user in (auth.js)`, err)
+        LogRocket.captureMessage(`Couldn't sign user in (auth.js)`, {
+          extra: {
+            err: err,
+            data: credential
+          }
+        })
+        reject(err)
       })
     })
     self.signedIn = () => {
@@ -223,14 +231,38 @@ class Auth {
         return testUserData
       } else if (idToken) {
         var response
+        const dataToSend = { idToken: idToken }
         try {
-          // response = await axios.post('http://localhost:5050/get-user', { idToken: idToken })
-          response = await axios.post('https://savvy-nlp--staging.herokuapp.com/get-user', { idToken: idToken })
+          response = await axios({
+            method: 'post',
+            // url: 'http://localhost:5050/get-user',
+            url: 'https://savvy-nlp--staging.herokuapp.com/get-user',
+            timeout: 10000,
+            data: dataToSend
+          })
           console.log('📪  The response data!', response.data)
           return response.data.results
-        } catch (e) {
-          console.log('Couldn\'t get user data', e)
-          return null
+        } catch (err) {
+          console.error(`Couldn't get user data`, err)
+          LogRocket.captureMessage(`Couldn't get user data`, {
+            extra: {
+              err: err,
+              data: dataToSend
+            }
+          })
+          const errorToReturn = {
+            err: err,
+            message: err.message
+          }
+          if (err && err.message) {
+            if (err.message === 'Network Error') errorToReturn.message = 'Network Error - Are you sure you\'re connected to the internet?'
+            if (err.message === 'Request failed with status code 404') errorToReturn.message = 'Whoops! Something went wrong - we\'re working on fixing it right now!'
+          }
+          return null // @TODO: Send data further up???
+          // return {
+          //   success: false,
+          //   error: errorToReturn
+          // }
         }
       } else {
         console.log('📛  Error! Couldn\'t get user data')
@@ -279,23 +311,42 @@ class Auth {
       return new Promise(function(resolve, reject) {
         console.log('Joining Org!')
         try {
+          const dataToSend = {
+            organisationID: self.organisation.id,
+            verifiedEmails: self.user.auth.emails || [ self.user.auth.email ] // Only working for Google Auth for now
+          }
           self.updateAuthState('pending')
           self.refreshUserToken()
           .then(idToken => {
-            return axios.post('https://forget-me-not--staging.herokuapp.com/api/user/add', {
-              organisationID: self.organisation.id,
-              user: { uid: self.user.auth.uid, idToken: idToken },
-              verifiedEmails: self.user.auth.emails || [ self.user.auth.email ] // Only working for Google Auth for now
-            })
+            dataToSend.user = { uid: self.user.auth.uid, idToken: idToken }
+            return axios.post('https://forget-me-not--staging.herokuapp.com/api/user/add', dataToSend)
           }).then(res => {
             console.log(res)
             self.user.data = res.data
             self.updateAuthState('loggedIn')
             resolve(self.user)
-          }).catch(e => {
+          }).catch(err => {
             self.updateAuthState('readyToJoinOrg')
-            console.log(e)
-            reject(e)
+            console.error(`Couldn't join organisation`, err)
+            LogRocket.captureMessage(`Couldn't join organisation`, {
+              extra: {
+                err: err,
+                data: dataToSend
+              }
+            })
+            const errorToReturn = {
+              err: err,
+              message: err.message
+            }
+            if (err && err.message) {
+              if (err.message === 'Network Error') errorToReturn.message = 'Network Error - Are you sure you\'re connected to the internet?'
+              if (err.message === 'Request failed with status code 404') errorToReturn.message = 'Whoops! Something went wrong - we\'re working on fixing it right now!'
+            }
+            reject(err) // @TODO: Send data further up???
+            // return {
+            //   success: false,
+            //   error: errorToReturn
+            // }
           })
         } catch (e) {
           console.log(e)

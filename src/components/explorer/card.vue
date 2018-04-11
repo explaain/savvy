@@ -291,7 +291,7 @@ export default {
     },
     errorMessage: function() {
       const self = this
-      return (!self.card || !Object.keys(self.card).length) && !self.loading ? 'No card found!' : self.error ? self.error.message : null
+      return self.error && self.error.message ? self.error.message : (!self.card || !Object.keys(self.card).length) && !self.loading ? 'No card found!' : null
     },
     warningMessage: function() {
       const self = this
@@ -489,14 +489,25 @@ export default {
     deleteCard: function() {
       const self = this
       self.loading = true
-      self.$emit('deleteCard', self.card.objectID, () => {
+      self.$emit('deleteCard', self.card.objectID, result => {
+        console.log('callback successful', result)
         self.loading = false
+        if (result.error) {
+          self.error = result.error
+        }
+      }, err => {
+        console.log('error returned', err)
+        self.error = {
+          err: err,
+          message: 'Whoops! Something went wrong.'
+        }
       })
     },
     cancelEdit: function() {
       const self = this
       self.syncData()
       self.editing = false
+      self.error = null // @TODO: Brainstorm any situations where this isn't a good idea?
       // self.tempListCards = {} ????
       setTimeout(function() {
         self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
@@ -518,16 +529,22 @@ export default {
           self.content.listCards.value.forEach(function(listCard) {
             self.tempListCards[listCard.objectID] = listCard
           })
-        self.$emit('updateCard', card || self.card, function(result) {
-          console.log('callback successful')
+        self.$emit('updateCard', card || self.card, result => {
+          console.log('callback successful', result)
           self.loading = false
           if (result.error) {
             self.error = result.error
+            self.editing = true
           }
           self.tempListCards = {}
           // self.syncData() // Shouldn't be necessary if data were properly being wtached deeply
-        }, function(e) {
-          console.log(e)
+        }, function(err) {
+          console.log('error returned', err)
+          self.error = {
+            err: err,
+            message: 'Whoops! Something went wrong.'
+          }
+          self.editing = true
           self.tempListCards = {}
         })
         self.card = {}

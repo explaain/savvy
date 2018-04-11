@@ -274,23 +274,23 @@ const Search = {
         params.environment = 'local'
       AlgoliaCardsIndex.clearCache()
       console.log(params)
-      const content = params && params.includeNlp
-      // ? await axios.post('http://localhost:5000/api/memories/', {
-      ? await axios.post('https://savvy-api--live.herokuapp.com/api/memories/', {
-        sender: params.sender,
-        parameters: params,
-        intent: 'query',
-        query: params.query,
-        organisationID: params.organisationID
-      })
-      : await new Promise((resolve, reject) => {
-        AlgoliaCardsIndex.search(params, (e, content) => {
-          if (e) {
-            log.trace(e)
-            reject(e)
-          } else
-            resolve(content)
-        })
+      // try {
+      //
+      // } catch (e) {
+      //
+      // }
+      const content = await axios({
+        method: 'post',
+        // url: 'http://localhost:5000/api/memories/',
+        url: 'https://savvy-api--live.herokuapp.com/api/memories/',
+        timeout: 10000,
+        data: {
+          sender: params.sender,
+          parameters: params,
+          intent: 'query',
+          query: params.query,
+          organisationID: params.organisationID
+        }
       })
       console.log('content')
       console.log(content)

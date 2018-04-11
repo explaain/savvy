@@ -18,6 +18,7 @@
 
 <script>
 /* global Kloudless, window, gapi */
+import LogRocket from 'logrocket'
 import axios from 'axios'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
@@ -173,9 +174,13 @@ export default {
             }
           }
         }, 5000)
-        axios.post('http://localhost:5050/add-source'
-        // axios.post('https://savvy-nlp--staging.herokuapp.com/add-source'
-        , source).then(res => {
+        axios({
+          method: 'post',
+          // url: 'http://localhost:5050/add-source',
+          url: 'https://savvy-nlp--staging.herokuapp.com/add-source',
+          // timeout: 10000,
+          data: source
+        }).then(res => {
           console.log('res')
           console.log(res)
           if (!res.data || !res.data.success) {
@@ -185,9 +190,15 @@ export default {
           self.message = {
             text: 'Great news - your files are now indexed and ready to search!'
           }
-        }).catch(e => {
+        }).catch(err => {
           self.loading = false
-          console.log(e)
+          console.error('Error Adding Source', err)
+          LogRocket.captureMessage('Error Adding Source', {
+            extra: {
+              err: err,
+              data: source
+            }
+          })
           self.message = {
             text: 'Something went wrong indexing your files!',
             type: 'error'

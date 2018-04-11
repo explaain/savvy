@@ -2,6 +2,7 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import LogRocket from 'logrocket'
+
 import Airship from 'airship-js'
 import Vue from 'vue'
 import router from './router'
@@ -21,6 +22,10 @@ let airship = new Airship({webApiKey: 'yqfb07697ad5lak33tu75docb2duty5f', envKey
 // Should be used as a singleton
 
 Vue.config.productionTip = false
+
+const errorToPassDown = {
+  message: null
+}
 
 class Main {
   constructor(props) {
@@ -51,8 +56,8 @@ class Main {
             authState: this.authState,
             user: this.user,
             sidebar: props.sidebar,
-            LogRocket: LogRocket,
-            mode: props.mode || false
+            mode: props.mode || false,
+            parentError: errorToPassDown,
           }
         })
       },

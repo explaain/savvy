@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action)
     switch (request.action) {
       case 'stateChanged':
-        sendToFrame({ action: 'stateChanged' })
+        sendToFrame({ action: 'stateChanged', data: request.data })
         break
       // case 'getPageData':
       //   sendResponse(collectPageData())

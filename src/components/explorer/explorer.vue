@@ -68,6 +68,7 @@
 
 <script>
   import log from 'loglevel'
+  import LogRocket from 'logrocket'
   import Mixpanel from 'mixpanel-browser'
   import Vue from 'vue'
   import Airship from 'airship-js'
@@ -461,12 +462,13 @@
         if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
         const query = self.query
-        self.Controller.searchCards({
+        const searchParams = {
           user: self.user,
           query: self.query,
           numberOfResults: 12,
           searchStrategy: self.searchStrategy,
-        }).then(function(hits) {
+        }
+        self.Controller.searchCards(searchParams).then(function(hits) {
           console.log('hits')
           console.log(hits)
           Mixpanel.track('Searched', {
@@ -487,8 +489,14 @@
             self.setCard(hit.objectID, hit)
           })
         }).catch(function(err) {
-          console.log('err')
-          console.log(err)
+          console.error('Error Searching for Cards', err)
+          LogRocket.captureMessage('Error Searching for Cards', {
+            extra: {
+              // additional arbitrary data associated with the event
+              err: err,
+              data: searchParams
+            }
+          })
           self.errorMessage = 'Something went wrong - we couldn\'t connect to the database.'
           self.loading = false
         })
@@ -591,6 +599,7 @@
           callback(result)
           return result
         } catch (e) {
+          console.log('e')
           console.log(e)
           errorCallback(e)
           return null

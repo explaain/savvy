@@ -75,10 +75,11 @@ class ChromeControllerInterface {
 }
 
 window.addEventListener('message', event => {
-  // console.log('event!', event)
   switch (event.data.action) {
     case 'stateChanged':
       console.log('stateChanged (chrome-controller-interface.js)', event.data)
+      console.log('should we use this...', event.data.state, event.data.user)
+      console.log('...or this?', event.data.data.state, event.data.data.user)
       stateChanged(event.data.state, event.data.user)
       break
   }

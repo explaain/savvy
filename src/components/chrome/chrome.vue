@@ -6,7 +6,7 @@
     <section class="chooseOrg" v-if="authState === 'loggedOut' || justClicked">
       <h3>Hello! 👋 Please sign in below:</h3>
       <button class="login" :disabled="authState === 'pending'" @click="signIn">Sign In</button>
-      <p class="error" v-if="errorMessage.length">{{errorMessage}}</p>
+      <p class="error" v-if="errorMessage">{{errorMessage}}</p>
     </section>
     <spinner class="div-spinner" v-if="authState === 'pending'"></spinner>
     <explorer v-if="authState === 'loggedIn'" :plugin="plugin" :sidebar="sidebar" :logo="logo" :Controller="Controller" :authState="authState" :user="user" @closeDrawer="closeDrawer" :local="local" :organisation="organisation" :testing="testing" :mode="mode">
@@ -74,15 +74,15 @@
       'Controller',
       'authState',
       'user',
-      'LogRocket',
       'mode',
+      'parentError',
     ],
     data() {
       return {
         organisation: {},
         organisationID: '',
         orgLoading: false,
-        errorMessage: '',
+        error: null,
         plugin: true,
         logo: '/static/images/logo.png',
         pageCards: [], // ???
@@ -142,7 +142,10 @@
     computed: {
       profileImage: function() {
         return this.user && this.user.auth && this.user.auth.photoURL ? this.user.auth.photoURL : '/static/images/profile.jpg' // //static//
-      }
+      },
+      errorMessage: () => {
+        return this.error && this.error.length ? this.error : this.parentError && this.parentError.message && this.parentError.message.length ? this.parentError.message : null
+      },
     },
     components: {
       BootstrapVue,

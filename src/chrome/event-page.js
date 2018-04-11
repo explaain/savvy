@@ -3,9 +3,11 @@
 // @TODO Probably worth moving to this https://developer.chrome.com/extensions/activeTab
 
 import log from 'loglevel'
+import LogRocket from 'logrocket'
 import Controller from '../controller'
 
 log.setLevel('debug')
+LogRocket.init('cqmhn2/savvy-development')
 
 // chrome.tabs.query({}, function(tabs) {
 //   console.log('tabs', tabs)
@@ -25,6 +27,12 @@ chrome.runtime.onInstalled.addListener(object => {
 
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
+  if (state && user && user.auth)
+    LogRocket.identify(user.uid, {
+      name: user.auth.displayName,
+      email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
+      organisation: user.data ? user.data.organisationID : null
+    })
   sendMessageToAllTabs({
     action: 'stateChanged',
     data: {
@@ -80,18 +88,37 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
       myController.authSignIn(token)
       .then(res => {
         resolve(res)
-      }).catch(error => {
+      }).catch(err => {
         // The OAuth token might have been invalidated. Lets' remove it from cache.
-        console.log('Sign In failed with error code ' + error.code)
-        if (error.code === 'auth/invalid-credential') {
+        console.log('Sign In failed with error code ' + err.code)
+        if (err.code === 'auth/invalid-credential') {
           chrome.identity.removeCachedAuthToken({token: token}, () => {
             startAuth(interactive)
           })
         }
-        reject(new Error())
+        console.error(`Couldn't sign user in (event-page.js)`, err)
+        LogRocket.captureMessage(`Couldn't sign user in (event-page.js)`, {
+          extra: {
+            err: err,
+            data: {
+              interactive: interactive,
+              token: token
+            }
+          }
+        })
+        reject(new Error(err))
       })
     } else {
       console.error('The OAuth Token was null')
+      LogRocket.captureMessage(`The OAuth Token was null (event-page.js)`, {
+        extra: {
+          err: `The OAuth Token was null (event-page.js)`,
+          data: {
+            interactive: interactive,
+            token: token
+          }
+        }
+      })
       reject(new Error('The OAuth Token was null'))
     }
   })

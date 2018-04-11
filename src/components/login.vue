@@ -23,6 +23,7 @@
 
 <script>
 /* global Kloudless */
+  import LogRocket from 'logrocket'
   import IconButton from './explorer/ibutton.vue'
   import axios from 'axios'
   // import '../scripts/kloudless.authenticator.js'
@@ -96,9 +97,19 @@
           }).then(res => {
             self.addingSource = false
             console.log(res.data.results)
-          }).catch(e => {
+          }).catch(err => {
             self.addingSource = false
-            console.log(e)
+            console.error('Error Adding Source', err)
+            LogRocket.captureMessage('Error Adding Source', {
+              extra: {
+                err: err,
+                data: result
+              }
+            })
+            self.message = {
+              text: 'Something went wrong indexing your files!',
+              type: 'error'
+            }
           })
         }
       },
