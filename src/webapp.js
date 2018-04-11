@@ -14,12 +14,12 @@ const props = {
 console.log('Running Web App')
 
 Raven.config('https://5abb211365ca4cd9a72885762827512f@sentry.io/1187390').install()
-Raven.context(() => {
-  const main = new Main(props)
-  console.log('main:', main)
-
-  Raven.captureException({
-    'hello': 'yo'
+try {
+  Raven.context(() => {
+    const main = new Main(props)
+    console.log('main:', main)
   })
-  console.log('DONE')
-})
+} catch (e) {
+  const main = new Main(props)
+  console.log('main (Raven failed):', main)
+}

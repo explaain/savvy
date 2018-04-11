@@ -2,6 +2,7 @@
 // import Vue from 'vue'
 // import * as firebase from 'firebase'
 import LogRocket from 'logrocket'
+import Raven from 'raven-js'
 import axios from 'axios'
 // import VueAxios from 'vue-axios'
 
@@ -190,6 +191,12 @@ class Auth {
             data: credential
           }
         })
+        Raven.captureMessage(`Couldn't sign user in (auth.js)`, {
+          extra: {
+            err: err,
+            data: credential
+          }
+        })
         reject(err)
       })
     })
@@ -245,6 +252,12 @@ class Auth {
         } catch (err) {
           console.error(`Couldn't get user data`, err)
           LogRocket.captureMessage(`Couldn't get user data`, {
+            extra: {
+              err: err,
+              data: dataToSend
+            }
+          })
+          Raven.captureMessage(`Couldn't get user data`, {
             extra: {
               err: err,
               data: dataToSend
@@ -329,6 +342,12 @@ class Auth {
             self.updateAuthState('readyToJoinOrg')
             console.error(`Couldn't join organisation`, err)
             LogRocket.captureMessage(`Couldn't join organisation`, {
+              extra: {
+                err: err,
+                data: dataToSend
+              }
+            })
+            Raven.captureMessage(`Couldn't join organisation`, {
               extra: {
                 err: err,
                 data: dataToSend

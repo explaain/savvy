@@ -103,6 +103,8 @@
     },
     created: function () {
       const self = this
+      if (!Vue.prototype.$route)
+        Vue.prototype.$route = null
       self.$parent.$on('updateCards', self.updateCards)
       self.$parent.$on('getCard', self.getCard)
       self.$parent.$on('setLoading', self.setLoading)
@@ -110,7 +112,7 @@
       self.$parent.$on('showCard', self.showCard)
       self.$parent.$on('yieldAndShowCard', self.yieldAndShowCard)
       self.$parent.$on('search', q => {
-        self.search(self.$route.query.q)
+        self.search((self.$route && self.$route.query && self.$route.query.q) || null)
       })
       // Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
       self.allCards = {

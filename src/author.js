@@ -1,4 +1,5 @@
 import LogRocket from 'logrocket'
+import Raven from 'raven-js'
 import axios from 'axios'
 import Rest from './rest' // @TODO: user this for everything and remove axios!
 
@@ -52,6 +53,12 @@ class Author {
             data: data
           }
         })
+        Raven.captureMessage('Error Saving Card', {
+          extra: {
+            err: err,
+            data: data
+          }
+        })
         const errorToReturn = {
           err: err,
           message: err.message
@@ -86,6 +93,12 @@ class Author {
       }).catch(err => {
         console.error('Error Deleting Card', err)
         LogRocket.captureMessage('Error Deleting Card', {
+          extra: {
+            err: err,
+            data: data
+          }
+        })
+        Raven.captureMessage('Error Deleting Card', {
           extra: {
             err: err,
             data: data

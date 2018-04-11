@@ -2,10 +2,10 @@
 // The Vue build version to load with the `import` command
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import LogRocket from 'logrocket'
-
+import Raven from 'raven-js'
 import Airship from 'airship-js'
 import Vue from 'vue'
-import router from './router'
+// import router from './router'
 import Dashboard from './dashboard'
 import Chrome from './components/chrome/chrome'
 import ChromeControllerInterface from './chrome/chrome-controller-interface'
@@ -48,7 +48,7 @@ class Main {
     /* eslint-disable no-new */
     const v = new Vue({
       el: '#app',
-      router,
+      // router,
       render(h) {
         return h(props.plugin || props.demo ? Chrome : Dashboard, {
           props: {
@@ -85,6 +85,11 @@ class Main {
           name: user.auth.displayName,
           email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
           organisation: user.data ? user.data.organisationID : null
+        })
+        Raven.setUserContext({
+          name: user.auth.displayName,
+          email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
+          id: user.auth.emails ? user.auth.emails[0] : (user.auth.email || user.uid),
         })
         console.log(222)
         if (user.data) {

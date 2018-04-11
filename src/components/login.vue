@@ -24,6 +24,7 @@
 <script>
 /* global Kloudless */
   import LogRocket from 'logrocket'
+  import Raven from 'raven-js'
   import IconButton from './explorer/ibutton.vue'
   import axios from 'axios'
   // import '../scripts/kloudless.authenticator.js'
@@ -101,6 +102,12 @@
             self.addingSource = false
             console.error('Error Adding Source', err)
             LogRocket.captureMessage('Error Adding Source', {
+              extra: {
+                err: err,
+                data: result
+              }
+            })
+            Raven.captureMessage('Error Adding Source', {
               extra: {
                 err: err,
                 data: result

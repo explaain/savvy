@@ -19,6 +19,7 @@
 <script>
 /* global Kloudless, window, gapi */
 import LogRocket from 'logrocket'
+import Raven from 'raven-js'
 import axios from 'axios'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
@@ -194,6 +195,12 @@ export default {
           self.loading = false
           console.error('Error Adding Source', err)
           LogRocket.captureMessage('Error Adding Source', {
+            extra: {
+              err: err,
+              data: source
+            }
+          })
+          Raven.captureMessage('Error Adding Source', {
             extra: {
               err: err,
               data: source

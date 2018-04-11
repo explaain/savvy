@@ -4,10 +4,12 @@
 
 import log from 'loglevel'
 import LogRocket from 'logrocket'
+import Raven from 'raven-js'
 import Controller from '../controller'
 
 log.setLevel('debug')
 LogRocket.init('cqmhn2/savvy-development')
+Raven.config('https://5abb211365ca4cd9a72885762827512f@sentry.io/1187390').install()
 
 // chrome.tabs.query({}, function(tabs) {
 //   console.log('tabs', tabs)
@@ -27,12 +29,18 @@ chrome.runtime.onInstalled.addListener(object => {
 
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
-  if (state && user && user.auth)
+  if (state && user && user.auth) {
     LogRocket.identify(user.uid, {
       name: user.auth.displayName,
       email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
       organisation: user.data ? user.data.organisationID : null
     })
+    Raven.setUserContext({
+      name: user.auth.displayName,
+      email: user.auth.emails ? user.auth.emails[0] : user.auth.email,
+      id: user.auth.emails ? user.auth.emails[0] : (user.auth.email || user.uid),
+    })
+  }
   sendMessageToAllTabs({
     action: 'stateChanged',
     data: {
@@ -106,11 +114,29 @@ const startAuth = (interactive) => new Promise((resolve, reject) => {
             }
           }
         })
+        Raven.captureMessage(`Couldn't sign user in (event-page.js)`, {
+          extra: {
+            err: err,
+            data: {
+              interactive: interactive,
+              token: token
+            }
+          }
+        })
         reject(new Error(err))
       })
     } else {
       console.error('The OAuth Token was null')
       LogRocket.captureMessage(`The OAuth Token was null (event-page.js)`, {
+        extra: {
+          err: `The OAuth Token was null (event-page.js)`,
+          data: {
+            interactive: interactive,
+            token: token
+          }
+        }
+      })
+      Raven.captureMessage(`The OAuth Token was null (event-page.js)`, {
         extra: {
           err: `The OAuth Token was null (event-page.js)`,
           data: {
@@ -148,12 +174,13 @@ const startSignIn = () => new Promise((resolve, reject) => {
 if (allowContinue) {
   console.log('Allow signin')
   // Not sure whether this should be in or not!
-  startSignIn()
-  .then(res => {
-    console.log(res)
-  }).catch(e => {
-    console.log(e)
-  })
+  try {
+    Raven.context(() => {
+      startSignIn().then(console.log).catch(console.log)
+    })
+  } catch (e) {
+    startSignIn().then(console.log).catch(console.log)
+  }
 
   /* ----------------------- */
   /* ----------------------- */

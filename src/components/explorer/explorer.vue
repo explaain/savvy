@@ -9,7 +9,7 @@
       </div>
       <alert :show="alertData.show" :type="alertData.type" :title="alertData.title"></alert>
       <modal v-if="modal.show" @close="modal.show = false" @submit="modal.submit" :data="modal"></modal>
-      <div class="header" v-if="!$route.query.q">
+      <div class="header" v-if="!($route && $route.query && $route.query.q)">
         <slot name="header"></slot>
         <div class="search">
           <slot name="greeting"></slot>
@@ -29,8 +29,8 @@
         <slot name="buttons"></slot>
         <!-- <ibutton icon="plus" text="Create" :click="createCard"></ibutton> -->
       </div>
-      <h2 v-if="$route.query.q">Your search results for "{{query}}":</h2>
-      <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
+      <h2 v-if="($route && $route.query && $route.query.q)">Your search results for "{{query}}":</h2>
+      <p class="results-label" v-if="cards.length && !($route && $route.query && $route.query.q)">Your search results for "{{lastQuery}}":</p>
       <div v-masonry transition-duration="0.5s" item-selector=".card" class="cards">
         <spinner v-if="loading && loader == -1"></spinner>
         <p class="message-block error" v-if="errorMessage && errorMessage.length"><icon name="exclamation-triangle"></icon>{{errorMessage}}</p>
@@ -69,6 +69,7 @@
 <script>
   import log from 'loglevel'
   import LogRocket from 'logrocket'
+  import Raven from 'raven-js'
   import Mixpanel from 'mixpanel-browser'
   import Vue from 'vue'
   import Airship from 'airship-js'
@@ -187,6 +188,8 @@
     created: function () {
       console.log('Starting Explorer')
       const self = this
+      if (!Vue.prototype.$route)
+        Vue.prototype.$route = null
       Vue.use(VueMasonryPlugin)
       Vue.use(BootstrapVue)
       Vue.use(ExplaainSearch, self.algoliaParams, self.user)
@@ -201,7 +204,7 @@
         self.closePopup(true)
       })
       self.$parent.$on('search', function(query) {
-        self.search(self.$route.query.q)
+        self.search((self.$route && self.$route.query && self.$route.query.q) || null)
       })
 
       // Load Airship Stuff
@@ -226,7 +229,7 @@
       // SavvyImport.beginImport()
       Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
       setTimeout(() => {
-        if (self.$route.query.q)
+        if (self.$route && self.$route.query && self.$route.query.q)
           self.search(self.$route.query.q)
       }, 200)
     },
@@ -492,7 +495,12 @@
           console.error('Error Searching for Cards', err)
           LogRocket.captureMessage('Error Searching for Cards', {
             extra: {
-              // additional arbitrary data associated with the event
+              err: err,
+              data: searchParams
+            }
+          })
+          Raven.captureMessage('Error Searching for Cards', {
+            extra: {
               err: err,
               data: searchParams
             }
