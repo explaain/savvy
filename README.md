@@ -33,7 +33,8 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 ## To Deploy Demo Version
 
 1. Comment out everything in `src/chrome-newtab.js` and `src/chrome-sidebar.js`
-2. Set `props.demo = true` in `src/webapp.js`
+2. Set `props.mode = demo` in `src/webapp.js`
+<!-- 2. Set `props.demo = true` in `src/webapp.js` -->
 
 ## Things to check if it won't deploy to Chrome Web Store:
 

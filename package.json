@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "101": "^1.6.2",
-    "airship-js": "^1.1.0",
+    "airship-js": "^1.1.1",
     "algoliasearch": "^3.24.3",
     "apiai": "^4.0.3",
     "autoprefixer": "^7.1.2",
@@ -67,7 +67,6 @@
     "file-loader": "^1.1.4",
     "firebase": "^4.4.0",
     "firebase-admin": "^5.4.3",
-    "firebase-functions": "^0.7.1",
     "firebaseui": "^2.3.0",
     "firestore-backup": "^1.0.1",
     "friendly-errors-webpack-plugin": "^1.6.1",

@@ -270,6 +270,8 @@ const Search = {
         delete params.filters // Removing teams as a filter for now
       if (params.hitsPerPage === null)
         delete params.hitsPerPage
+      if (window.location.hostname === 'localhost')
+        params.environment = 'local'
       AlgoliaCardsIndex.clearCache()
       console.log(params)
       const content = params && params.includeNlp

@@ -72,7 +72,7 @@ class Controller {
   constructor(config) {
     console.log('Controller Constructed')
     config.firebaseConfig = firebaseConfig
-    if (!config.demo) userForcedFromUrl = false
+    if (config.mode !== 'demo') userForcedFromUrl = false
     const stateChangeCallback = (state, user) => {
       const userToReturn = userForcedFromUrl || user
       const stateToReturn = userForcedFromUrl ? 'loggedIn' : state

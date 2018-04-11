@@ -2,9 +2,9 @@
   <div class="card shadow" @mouseover="cardMouseover" @mouseout="cardMouseout" @click.stop="cardClick" :class="{ highlight: highlight || card.highlight, editing: editing, loading: loading || card.loading, full: full }">
     <!-- <ibutton class="cardDrag" icon="arrows" text=""></ibutton> -->
     <div class="buttons-top-right edit-buttons">
-      <ibutton v-if="!demo" class="small left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
+      <ibutton v-if="mode !== 'demo'" class="small left delete" icon="trash" text="Delete" :click="deleteCard"></ibutton>
       <!-- <ibutton v-if="!editing" class="small center create" icon="plus" text="Add" :click="createCard"></ibutton> -->
-      <ibutton v-if="!editing" class="small edit" :class="{ right: !demo }" icon="pencil" text="Edit" :click="editCard"></ibutton>
+      <ibutton v-if="!editing" class="small edit" :class="{ right: mode !== 'demo' }" icon="pencil" text="Edit" :click="editCard"></ibutton>
       <button v-if="!explaain" class="small copy" type="button" @click.stop="copy" v-clipboard="fullText"><img class="icon" :src="copyIcon">Copy</button>
     </div>
     <section v-if="!fileFormat" style="overflow: hidden" @click="linkClick">
@@ -101,7 +101,7 @@ export default {
     'userTopics',
     'creating',
     'highlightResult',
-    'demo',
+    'mode',
   ],
   components: {
     Icon,
@@ -205,6 +205,8 @@ export default {
             return 'sheet'
           case 'gslides':
             return 'slide'
+          case 'gmail':
+            return 'email'
           default:
             return 'basic'
         }
@@ -236,10 +238,12 @@ export default {
         row: '/static/images/icons/formats/row.png',
         issue: '/static/images/icons/formats/bug.png',
         card: '/static/images/icons/formats/card.png',
+        email: '/static/images/icons/formats/email.png',
       }[this.format] || {
         webpage: '/static/images/icons/formats/webpage.png',
         file: '/static/images/icons/formats/file.png',
       }[this.data.type] || {
+        gmail: '/static/images/icons/formats/email.png',
         gdrive: '/static/images/icons/formats/doc.png',
         gdocs: '/static/images/icons/formats/doc.png',
         gslides: '/static/images/icons/formats/doc.png',
@@ -247,31 +251,31 @@ export default {
         trello: '/static/images/icons/formats/card.png',
       }[this.data.service] || (this.data.fileID ? '/static/images/icons/formats/file.png' : '/static/images/iconGrey.png')
     },
-    fileIcons: function() {
-      return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
-        switch (file && file.mimeType ? file.mimeType : null) {
-          case 'application/vnd.google-apps.document':
-          case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-            return 'https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300'
-          case 'application/vnd.google-apps.spreadsheet':
-          case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-            return 'http://icons.iconarchive.com/icons/dtafalonso/android-lollipop/512/Sheets-icon.png'
-          case 'application/vnd.google-apps.presentation':
-          case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-            return 'http://cliparting.com/wp-content/uploads/2017/07/Google-slides-icon-free-download-at-icons8-clipart.png'
-          case 'application/pdf':
-            return 'https://cdn1.iconfinder.com/data/icons/adobe-acrobat-pdf/154/adobe-acrobat-pdf-file-512.png'
-          case 'image/png':
-          case 'image/jpg':
-          case 'image/jpeg':
-          case 'image/gif':
-            return 'https://cdn3.iconfinder.com/data/icons/faticons/32/picture-01-512.png'
-          default:
-            return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
-        }
-      }) : ['/static/images/iconGrey.png'] // //static//
-      // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
-    },
+    // fileIcons: function() {
+    //   return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
+    //     switch (file && file.mimeType ? file.mimeType : null) {
+    //       case 'application/vnd.google-apps.document':
+    //       case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+    //         return 'https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300'
+    //       case 'application/vnd.google-apps.spreadsheet':
+    //       case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+    //         return 'http://icons.iconarchive.com/icons/dtafalonso/android-lollipop/512/Sheets-icon.png'
+    //       case 'application/vnd.google-apps.presentation':
+    //       case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+    //         return 'http://cliparting.com/wp-content/uploads/2017/07/Google-slides-icon-free-download-at-icons8-clipart.png'
+    //       case 'application/pdf':
+    //         return 'https://cdn1.iconfinder.com/data/icons/adobe-acrobat-pdf/154/adobe-acrobat-pdf-file-512.png'
+    //       case 'image/png':
+    //       case 'image/jpg':
+    //       case 'image/jpeg':
+    //       case 'image/gif':
+    //         return 'https://cdn3.iconfinder.com/data/icons/faticons/32/picture-01-512.png'
+    //       default:
+    //         return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
+    //     }
+    //   }) : ['/static/images/iconGrey.png'] // //static//
+    //   // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
+    // },
     fullText: function() {
       return (this.card.title ? this.card.title + '\n\n' : '') + this.text
         + (this.card.cardList && this.card.cardList.length ? '\n- ' + (this.card.cardList || []).map(item => item.description).join('\n- ') : '')
@@ -368,6 +372,10 @@ export default {
         gslides: {
           name: 'Google Slides',
           icon: '/static/images/icons/gslides.png'
+        },
+        gmail: {
+          name: 'Gmail',
+          icon: '/static/images/icons/gmail.png'
         },
         sifter: {
           name: 'Sifter',
@@ -930,43 +938,6 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         p {
           margin: 0;
           padding: 0;
-        }
-      }
-    }
-    .message-block {
-      position: relative;
-      padding: .75rem 1.25rem;
-      margin-bottom: 1rem;
-      border: 1px solid transparent;
-      border-radius: .25rem;
-      text-align: center;
-      white-space: normal;
-
-      &.error {
-        color: #721c24;
-        background-color: #f8d7da;
-        border-color: #f5c6cb;
-      }
-      &.warning {
-        color: #856404;
-        background-color: #fff3cd;
-        border-color: #ffeeba;
-
-        button {
-          background: rgb(239, 150, 82);
-          color: white;
-          border: none;
-        }
-      }
-
-      button {
-        display: inline-block;
-        margin-left: 10px;
-        padding: 4px 10px;
-        white-space: normal;
-
-        &:hover {
-          opacity: 0.7;
         }
       }
     }

@@ -6,6 +6,7 @@ const props = {
   // env: 'production',
   // plugin: false,
   sidebar: false,
+  mode: 'demo',
   // demo: true // @TODO: Set this back to false when we're not doing demo!
 }
 

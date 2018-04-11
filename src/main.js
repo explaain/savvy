@@ -28,8 +28,8 @@ class Main {
     // @TODO: This should choose Controller not just for testing but also for webapp
     console.log('props')
     console.log(props)
-    const ControllerInterfaceClass = (props.env === 'testing' || props.demo) ? ControllerInterface : ChromeControllerInterface
-    mainSelf.Controller = new ControllerInterfaceClass({ demo: props.demo })
+    const ControllerInterfaceClass = (props.env === 'testing' || props.mode === 'demo') ? ControllerInterface : ChromeControllerInterface
+    mainSelf.Controller = new ControllerInterfaceClass({ mode: props.mode })
 
     Vue.filter('capitalise', (value, initial) => {
       if (!value) return ''
@@ -52,7 +52,7 @@ class Main {
             user: this.user,
             sidebar: props.sidebar,
             LogRocket: LogRocket,
-            demo: props.demo || false
+            mode: props.mode || false
           }
         })
       },

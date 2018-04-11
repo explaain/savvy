@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="explorer" v-bind:class="{sidebar: sidebar}">
-    <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length, 'demo': demo}">
+    <div uid="main" class="main-explorer" @mouseover="overMain = true" @mouseout="overMain = false" :class="{mouseover : overMain, 'search-results': cards.length, 'mode': mode === 'demo'}">
       <div class="create-button">
         <b-dropdown id="ddown1" text="➕ Create" variant="default" class="m-md-2">
           <b-dropdown-item class="basic" @click="createCard(null)">🔖 New Card</b-dropdown-item>
@@ -33,14 +33,15 @@
       <p class="results-label" v-if="cards.length && !$route.query.q">Your search results for "{{lastQuery}}":</p>
       <div v-masonry transition-duration="0.5s" item-selector=".card" class="cards">
         <spinner v-if="loading && loader == -1"></spinner>
+        <p class="message-block error" v-if="errorMessage && errorMessage.length"><icon name="exclamation-triangle"></icon>{{errorMessage}}</p>
         <!-- <p class="spinner" v-if="loading && loader == -1"><icon name="refresh" class="fa-spin fa-3x"></icon></p> -->
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :mode="mode"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
-          <div v-if="demo" class="search-suggestions">
+          <div v-if="mode === 'demo'" class="search-suggestions">
             <p>Try searching for:</p>
             <p>'What batch was Stripe in'</p>
             <p>'When did Sam go to Waterloo'</p>
@@ -57,7 +58,7 @@
         <spinner class="div-spinner" v-if="popupLoading"></spinner>
         <!-- <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p> -->
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
-        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :demo="demo"></card>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :mode="mode"></card>
       </div>
     </div>
   </div>
@@ -105,7 +106,7 @@
       'sidebar',
       'local',
       'testing',
-      'demo',
+      'mode',
     ],
     data () {
       return {
@@ -136,6 +137,7 @@
           title: ''
         },
         noCardMessage: '', // 'Type above to search for cards'
+        errorMessage: null,
         hint: [
           'press Shift+Enter to search Google instead',
           'press the TAB key once to move the cursor to this search box',
@@ -171,7 +173,7 @@
       searchPlaceholder: function() {
         // return document.documentElement.clientWidth > 850 ? 'Find anything (like holiday pay, product specs and brand colours)' : 'Find anything...'
         return 'Find anything...'
-      }
+      },
     },
     watch: {
       searchStrategy: function(val) {
@@ -209,6 +211,10 @@
         displayName: this.user.auth.emails ? this.user.auth.emails[0] : this.user.auth.email,
         attributes: {
           organisationID: this.user.data ? this.user.data.organisationID : '0',
+        },
+        group: {
+          type: 'Organisation',
+          id: this.user.data ? this.user.data.organisationID : '0',
         }
       }).then(() => {
         self.allowSearchStrategy = airship.isEnabled('choose-search-strategy')
@@ -450,6 +456,7 @@
       search: function (optionalQuery) {
         console.log('SEARCHSEARCHSEARCH')
         const self = this
+        self.errorMessage = null
         self.setLoading()
         if (optionalQuery && typeof optionalQuery === 'string') self.query = optionalQuery
         self.lastQuery = self.query
@@ -480,7 +487,10 @@
             self.setCard(hit.objectID, hit)
           })
         }).catch(function(err) {
+          console.log('err')
           console.log(err)
+          self.errorMessage = 'Something went wrong - we couldn\'t connect to the database.'
+          self.loading = false
         })
       },
       searchGoogle: function(optionalQuery) {

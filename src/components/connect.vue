@@ -17,15 +17,18 @@
 </template>
 
 <script>
-/* global Kloudless, window */
+/* global Kloudless, window, gapi */
 import axios from 'axios'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
 import '../scripts/jquery.js'
+import '../scripts/google.js'
 import '../scripts/kloudless.authenticator.js'
 import '../scripts/trello.js'
 import Spinner from './spinner.vue'
 require('log-suppress').init(console)
+
+var googleAuth2 = null
 
 export default {
   props: [
@@ -36,12 +39,24 @@ export default {
     return {
       loading: false,
       message: null,
-      authPopup: null
+      authPopup: null,
+      googleAuth2: null,
     }
   },
   components: {
     Icon,
     Spinner,
+  },
+  created: function () {
+    gapi.load('auth2', function() {
+      googleAuth2 = gapi.auth2.init({ // eslint-disable-line
+        client_id: '704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com',
+        // Scopes to request in addition to 'profile' and 'email'
+        // scope: 'https://www.googleapis.com/auth/gmail.readonly'
+      })
+      console.log('googleAuth2')
+      console.log(googleAuth2)
+    })
   },
   methods: {
     connectSource: function(service) {
@@ -66,12 +81,7 @@ export default {
           // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
           break
         case 'gmail':
-          console.log('added event listener')
-          this.authPopup = window.open('https://accounts.google.com/o/oauth2/auth?client_id=704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8080&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&access_type=offline&response_type=code', '_blank')
-          // this.authPopup = window.open('https://accounts.google.com/o/oauth2/auth?client_id=704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A8080%2F&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&access_type=offline&response_type=code', '_blank')
-          this.repeatTokenCollection('gmail', 'code')
-          // this.authPopup = window.open('https://accounts.google.com/o/oauth2/auth?client_id=704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com&redirect_uri=https%3A%2F%2Fconnect.heysavvy.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fgmail.readonly&access_type=offline&response_type=code', '_blank')
-          // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
+          googleAuth2.grantOfflineAccess({ scope: 'https://www.googleapis.com/auth/gmail.readonly' }).then(this.receiveGmailCode)
           break
         case 'asana':
           // window.addEventListener('message', this.useTokenFromPopup, { once: true })
@@ -103,11 +113,13 @@ export default {
         }
       }, 1000)
     },
+    receiveGmailCode: function(result) {
+      result.origin = 'gmail'
+      this.useTokenFromPopup(result)
+    },
     useTokenFromPopup: function(result) {
       console.log('result11')
       console.log(result)
-      console.log(this.authPopup)
-      console.log(this.authPopup.location.href)
       if (this.authPopup)
         this.authPopup.close()
       const source = {
@@ -128,8 +140,10 @@ export default {
           source.token = result.data
           break
         case 'gmail':
+          source.superService = 'google'
           source.service = 'gmail'
-          source.token = result.code
+          source.scopes = ['https://www.googleapis.com/auth/gmail.readonly']
+          source.code = result.code
           break
       }
       if (source.service || source.superService) {
