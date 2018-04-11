@@ -123,7 +123,58 @@ class Main {
       const authState = user && user.uid && user.data.organisationID ? 'loggedIn' : null
       console.log('Forcing onAuthStateChanged()')
       onAuthStateChanged(authState, user)
+    }).catch(err => {
+      console.error('Failed to Log In', err)
+      LogRocket.captureMessage('Failed to Log In', {
+        extra: {
+          err: err,
+          data: v
+        }
+      })
+      Raven.captureMessage('Failed to Log In', {
+        extra: {
+          err: err,
+          data: v
+        }
+      })
     })
+
+    // Just in case something went wron with login, try again after 6 seconds!
+    setTimeout(() => {
+      if (!v.authState || !v.user || !v.user.auth || !v.user.data) {
+        console.log('Having to resort to a backup login attempt')
+        LogRocket.captureMessage('Having to resort to a backup login attempt', {
+          extra: {
+            data: v
+          }
+        })
+        Raven.captureMessage('Having to resort to a backup login attempt', {
+          extra: {
+            data: v
+          }
+        })
+        this.Controller.getUser()
+        .then(user => {
+          const authState = user && user.uid && user.data.organisationID ? 'loggedIn' : null
+          console.log('Forcing onAuthStateChanged()')
+          onAuthStateChanged(authState, user)
+        }).catch(err => {
+          console.error('Failed to Log In (even on the backup attempt)', err)
+          LogRocket.captureMessage('Failed to Log In (even on the backup attempt)', {
+            extra: {
+              err: err,
+              data: v
+            }
+          })
+          Raven.captureMessage('Failed to Log In (even on the backup attempt)', {
+            extra: {
+              err: err,
+              data: v
+            }
+          })
+        })
+      }
+    }, 6000)
 
     window.addEventListener('message', function(event) {
       switch (event.data.action) {
