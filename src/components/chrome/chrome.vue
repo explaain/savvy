@@ -52,6 +52,7 @@
 <script>
   import log from 'loglevel'
   import Vue from 'vue'
+  import Airship from 'airship-js'
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
   import BootstrapVue from 'bootstrap-vue'
@@ -147,6 +148,30 @@
         return this.error && this.error.length ? this.error : this.parentError && this.parentError.message && this.parentError.message.length ? this.parentError.message : null
       },
     },
+    watch: {
+      authState: function (val) {
+        if (val === 'loggedIn') {
+          this.airship.identify({
+            type: 'User',
+            id: this.user.uid,
+            displayName: this.user.auth.emails ? this.user.auth.emails[0] : this.user.auth.email,
+            attributes: {
+              organisationID: this.user.data ? this.user.data.organisationID : '0',
+            },
+            group: {
+              type: 'Organisation',
+              id: this.user.data ? this.user.data.organisationID : '0',
+            }
+          }).then(() => {
+            this.services.forEach(service => {
+              console.log('integration-' + service.id)
+              console.log(this.airship.isEnabled('integration-' + service.id))
+              service.comingSoon = !this.airship.isEnabled('integration-' + service.id)
+            })
+          })
+        }
+      }
+    },
     components: {
       BootstrapVue,
       Icon,
@@ -161,6 +186,7 @@
       const self = this
       console.log('chrome.vue created')
       Vue.use(BootstrapVue)
+      this.airship = new Airship({webApiKey: 'yqfb07697ad5lak33tu75docb2duty5f', envKey: 'ky4t3nn8vp56n169'})
       if (self.testing) {
         console.log('In Testing Mode!')
         self.organisation = {
