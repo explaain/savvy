@@ -60,7 +60,7 @@
   import Explorer from '../explorer/explorer.vue'
   import Spinner from '../spinner.vue'
   import PopupPanel from '../popup-panel.vue'
-  // import Connect from '../connect.vue'
+  import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
   console.log('chrome.vue running')
@@ -179,8 +179,8 @@
       Explorer,
       PopupPanel,
       Spinner,
-      // Connect,
-      Connect: () => import('../connect.vue'),
+      Connect,
+      // Connect: () => import('../connect.vue'),
     },
     created: function(a) {
       const self = this

@@ -34,7 +34,7 @@
   "chrome_url_overrides" : {
     "newtab": "newtab.html"
   },
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://savvy-nlp--staging.herokuapp.com/ https://*.logrocket.io https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://apis.google.com/ https://forget-me-not--staging.herokuapp.com https://savvy-api--live.herokuapp.com; object-src 'self'; child-src 'self' https://api.kloudless.com/ blob:; worker-src 'self' blob:; connect-src https://sentry.io/ https://api.airshiphq.com/ https://*.googleapis.com https://savvy-nlp--staging.herokuapp.com https://api.kloudless.com/ https://*.logrocket.io https://*.intercom.io https://api.mixpanel.com https://*.algolia.net https://savvy-api--live.herokuapp.com;",
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://*.googleapis.com https://savvy-nlp--staging.herokuapp.com/ https://*.logrocket.io https://www.gstatic.com/ https://*.firebaseio.com https://www.googleapis.com https://*.google.com https://forget-me-not--staging.herokuapp.com https://savvy-api--live.herokuapp.com; object-src 'self' https://*.googleapis.com https://*.google.com; child-src 'self' https://*.googleapis.com https://*.google.com https://accounts.google.com/ https://api.kloudless.com/ blob:; worker-src 'self' https://*.google.com https://*.googleapis.com blob:; connect-src https://*.google.com https://sentry.io/ https://api.airshiphq.com/ https://*.googleapis.com https://savvy-nlp--staging.herokuapp.com https://api.kloudless.com/ https://*.logrocket.io https://*.intercom.io https://api.mixpanel.com https://*.algolia.net https://savvy-api--live.herokuapp.com;",
   "web_accessible_resources": [
     "newtab.html",
     "sidebar.html"

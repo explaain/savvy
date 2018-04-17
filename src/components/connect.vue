@@ -1,6 +1,13 @@
 <template lang="html">
   <div class="panel connect" :class="{'loading': loading}">
-    <h3>Connect to your work apps here</h3>
+    <a class="service auto-service" :class="{'coming-soon': autoService.comingSoon}" v-if="autoService" @click="connectSource(autoService)">
+      <h3>Click to connect to {{autoService.title}}</h3>
+      <div class="logo">
+        <span class="helper"></span>
+        <img :src="autoService.logo" alt="">
+      </div>
+    </a>
+    <h3>Connect to all your work apps here</h3>
     <section class="services">
       <a class="service" :class="{'coming-soon': service.comingSoon}" v-for="service in services" @click="connectSource(service)">
         <div class="logo">
@@ -18,6 +25,7 @@
 
 <script>
 /* global Kloudless, window, gapi */
+// /* global Kloudless, window */
 import LogRocket from 'logrocket'
 import Raven from 'raven-js'
 import axios from 'axios'
@@ -28,7 +36,7 @@ import '../scripts/google.js'
 import '../scripts/kloudless.authenticator.js'
 import '../scripts/trello.js'
 import Spinner from './spinner.vue'
-require('log-suppress').init(console)
+// require('log-suppress').init(console)
 
 var googleAuth2 = null
 
@@ -36,6 +44,7 @@ export default {
   props: [
     'services',
     'organisationID',
+    'autoService',
   ],
   data: function() {
     return {
@@ -50,7 +59,15 @@ export default {
     Spinner,
   },
   created: function () {
+    console.log('gapi')
+    console.log(gapi)
+    console.log('gapi.load')
+    console.log(gapi.load)
     gapi.load('auth2', function() {
+      console.log('gapi.auth2')
+      console.log(gapi.auth2)
+      console.log('gapi.auth2.init')
+      console.log(gapi.auth2.init)
       googleAuth2 = gapi.auth2.init({ // eslint-disable-line
         client_id: '704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com',
         // Scopes to request in addition to 'profile' and 'email'
@@ -83,7 +100,10 @@ export default {
           // Trello.authorize({ type: 'popup', name: 'Savvy', scope: { read: true, write: true, account: false }, expiration: 'never', success: this.addSource1, error: this.errorAddingSource })
           break
         case 'gmail':
-          googleAuth2.grantOfflineAccess({ scope: 'https://www.googleapis.com/auth/gmail.readonly' }).then(this.receiveGmailCode)
+          if (googleAuth2)
+            googleAuth2.grantOfflineAccess({ scope: 'https://www.googleapis.com/auth/gmail.readonly' }).then(this.receiveGmailCode)
+          else
+            window.open('https://connect.heysavvy.com/?org=' + this.organisationID + '&service=gmail')
           break
         case 'asana':
           // window.addEventListener('message', this.useTokenFromPopup, { once: true })
@@ -239,61 +259,77 @@ function getParameterByName(name, url) {
     opacity: 0.5;
   }
 
+  a.service {
+    @extend .block;
+    display: inline-block;
+    cursor: pointer;
+
+    &:hover {
+      background: #f3f3f3;
+      // opacity: 0.7;
+    }
+    &::after {
+      content: ".";
+      opacity: 0;
+    }
+    &.coming-soon {
+      background: #f3f3f3;
+
+      &:hover {
+        background: #e9e9e9;
+      }
+      &::after {
+        content: "Coming Soon";
+        opacity: 1;
+        position: relative;
+        top: -170px;
+        font-weight: bold;
+        color: #aaa;
+      }
+
+      > div.logo, p {
+        opacity: 0.2;
+      }
+    }
+    &.auto-service {
+      @extend .block;
+      padding-left: 40px;
+      padding-right: 40px;
+
+      h3 {
+        color: #777;
+      }
+    }
+
+    > div.logo {
+      height: 120px;
+      padding: 5px;
+      white-space: nowrap; /* this is required unless you put the helper span closely near the img */
+
+      > span.helper {
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+      }
+      > img {
+        max-width: 100%;
+        max-height: 100%;
+        vertical-align: middle;
+      }
+    }
+    > p {
+      color: #777;
+    }
+  }
+
   .services {
     text-align: center;
     max-width: 640px;
+    margin: auto;
 
     a.service {
-      @extend .block;
-      display: inline-block;
       width: 120px;
       height: 160px;
-      cursor: pointer;
-
-      &:hover {
-        background: #f3f3f3;
-        // opacity: 0.7;
-      }
-      &::after {
-        content: ".";
-        opacity: 0;
-      }
-      &.coming-soon {
-        background: #f3f3f3;
-
-        &:hover {
-          background: #e9e9e9;
-        }
-        &::after {
-          content: "Coming Soon";
-          opacity: 1;
-          position: relative;
-          top: -170px;
-          font-weight: bold;
-          color: #aaa;
-        }
-
-        > div.logo, p {
-          opacity: 0.2;
-        }
-      }
-
-      > div.logo {
-        height: 120px;
-        padding: 5px;
-        white-space: nowrap; /* this is required unless you put the helper span closely near the img */
-
-        > span.helper {
-          display: inline-block;
-          height: 100%;
-          vertical-align: middle;
-        }
-        > img {
-          max-width: 100%;
-          vertical-align: middle;
-        }
-      }
-
     }
 
     .message-block {

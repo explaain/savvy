@@ -8,6 +8,7 @@ import Vue from 'vue'
 // import router from './router'
 import Dashboard from './dashboard'
 import Chrome from './components/chrome/chrome'
+import ConnectPage from './components/connect-page'
 import ChromeControllerInterface from './chrome/chrome-controller-interface'
 import ControllerInterface from './controller-interface' // Ideally this is only imported if we're testing
 
@@ -33,7 +34,9 @@ class Main {
     // @TODO: This should choose Controller not just for testing but also for webapp
     console.log('props')
     console.log(props)
-    const ControllerInterfaceClass = (props.env === 'testing' || props.mode === 'demo') ? ControllerInterface : ChromeControllerInterface
+    const ControllerInterfaceClass = (props.mode === 'chrome' && props.env !== 'testing') ? ChromeControllerInterface : ControllerInterface
+    console.log('ControllerInterfaceClass')
+    console.log(ControllerInterfaceClass)
     mainSelf.Controller = new ControllerInterfaceClass({ mode: props.mode })
 
     Vue.filter('capitalise', (value, initial) => {
@@ -50,7 +53,7 @@ class Main {
       el: '#app',
       // router,
       render(h) {
-        return h(props.plugin || props.demo ? Chrome : Dashboard, {
+        return h(props.mode === 'connect' ? ConnectPage : props.plugin || props.mode === 'demo' ? Chrome : Dashboard, {
           props: {
             Controller: mainSelf.Controller,
             authState: this.authState,
@@ -128,13 +131,25 @@ class Main {
       LogRocket.captureMessage('Failed to Log In', {
         extra: {
           err: err,
-          data: v
+          data: {
+            authState: v.authState,
+            user: v.user,
+            sidebar: v.sidebar,
+            mode: v.mode,
+            parentError: v.parentError,
+          }
         }
       })
       Raven.captureMessage('Failed to Log In', {
         extra: {
           err: err,
-          data: v
+          data: {
+            authState: v.authState,
+            user: v.user,
+            sidebar: v.sidebar,
+            mode: v.mode,
+            parentError: v.parentError,
+          }
         }
       })
     })
@@ -145,12 +160,24 @@ class Main {
         console.log('Having to resort to a backup login attempt')
         LogRocket.captureMessage('Having to resort to a backup login attempt', {
           extra: {
-            data: v
+            data: {
+              authState: v.authState,
+              user: v.user,
+              sidebar: v.sidebar,
+              mode: v.mode,
+              parentError: v.parentError,
+            }
           }
         })
         Raven.captureMessage('Having to resort to a backup login attempt', {
           extra: {
-            data: v
+            data: {
+              authState: v.authState,
+              user: v.user,
+              sidebar: v.sidebar,
+              mode: v.mode,
+              parentError: v.parentError,
+            }
           }
         })
         this.Controller.getUser()
@@ -163,13 +190,25 @@ class Main {
           LogRocket.captureMessage('Failed to Log In (even on the backup attempt)', {
             extra: {
               err: err,
-              data: v
+              data: {
+                authState: v.authState,
+                user: v.user,
+                sidebar: v.sidebar,
+                mode: v.mode,
+                parentError: v.parentError,
+              }
             }
           })
           Raven.captureMessage('Failed to Log In (even on the backup attempt)', {
             extra: {
               err: err,
-              data: v
+              data: {
+                authState: v.authState,
+                user: v.user,
+                sidebar: v.sidebar,
+                mode: v.mode,
+                parentError: v.parentError,
+              }
             }
           })
         })

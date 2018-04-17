@@ -30,6 +30,12 @@ npm test
 For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
 
 
+## To Build Chrome Extension
+
+1. Set `props.mode = chrome` in `src/webapp.js`
+2. Make sure `props.env` is not set to `testing` in `src/webapp.js`
+3. Make sure `src/chrome-newtab.js` and `src/chrome-sidebar.js` are NOT commented out
+
 ## To Deploy Demo Version
 
 1. Comment out everything in `src/chrome-newtab.js` and `src/chrome-sidebar.js`
