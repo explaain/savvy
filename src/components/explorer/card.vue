@@ -12,8 +12,6 @@
       <div class="label" v-if="full && card.highlight"><span class="top-hit" v-if="card.highlight"><icon name="bolt"></icon> Top Hit</span><span class="type"><!--<icon name="clock-o"></icon> Memory--></span></div>
       <h3 v-if="editing" style="margin: 15px 10px 10px;">Enter your card details:</h3>
       <component v-bind:is="format" :showPending="showPending" :content="content" :full="full" @update="update" :allCards="allCards" @contentUpdate="contentUpdate" @cardletClick="cardletClick" :auth="auth" :position="position" :highlight="highlight" :editing="editing"></component>
-      <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
-      <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
       <!-- <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p> -->
       <spinner></spinner>
     </section>
@@ -21,18 +19,34 @@
       <ibutton v-if="card.pendingDelete" class="small" icon="close" text="Cancel" :click="cancelPendingDelete"></ibutton>
     </p>
     <p class="message-block error" v-if="errorMessage"><icon name="exclamation-triangle"></icon>{{errorMessage}}</p>
-    <a @click.stop="fileClick(file)" v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file">
+
+    <!-- <a @click.stop="fileClick(file)" v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="file">
       <section class="file-card-body" v-if="fileFormat">
         <img :src="cardIcon" alt="" class="file-icons">
         <h3>{{card.title}}</h3>
         <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
       </section>
-      <!-- <img :src="fileIcons[i]" alt=""> -->
       <h4 v-if="!fileFormat"><vue-markdown :watches="['card.files']" :source="getFileTitle(file)" :linkify="false" :anchorAttributes="{target: '_blank'}"></vue-markdown></h4>
-      <h5><img v-if="getServiceName(card, file).icon" :src="getServiceName(card, file).icon" alt="">{{getServiceName(card, file).name}}</h5>
-    </a>
+      <h5><img v-if="getService(card, file).icon" :src="getService(card, file).icon" alt="">{{getService(card, file).name}}</h5>
+    </a> -->
     <p class="extractedFrom" v-if="full && card.extractedFrom">Extracted from <a v-bind:href="card.extractedFrom.url" target="_blank">{{card.extractedFrom.title}}</a></p>
-    <footer v-if="full">
+    <footer>
+      <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
+      <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
+      <section class="sources">
+        <div class="source-individual from" v-if="card.files && card.files.length && card.files[0]">
+          <p>From:</p>
+          <a @click.stop="fileClick(file)" v-for="file, i in card.files" class="source-link">
+            <img v-if="getFileIcon(file)" :src="getFileIcon(file)" alt="">{{file.title}}
+          </a>
+        </div>
+        <div class="source-individual in" v-if="card.files && card.files.length && card.files[0]">
+          <p>In:</p>
+          <a @click.stop="serviceClick(getService(card, file))" v-if="card.files && card.files.length && card.files[0]" v-for="file, i in card.files" class="source-link">
+            <img v-if="getService(card, file).icon" :src="getService(card, file).icon" alt="">{{getService(card, file).name}}
+          </a>
+        </div>
+      </section>
       <div class="sources" v-if="card.sources && card.sources.length">
         Source{{card.sources.length > 1 ? 's' : ''}}: <span v-for="source, i in card.sources"><a :href="source.url" target="_blank">{{source.name}}</a>{{i < card.sources.length - 1 ? ', ' : '' }}</span>
       </div>
@@ -40,15 +54,15 @@
         <ibutton class="small left cancel" icon="close" text="Cancel" :click="cancelEdit"></ibutton>
         <ibutton class="small right save" icon="check" :text="userIsSavvy ? 'Save Card' : 'Submit for Approval'" :click="saveEdit"></ibutton>
       </div>
-      <div class="buttons reaction" v-if="!reacted && !explaain && !editing">
+      <!-- <div class="buttons reaction" v-if="!reacted && !explaain && !editing"> -->
         <!-- <p>How well did this match what you were looking for?</p> -->
-        <button class="" @click.stop="react('great')">😍&nbsp;&nbsp; That's what I needed</button>
+        <!-- <button class="" @click.stop="react('great')">😍&nbsp;&nbsp; That's what I needed</button> -->
         <!-- <button class="" @click="react('ok')">😐</button>
         <button class="" @click="react('bad')">😢</button> -->
-      </div>
-      <div class="buttons reaction" v-if="reacted && !explaain && !editing">
+      <!-- </div> -->
+      <!-- <div class="buttons reaction" v-if="reacted && !explaain && !editing">
         <p>Thanks for your feedback! Savvy uses this to learn and get smarter over time 🤖</p>
-      </div>
+      </div> -->
       <div class="pending-toggle" v-if="!editing && card.pendingContent && Object.keys(card.pendingContent).length">
         <toggle-button v-model="showPending" :sync="true" :labels="true"/>
         <span>Show Pending Changes</span>
@@ -58,7 +72,7 @@
       <ibutton class="approve left" icon="check" :text="`Approve ${numberOfPendingChanges} Change` + (numberOfPendingChanges > 1 ? 's' : '')" :click="verify" :clickProps="true"></ibutton>
       <ibutton class="reject right" icon="close" text="Reject" :click="verify" :clickProps="false"></ibutton>
     </div>
-    <div v-if="card.files && card.files.length && card.files[0]" class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
+    <div class="footer-logo">{{explaain ? 'Explaain' : 'Savvy'}}</div>
   </div>
 </template>
 
@@ -251,31 +265,6 @@ export default {
         trello: '/static/images/icons/formats/card.png',
       }[this.data.service] || (this.data.fileID ? '/static/images/icons/formats/file.png' : '/static/images/iconGrey.png')
     },
-    // fileIcons: function() {
-    //   return this.card && this.card.files && this.card.files.length ? this.card.files.map(file => {
-    //     switch (file && file.mimeType ? file.mimeType : null) {
-    //       case 'application/vnd.google-apps.document':
-    //       case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-    //         return 'https://lh4.ggpht.com/-wROmWQVYTcjs3G6H0lYkBK2nPGYsY75Ik2IXTmOO2Oo0SMgbDtnF0eqz-BRR1hRQg=w300'
-    //       case 'application/vnd.google-apps.spreadsheet':
-    //       case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-    //         return 'http://icons.iconarchive.com/icons/dtafalonso/android-lollipop/512/Sheets-icon.png'
-    //       case 'application/vnd.google-apps.presentation':
-    //       case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-    //         return 'http://cliparting.com/wp-content/uploads/2017/07/Google-slides-icon-free-download-at-icons8-clipart.png'
-    //       case 'application/pdf':
-    //         return 'https://cdn1.iconfinder.com/data/icons/adobe-acrobat-pdf/154/adobe-acrobat-pdf-file-512.png'
-    //       case 'image/png':
-    //       case 'image/jpg':
-    //       case 'image/jpeg':
-    //       case 'image/gif':
-    //         return 'https://cdn3.iconfinder.com/data/icons/faticons/32/picture-01-512.png'
-    //       default:
-    //         return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
-    //     }
-    //   }) : ['/static/images/iconGrey.png'] // //static//
-    //   // }) : ['https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png']
-    // },
     fullText: function() {
       return (this.card.title ? this.card.title + '\n\n' : '') + this.text
         + (this.card.cardList && this.card.cardList.length ? '\n- ' + (this.card.cardList || []).map(item => item.description).join('\n- ') : '')
@@ -352,30 +341,35 @@ export default {
       console.log('update (card)', data)
       this.card[data.field] = data.value
     },
-    getServiceName(card, file) {
+    getService(card, file) {
       const defaultService = {
         name: '📂 ' + (this && this.user && this.user.data && this.user.data.organisation && this.user.data.organisation.id ? this.user.data.organisation.id : 'Team') + ' Drive'
       }
       const services = {
         gdrive: {
           name: 'Google Drive',
-          icon: '/static/images/icons/gdrive.png'
+          icon: '/static/images/icons/gdrive.png',
+          url: 'https://drive.google.com/',
         },
         gdocs: {
-          name: 'Google Docs',
-          icon: '/static/images/icons/gdocs.png'
+          name: 'Google Drive',
+          icon: '/static/images/icons/gdrive.png',
+          url: 'https://drive.google.com/',
         },
         gsheets: {
-          name: 'Google Sheets',
-          icon: '/static/images/icons/gsheets.png'
+          name: 'Google Drive',
+          icon: '/static/images/icons/gdrive.png',
+          url: 'https://drive.google.com/',
         },
         gslides: {
-          name: 'Google Slides',
-          icon: '/static/images/icons/gslides.png'
+          name: 'Google Drive',
+          icon: '/static/images/icons/gdrive.png',
+          url: 'https://drive.google.com/',
         },
         gmail: {
           name: 'Gmail',
-          icon: '/static/images/icons/gmail.png'
+          icon: '/static/images/icons/gmail.png',
+          url: 'https://mail.google.com/',
         },
         sifter: {
           name: 'Sifter',
@@ -394,11 +388,13 @@ export default {
         },
         trello: {
           name: 'Trello',
-          icon: '/static/images/icons/trello.png'
+          icon: '/static/images/icons/trello.png',
+          url: 'https://trello.com/',
         },
         dropbox: {
           name: 'Dropbox',
-          icon: '/static/images/icons/dropbox.png'
+          icon: '/static/images/icons/dropbox.png',
+          url: 'https://dropbox.com/',
         },
       }
       const fileTypes = {
@@ -406,18 +402,42 @@ export default {
       }
       if (file && file.folder)
         return { name: '📂 ' + file.folder + ' Drive' }
-      else if (file && file.subService)
-        return services[file.subService] || defaultService
+      // else if (file && file.subService)
+      //   return services[file.subService] || defaultService
       else if (file && file.service)
         return services[file.service] || defaultService
-      else if (card && card.subService)
-        return services[card.subService] || defaultService
+      // else if (card && card.subService)
+      //   return services[card.subService] || defaultService
       else if (card && card.service)
         return services[card.service] || defaultService
-      else if (card && card.fileType)
-        return services[fileTypes[card.fileType]] || defaultService
+      else if (card && (card.fileType || card.mimeType || file.fileType || file.mimeType))
+        return services[fileTypes[(card.fileType || card.mimeType || file.fileType || file.mimeType)]] || defaultService
       else
         return defaultService
+    },
+    getFileIcon: function(file) {
+      if (!file || (!file.mimeType && !file.fileType))
+        return '/static/images/iconGrey.png'
+      switch (file.mimeType || file.fileType) {
+        case 'application/vnd.google-apps.document':
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+          return '/static/images/icons/gdocs.png'
+        case 'application/vnd.google-apps.spreadsheet':
+        case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+          return '/static/images/icons/gsheets.png'
+        case 'application/vnd.google-apps.presentation':
+        case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+          return '/static/images/icons/gslides.png'
+        case 'application/pdf':
+          return 'https://cdn1.iconfinder.com/data/icons/adobe-acrobat-pdf/154/adobe-acrobat-pdf-file-512.png'
+        case 'image/png':
+        case 'image/jpg':
+        case 'image/jpeg':
+        case 'image/gif':
+          return 'https://cdn3.iconfinder.com/data/icons/faticons/32/picture-01-512.png'
+        default:
+          return 'https://cdn4.iconfinder.com/data/icons/48-bubbles/48/12.File-512.png'
+      }
     },
     getFileTitle: function(file) {
       return this.format === 'issue' ? 'Issue #' + (this.card.integrationFields.key || this.card.integrationFields.number) : file && file.title ? file.title : ''
@@ -476,6 +496,10 @@ export default {
     },
     fileClick: function (file) {
       this.$emit('fileClick', this.card, file)
+    },
+    serviceClick: function (service) {
+      if (service && service.url)
+        this.$emit('serviceClick', this.card, service)
     },
     createCard: function() {
       // Hi
@@ -736,7 +760,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     .buttons {
       bottom: 15px;
       left: 20px;
-      margin: 13px 0 5px;
+      margin: 65px 4px -45px;
       padding: 6px 12px;
 
       &:focus {
@@ -785,8 +809,8 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 
     .content {
       margin: 5px;
-      margin-left: 50px;
-      padding: 5px;
+      padding: 10px;
+      // margin-left: 50px;
       min-height: 60px;
 
       strong {
@@ -860,7 +884,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
     .file-icons {
       float: left;
-      margin: 18px 0 0 10px;
+      margin: 18px 5px 0 18px;
       max-width: 35px;
       max-height: 35px;
     }
@@ -894,6 +918,10 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
     .content {
+      .field:first-child {
+        margin-left: 45px;
+        margin-bottom: 15px;
+      }
       .title {
         font-weight: bold;
         font-size: 1.2em;
@@ -931,9 +959,6 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         }
         > h3 {
           min-height: 50px;
-        }
-        > p.modified {
-          padding: 0;
         }
       }
       img {
@@ -983,15 +1008,50 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
     footer {
-      margin: 0;
-      padding: 5px;
+      margin: 0 5px 5px;
+      padding: 0 5px 60px;
       min-height: 20px;
-      -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+      // -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
+
+      > p.modified {
+        margin-top: 10px;
+        padding-top: 0;
+      }
 
       .sources {
-        margin: 5px;
-        padding: 5px;
+        margin: 0 5px -45px;
+        padding: 30px 5px 5px;
         font-size: 14px;
+
+        .source-individual {
+          display: inline-block;
+
+          &.from {
+            margin-top: -30px;
+          }
+
+          p {
+            margin: 5px 5px 0;
+            padding: 0;
+          }
+          a.source-link {
+            @extend .block;
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 15px;
+
+            &:hover {
+              background: #f3f3f3;
+            }
+
+            img {
+              margin: -5px 10px -2px 0;
+              padding: 0;
+              max-width: 30px;
+              max-height: 25px;
+            }
+          }
+        }
 
         a {
           color: inherit;

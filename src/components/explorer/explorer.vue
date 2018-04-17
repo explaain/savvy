@@ -38,7 +38,7 @@
         <p class="loader-text" v-if="loader != -1">Importing and processing content...</p>
         <div class="loader" v-if="loader != -1"><div :style="{ width: loader + '%' }"></div></div>
         <p class="loader-card-text" v-if="loader != -1">{{loaderCards}} cards generated</p>
-        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="index === 0" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :mode="mode"></card>
+        <card v-masonry-tile v-for="(card, index) in cards" :plugin="plugin" @cardMouseover="cardMouseover" @cardMouseout="cardMouseout" @cardClick="cardClick" @fileClick="fileClick" @serviceClick="serviceClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="card" :key="card.objectID" :full="false" :allCards="allCards" :highlightResult="card._highlightResult" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :mode="mode"></card>
         <div class="no-cards" v-if="!cards.length">
           <p v-if="lastQuery.length">{{noCardMessage}}</p>
           <div v-if="mode === 'demo'" class="search-suggestions">
@@ -58,7 +58,7 @@
         <spinner class="div-spinner" v-if="popupLoading"></spinner>
         <!-- <p class="spinner" v-if="popupLoading"><icon name="spinner" class="fa-spin fa-3x"></icon></p> -->
         <div class="popup-back" v-if="popupCards.length > 1" @click="popupBack"  @mouseover="cardMouseoverFromPopup"><icon name="arrow-left"></icon> Back to "<span class="name">{{(popupCards[popupCards.length - 2].title || popupCards[popupCards.length - 2].description || '').substring(0, 30)}}...</span>"</div>
-        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @fileClick="fileClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :mode="mode"></card>
+        <card v-if="popupCards.length" :plugin="plugin" @cardMouseover="cardMouseoverFromPopup" @cardMouseout="cardMouseout" @cardClick="cardClickFromPopup" @fileClick="fileClick"  @serviceClick="serviceClick" @updateCard="updateCard" @verifyCard="verifyCard" @deleteCard="deleteCard" @reaction="reaction" :data="popupCards ? popupCards[popupCards.length - 1] : {}" :full="true" :allCards="allCards" @copy="copyAlert" :userRole="user.data.role" :userTopics="user.data.topics || []" :mode="mode"></card>
       </div>
     </div>
   </div>
@@ -352,6 +352,25 @@
             fileFormat: card.fileFormat,
           })
           window.open(file.url, '_blank')
+        }
+      },
+      serviceClick: function (card, service) {
+        console.log('Service Clicked', card, service)
+        if (service && service.url) {
+          console.log('Opening Service', service)
+          Mixpanel.track('File Opened', {
+            organisationID: this.user.data.organisationID,
+            userID: this.user.uid,
+            cardID: card.objectID,
+            description: card.description,
+            title: card.title,
+            listItems: card.listItems,
+            fileTitle: card.fileTitle,
+            fileUrl: card.fileUrl,
+            fileType: card.fileType,
+            fileFormat: card.fileFormat,
+          })
+          window.open(service.url, '_blank')
         }
       },
       popupBack: function() {

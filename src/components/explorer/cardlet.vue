@@ -81,11 +81,11 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
   @import '../../styles/main.scss';
 
   div.card .cardlet {
-    margin: 0 8px -1px;
+    margin: 0 10px -1px;
     min-height: unset;
     padding: 0;
     border-radius: 0;
-    width: calc(100% - 20px);
+    // width: calc(100% - 20px);
     border: 1px solid #e4e4e4;
     box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
     -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
