@@ -15,6 +15,15 @@
       <!-- <p class="spinner"><icon name="refresh" class="fa-spin fa-3x"></icon></p> -->
       <spinner></spinner>
     </section>
+
+    <!-- Put this in a component! -->
+    <a v-if="fileFormat" @click.stop="fileClick(file)" v-for="file, i in card.files" class="file">
+      <div class="thumb" :style="{backgroundImage: 'url(' + (file.thumbnail || '/static/images/thumbnail.png') + ')'}"></div>
+      <div class="name">
+        <img v-if="getFileIcon(file)" :src="getFileIcon(file)" alt="">{{file.title}}
+      </div>
+    </a>
+
     <p class="message-block warning" v-if="warningMessage"><icon name="exclamation-circle"></icon>{{warningMessage}}
       <ibutton v-if="card.pendingDelete" class="small" icon="close" text="Cancel" :click="cancelPendingDelete"></ibutton>
     </p>
@@ -34,7 +43,7 @@
       <p class="modified" v-if="card.modified"><icon name="check" v-if="new Date() - card.modified*1000 < 6*604800000"></icon> Updated: <span>{{lastUpdatedText}}</span></p>
       <topics v-if="full && content && Object.keys(content).length" :topics="content.topics" :editing="editing" @update="update"></topics>
       <section class="sources">
-        <div class="source-individual from" v-if="card.files && card.files.length && card.files[0]">
+        <div class="source-individual from" v-if="!fileFormat && card.files && card.files.length && card.files[0]">
           <p>From:</p>
           <a @click.stop="fileClick(file)" v-for="file, i in card.files" class="source-link">
             <img v-if="getFileIcon(file)" :src="getFileIcon(file)" alt="">{{file.title}}
@@ -398,7 +407,12 @@ export default {
         },
       }
       const fileTypes = {
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'gdocs'
+        'application/vnd.google-apps.document': 'gdocs',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'gdocs',
+        'application/vnd.google-apps.spreadsheet': 'gsheets',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'gsheets',
+        'application/vnd.google-apps.presentation': 'gslides',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'gslides',
       }
       if (file && file.folder)
         return { name: '📂 ' + file.folder + ' Drive' }
@@ -931,19 +945,31 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
       }
     }
     a.file {
+      @extend .block;
       display: block;
-      margin: 0;
+      margin: 25px;
       overflow: hidden;
-      padding: 10px;
-      box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-      -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
-      // background: #f5f5f5;
+      padding: 0px;
       transition: background-color .3s;
       color: inherit;
       text-decoration: inherit;
 
       &:hover {
         background: #f5f5f5;
+      }
+
+      .thumb {
+        height: 150px;
+        background-size: cover;
+        background-position: center;
+        border-bottom: 1px solid #eee;
+      }
+      .name {
+        padding: 10px;
+
+        img {
+          margin-top: -6px;
+        }
       }
 
       section.file-card-body {
@@ -1026,7 +1052,7 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
         .source-individual {
           display: inline-block;
 
-          &.from {
+          &:first-child {
             margin-top: -30px;
           }
 
