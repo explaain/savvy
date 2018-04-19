@@ -17,6 +17,7 @@ const collectPageData = () => {
 
 var pingStatus = 'unborn'
 var pingDiv
+var DrawerFramePresent = false
 const drawer = document.createElement('div')
 const iframe = document.createElement('iframe')
 
@@ -68,7 +69,10 @@ const sendToChrome = data => new Promise((resolve, reject) => {
 })
 const sendToFrame = data => new Promise((resolve, reject) => {
   console.log('Sending to Frame:', data)
-  window.frames['forgetmenot-frame'].contentWindow.postMessage(data, '*')
+  if (window.frames['forgetmenot-frame'])
+    window.frames['forgetmenot-frame'].contentWindow.postMessage(data, '*')
+  else
+    console.log(`Can't send to frame 'forgetmenot-frame' since the frame doesn't exist.`)
   resolve(data)
 })
 /*  Sends pageData to event-page.js, Collects page results, Sends results to frame, Shows ping if necessary  */
@@ -208,7 +212,6 @@ const createDrawer = () => {
     timeSaved.appendChild(document.createTextNode('You\'ve saved 4.5 hours so far this month! 💪'))
 
     drawer.appendChild(close)
-    drawer.appendChild(iframe)
     // drawer.appendChild(timeSaved)
     document.body.appendChild(drawer)
   } catch (e) {
@@ -216,6 +219,10 @@ const createDrawer = () => {
   }
 }
 const openDrawer = e => {
+  if (!DrawerFramePresent) {
+    drawer.appendChild(iframe)
+    DrawerFramePresent = true
+  }
   if (drawer.getAttribute('data-status') === 'closed' && (!e || !e.dealtWith)) {
     console.log('Opening Drawer')
     // getPageResults()
@@ -248,6 +255,10 @@ const closeDrawer = e => {
         drawer.setAttribute('data-status', 'closed')
         drawer.style.marginRight = '-' + drawer.style.width
         iframe.style.display = 'none'
+      }
+      if (iframe && iframe.parentNode) {
+        iframe.parentNode.removeChild(iframe)
+        DrawerFramePresent = false
       }
     }, 1000)
   }

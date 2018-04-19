@@ -28,6 +28,15 @@ const errorToPassDown = {
   message: null
 }
 
+// if (chrome && chrome.processes && chrome.processes.getProcessInfo) {
+//   console.log('Fetching Process Info')
+//   chrome.processes.getProcessInfo([], true, processes => {
+//     console.log('Fetched Process Info!')
+//     console.log(processes)
+//     console.log(JSON.stringify(processes))
+//   })
+// }
+
 class Main {
   constructor(props) {
     const mainSelf = this
