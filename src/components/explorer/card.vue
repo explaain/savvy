@@ -960,8 +960,10 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
 
       .thumb {
         height: 150px;
-        background-size: cover;
+        background-color: #f5f5f5;
+        background-size: contain;
         background-position: center;
+        background-repeat: no-repeat;
         border-bottom: 1px solid #eee;
       }
       .name {
@@ -1035,8 +1037,8 @@ String.prototype.trunc = function(start, length, useWordBoundary) {
     }
     footer {
       margin: 0 5px 5px;
-      padding: 0 5px 60px;
-      min-height: 20px;
+      padding: 0 5px 55px;
+      min-height: 25px;
       // -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.05);
 
       > p.modified {
