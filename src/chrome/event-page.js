@@ -21,10 +21,11 @@ Raven.config('https://5abb211365ca4cd9a72885762827512f@sentry.io/1187390').insta
 //   })
 // })
 
-chrome.runtime.onInstalled.addListener(object => {
-  chrome.tabs.create({url: 'https://heysavvy.com/chrome-installed'}, tab => {
-    console.log('New tab launched with https://heysavvy.com/chrome-installed')
-  })
+chrome.runtime.onInstalled.addListener(details => {
+  if (details && details.reason === 'install')
+    chrome.tabs.create({url: 'https://heysavvy.com/chrome-installed'}, tab => {
+      console.log('New tab launched with https://heysavvy.com/chrome-installed')
+    })
 })
 
 const stateChangeCallback = (state, user) => {
