@@ -5,11 +5,13 @@
 import log from 'loglevel'
 import LogRocket from 'logrocket'
 import Raven from 'raven-js'
+import Mixpanel from 'mixpanel-browser'
 import Controller from '../controller'
 
 log.setLevel('debug')
 LogRocket.init('cqmhn2/savvy-development')
 Raven.config('https://5abb211365ca4cd9a72885762827512f@sentry.io/1187390').install()
+Mixpanel.init('e3b4939c1ae819d65712679199dfce7e', { api_host: 'https://api.mixpanel.com' })
 
 // chrome.tabs.query({}, function(tabs) {
 //   console.log('tabs', tabs)
@@ -26,7 +28,39 @@ chrome.runtime.onInstalled.addListener(details => {
     chrome.tabs.create({url: 'https://heysavvy.com/chrome-installed'}, tab => {
       console.log('New tab launched with https://heysavvy.com/chrome-installed')
     })
+  else if (details && details.reason === 'update')
+    Mixpanel.track('Chrome Extension Reloaded')
+  chrome.tabs.query({url: 'chrome://newtab/'}, tabs => {
+    tabs.forEach(tab => {
+      chrome.tabs.update(tab.id, { url: 'chrome-extension://jejdapphghknjfjnjnbakipojmdcjgkd/newtab.html' })
+    })
+  })
 })
+
+// Every 12 hours, reload the chrome extension
+const StartTryingToReloadExtension = count => {
+  chrome.tabs.query({ active: true }, currentTabs => {
+    console.log('currentTabs')
+    console.log(currentTabs)
+    console.log(JSON.stringify(currentTabs))
+    if (count > 20 || (currentTabs.filter(tab => tab.url === 'chrome://newtab/').length === 0 && currentTabs.filter(tab => tab.url === 'chrome-extension://jejdapphghknjfjnjnbakipojmdcjgkd/newtab.html').length === 0)) {
+      Mixpanel.track('Reloading Chrome Extension')
+      setTimeout(() => {
+        chrome.runtime.reload()
+      }, 5000)
+    } else {
+      Mixpanel.track('Postponing Reloading Chrome Extension', {
+        postponeCount: count
+      })
+      setTimeout(() => {
+        StartTryingToReloadExtension(count + 1)
+      }, 12 * 60 * 60 * 1000)
+    }
+  })
+}
+setTimeout(() => {
+  StartTryingToReloadExtension(0)
+}, 60 * 1000)
 
 const stateChangeCallback = (state, user) => {
   console.log('stateChangeListener (event-page.js)', state, user)
@@ -262,6 +296,8 @@ if (allowContinue) {
       log.error(e)
       sendResponse({ error: e })
     })
+    // Memory leak cleanup
+    promiseFunction = null
     return true
   })
 }
