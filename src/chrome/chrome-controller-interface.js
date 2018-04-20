@@ -67,6 +67,12 @@ class ChromeControllerInterface {
       chrome.runtime.sendMessage({ action: 'searchCards', data: data }, resolve)
     })
   }
+  getCard(data) {
+    return new Promise((resolve, reject) => {
+      console.log('getCard (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'getCard', data: data }, resolve)
+    })
+  }
   force(toForce) {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage({ action: 'force', data: toForce }, resolve)

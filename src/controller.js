@@ -189,6 +189,19 @@ class Controller {
     const result = await ExplaainSearch.searchCards(data.user, data.query, data.numberOfResults, data)
     return result
   }
+  async getCard(data) {
+    console.log('❇️ CONTROLLER ❇️ - getCard', data)
+    const user = await this.getUser()
+    const idToken = await this.getAccessToken()
+    data.includeNlp = true
+    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken, organisationID: user.data.organisationID }
+    data.organisationID = user.data.organisationID
+    console.log('data', data)
+    console.log('ExplaainSearch', ExplaainSearch)
+    console.log('ExplaainSearch.getCard', ExplaainSearch.getCard)
+    const result = await ExplaainSearch.getCard(data.objectID, data)
+    return result
+  }
   async force(toForce) {
     if (toForce.user) {
       const user = await this.Auth.forceUser(toForce.user)

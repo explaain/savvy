@@ -261,7 +261,12 @@
         console.log('fetchCard1', objectID)
         const self = this
         const _highlightResult = self.allCards[objectID] && self.query === self.lastQuery ? self.allCards[objectID]._highlightResult : null // So that when a search is still active, popup cards etc don't lose their highlights
-        const card = await ExplaainSearch.getCard(objectID)
+        const card = await self.Controller.getCard({
+          objectID: objectID,
+          params: {
+            searchStrategy: self.searchStrategy
+          },
+        })
         if (!card._highlightResult) card._highlightResult = _highlightResult
         Vue.set(self.allCards, objectID, card) // Forces this to be watched @TODO: Find out whether Vue.set() is still necessary! In this place at least it seems to work without
         return card
@@ -394,7 +399,7 @@
         }
       },
       openPopup: async function(c, append) {
-        console.log('openPopup')
+        console.log('openPopup', c, append)
         clearTimeout(this.popupCloseTimeout)
         var card = null
         try {

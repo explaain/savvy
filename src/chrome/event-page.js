@@ -279,6 +279,9 @@ if (allowContinue) {
         case 'searchCards':
           promiseFunction = myController.searchCards(request.data)
           break
+        case 'getCard':
+          promiseFunction = myController.getCard(request.data)
+          break
         case 'force':
           promiseFunction = myController.force(request.data)
           break

@@ -242,7 +242,7 @@ const Search = {
           d.reject(e)
         } else {
           const cards = content.hits.map(async card => {
-            const correctedCard = await correctCard(card, false)
+            const correctedCard = await correctCard(card)
             return correctedCard
           })
           AlgoliaFileIndex.search()
@@ -272,7 +272,6 @@ const Search = {
         delete params.hitsPerPage
       if (window.location.hostname === 'localhost')
         params.environment = 'local'
-      AlgoliaCardsIndex.clearCache()
       console.log(params)
       // try {
       //
@@ -296,29 +295,29 @@ const Search = {
       console.log(content)
       const hits = content.hits || (content.data && content.data.memories) || [] // Accounts for the fact that we are often now using savvy-api for this
       await hits.forEach(async hit => {
-        const correctedCard = await correctCard(hit, false)
+        const correctedCard = await correctCard(hit)
         cards.push(correctedCard)
       })
       var fileIDs = cards.map(card => card.fileID)
       fileIDs = fileIDs.filter((item, pos) => item && fileIDs.indexOf(item) === pos) // Remove blanks and duplicates
-      if (fileIDs.length) {
-        const files = await new Promise((resolve, reject) => {
-          AlgoliaFileIndex.getObjects(fileIDs, (err, content) => {
-            if (err)
-              reject(err)
-            else {
-              resolve(content)
-            }
-          })
-        })
-        cards = cards.map(card => {
-          card.files = files.results.filter(file => file && file.objectID === card.fileID)
-          card.files.forEach(file => {
-            if (!file.title) file.title = card.fileTitle
-          })
-          return card
-        })
-      }
+      // if (fileIDs.length) {
+        // const files = await new Promise((resolve, reject) => {
+        //   AlgoliaFileIndex.getObjects(fileIDs, (err, content) => {
+        //     if (err)
+        //       reject(err)
+        //     else {
+        //       resolve(content)
+        //     }
+        //   })
+        // })
+      // }
+      // cards = cards.map(card => {
+        // card.files = files.results.filter(file => file && file.objectID === card.fileID)
+        // card.files.forEach(file => {
+        //   if (!file.title) file.title = card.fileTitle
+        // })
+        // return card
+      // })
       cards = combineDuplicateContents(cards)
       return cards
     }
@@ -404,21 +403,38 @@ const Search = {
       return d.promise
     }
 
-    const getCard = objectID => new Promise((resolve, reject) => {
-      console.log('getCard', objectID)
-      AlgoliaCardsIndex.getObject(objectID, async (e, content) => {
-        if (e) {
-          log.trace(e)
-          reject(e)
-        } else {
-          const card = await correctCard(content, true)
-          console.log('gotCard:', card)
-          resolve(card)
-        }
+    const getCard = async (objectID, data) => {
+      console.log('getCard', objectID, data)
+      const getData = data || {}
+      getData.objectID = objectID
+      const result = await axios({
+        method: 'post',
+        url: 'http://localhost:5000/api/get-card/',
+        // url: 'https://savvy-api--live.herokuapp.com/api/get-card/',
+        timeout: 10000,
+        data: getData
       })
-    })
+      const card = await correctCard(result.data)
+      console.log('gotCard:', card)
+      return card
+    }
+    //
+    // const getCard = objectID => new Promise((resolve, reject) => {
+    //   console.log('getCard', objectID)
+    //   // @TODO: Remove Algolia
+    //   AlgoliaCardsIndex.getObject(objectID, async (e, content) => {
+    //     if (e) {
+    //       log.trace(e)
+    //       reject(e)
+    //     } else {
+    //       const card = await correctCard(content)
+    //       console.log('gotCard:', card)
+    //       resolve(card)
+    //     }
+    //   })
+    // })
 
-    const correctCard = async function(card, getFile) {
+    const correctCard = async function(card) {
       console.log('correctCard', card)
       if (card.content && typeof card.content === 'string' && !card.description) {
         card.description = card.content
@@ -428,21 +444,21 @@ const Search = {
         card._highlightResult.description = card._highlightResult.content
         delete card._highlightResult.content
       }
-      if (getFile && card.fileID) {
-        const file = await new Promise((resolve, reject) => {
-          AlgoliaFileIndex.getObject(card.fileID, (err, content) => {
-            if (err)
-              reject(err)
-            else {
-              resolve(content)
-            }
-          })
-        })
-        console.log('file')
-        console.log(file)
-        if (file && !file.title) file.title = card.fileTitle
-        card.files = [file]
-      }
+      if (card.fileID)
+        card.files = [{
+          url: card.fileUrl || null,
+          fileFormat: card.fileFormat || null,
+          mimeType: card.mimeType || card.fileType || null,
+          fileType: card.mimeType || card.fileType || null,
+          title: card.fileTitle || null,
+          fileTitle: card.fileTitle || null,
+          source: card.source || null,
+          superService: card.superService || null,
+          service: card.service || null,
+          subService: card.subService || null,
+          thumbnail: card.fileThumbnail || null,
+          objectID: card.fileID,
+        }]
       console.log('correctCard - RESULT', card)
       return card
     }
