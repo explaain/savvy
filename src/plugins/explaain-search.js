@@ -409,8 +409,8 @@ const Search = {
       getData.objectID = objectID
       const result = await axios({
         method: 'post',
-        url: 'http://localhost:5000/api/get-card/',
-        // url: 'https://savvy-api--live.herokuapp.com/api/get-card/',
+        // url: 'http://localhost:5000/api/get-card/',
+        url: 'https://savvy-api--live.herokuapp.com/api/get-card/',
         timeout: 10000,
         data: getData
       })
