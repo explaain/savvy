@@ -4,7 +4,7 @@ import ExplaainSearch from './explaain-search.js'
 
 const Detect = {
   install(options) {
-    Vue.use(ExplaainSearch, options.algolia)
+    Vue.use(ExplaainSearch)
   },
   getPageResults(organisationID, user, pageData) {
     return new Promise(function(resolve, reject) {

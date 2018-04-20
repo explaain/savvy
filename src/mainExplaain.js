@@ -21,12 +21,6 @@ const GlobalConfig = { // eslint-disable-line
     storageBucket: '',
     messagingSenderId: '400087312665'
   },
-  algolia: {
-    noFiles: true,
-    appID: 'D3AE3TSULH',
-    // apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-    // index: 'Savvy'
-  },
   author: {
     url: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/memories',
     importUrl: '//' + (process.env.BACKEND_URL || 'forget-me-not--staging.herokuapp.com') + '/api/import'
@@ -37,7 +31,6 @@ const GlobalConfig = { // eslint-disable-line
   auth: {
     user: {
       data: {
-        algoliaKey: '520625d050ed6336f18bfb29f2e27636',
         teams: []
       },
     }

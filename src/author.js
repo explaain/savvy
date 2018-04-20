@@ -35,8 +35,8 @@ class Author {
       // @TODO: Move this error logic to a new library called Connect
       axios({
         method: 'post',
-        // url: 'http://localhost:5000/api/memories/',
-        url: self.options.url,
+        url: 'http://localhost:5000/api/memories/',
+        // url: self.options.url,
         timeout: 10000,
         data: data
       }).then(response => {
@@ -84,7 +84,8 @@ class Author {
       }
       axios({
         method: 'delete',
-        url: self.options.url,
+        url: 'http://localhost:5000/api/memories/',
+        // url: self.options.url,
         timeout: 10000,
         params: data
       }).then(response => {

@@ -36,7 +36,11 @@ export default {
 </script>
 
 <style lang="scss">
-.row-header p {
-  font-weight: bold;
+.row-header {
+  min-height: 30px;
+
+  p {
+    font-weight: bold;
+  }
 }
 </style>

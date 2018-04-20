@@ -192,18 +192,6 @@
         self.organisation = {
           id: 'explaain'
         }
-        self.user = {
-          auth: {},
-          data: {
-            algoliaKey: '88bd0a77faff65d4ace510fbf172a4e1',
-            name: {
-              first: 'Jeremy',
-              last: 'Evans'
-            },
-            teams: []
-          },
-          uid: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2'
-        }
       // } else if (self.plugin) {
       //   console.log('chrome.vue plugin')
       //   this.refreshUser()

@@ -73,7 +73,6 @@
   import Mixpanel from 'mixpanel-browser'
   import Vue from 'vue'
   import Airship from 'airship-js'
-  import Q from 'q'
   import Draggable from 'vuedraggable'
   import 'vue-awesome/icons'
   import Icon from 'vue-awesome/components/Icon.vue'
@@ -85,7 +84,6 @@
   import IconButton from './ibutton.vue'
   import Modal from './modal.vue'
   import Alert from './alert.vue'
-  import ExplaainSearch from '../../plugins/explaain-search.js'
   // import SavvyImport from '../../plugins/savvy-import.js'
 
   export default {
@@ -112,9 +110,6 @@
     ],
     data () {
       return {
-        algoliaParams: {
-          appID: 'D3AE3TSULH' // @TODO: Find a home for this!
-        },
         allCards: {},
         mainCardList: [],
         pingCards: [],
@@ -192,7 +187,6 @@
         Vue.prototype.$route = null
       Vue.use(VueMasonryPlugin)
       Vue.use(BootstrapVue)
-      Vue.use(ExplaainSearch, self.algoliaParams, self.user)
 
       // Vue.use(SavvyImport)
       self.modal.sender = self.user.uid
@@ -274,11 +268,6 @@
       getCard: function(objectID) {
         const self = this
         const card = JSON.parse(JSON.stringify(self.allCards[objectID] || null))
-        // if (!card)
-        //   ExplaainSearch.getCard(objectID)
-        //   .then(card => {
-        //     self.allCards[objectID] = card
-        //   })
         return card
       },
       setCard: function(objectID, card) {
@@ -587,29 +576,6 @@
           callback(null)
           return null
         }
-      },
-      deleteAllCards: function () {
-        console.log('Deleting all cards...!!!')
-        const d = Q.defer()
-        const self = this
-        ExplaainSearch.searchCards(self.user, '', 1 /* 50 */) /* Have set this to be one at a time for now to avoid BAD THINGS */
-        .then(function(hits) {
-          const promises = hits.map(function(card) {
-            return self.deleteCard(card.objectID)
-          })
-          console.log(promises)
-          Q.allSettled(promises)
-          .then(function () {
-            console.log('hihihihihihi')
-            d.resolve()
-          }).catch(function(e) {
-            d.reject(e)
-          })
-        }).catch(function(e) {
-          console.log(e)
-          d.reject(e)
-        })
-        return d.promise
       },
       updateCard: async function(data, callback, errorCallback) {
         console.log('updateCard', data, callback, errorCallback)

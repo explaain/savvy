@@ -3,7 +3,6 @@ import Vue from 'vue'
 import Q from 'q'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-// import Algolia from 'algoliasearch'
 
 Vue.use(VueAxios, axios)
 

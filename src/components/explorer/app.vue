@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="app">
-    <explorer :sidebar="sidebar" :userID="userID" :logo="logo" :firebaseConfig="firebaseConfig" :algoliaParams="algoliaParams" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local">
+    <explorer :sidebar="sidebar" :userID="userID" :logo="logo" :firebaseConfig="firebaseConfig" :authorParams="authorParams" @closeDrawer="closeDrawer" :local="local">
       <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="plugin"></ibutton>
     </explorer>
   </div>
@@ -34,11 +34,6 @@
           projectId: "forgetmenot-1491065404838",
           storageBucket: "",
           messagingSenderId: "400087312665"
-        },
-        algoliaParams: { // Need to fetch these from app.vue to avoid duplication!
-          appID: 'I2VKMNNAXI',
-          apiKey: '2b8406f84cd4cc507da173032c46ee7b',
-          index: 'ForgetMeNot_Context_Test_Local'
         },
         authorParams: {
           // url: 'https://forget-me-not--app.herokuapp.com/api/memories',

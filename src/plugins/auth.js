@@ -416,7 +416,6 @@ const testUserAuth = {
 }
 
 const testUserData = {
-  algoliaApiKey: '88bd0a77faff65d4ace510fbf172a4e1',
   firebase: 'vZweCaZEWlZPx0gpQn2b1B7DFAZ2',
   first: 'Jeremy',
   last: 'Evans',

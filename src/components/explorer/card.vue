@@ -161,6 +161,9 @@ export default {
     content: function() {
       // @TODO: figure out how listCards fit into this
       // const subLayers = ['pendingContent', 'listCards']
+      console.log('THISTHIS')
+      console.log(this.card)
+      console.log(this.highlightedContent)
       const subLayers = ['pendingContent']
       const preferHighlight = (key, initialKey, loop) => {
         if (initialKey) {
@@ -337,13 +340,15 @@ export default {
   },
   created: function() {
     this.syncData()
-    this.highlightedContent = this.card._highlightResult || this.highlightResult
+    // @NOTE: Temporarily disabling highlightedContent, as it's breaking 'content'
+    // this.highlightedContent = this.card._highlightResult || this.highlightResult
     Vue.use(ToggleButton)
     if (this.card.newlyCreated)
       this.editing = true
   },
   updated: function () {
-    this.highlightedContent = this.card._highlightResult || this.highlightResult
+    // @NOTE: Temporarily disabling highlightedContent, as it's breaking 'content'
+    // this.highlightedContent = this.card._highlightResult || this.highlightResult
   },
   methods: {
     update: function(data) {

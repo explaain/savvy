@@ -21,10 +21,6 @@ const authorConfig = {
   importUrl: 'https://' + (process.env.BACKEND_URL || 'savvy-api--live.herokuapp.com') + '/api/import'
 }
 
-const algoliaParams = {
-  appID: 'D3AE3TSULH' // @TODO: Find a home for this!
-}
-
 // var userForcedFromUrl = window && window.location && window.location.href.search('localhost:8080') > -1 ? {
 // var userForcedFromUrl = window && window.location && window.location.href.search('ngrok') > -1 ? {
 // var userForcedFromUrl = window && window.location && window.location.href.search('yc.heysavvy.com') > -1 ? {
@@ -51,7 +47,6 @@ var userForcedFromUrl = {
     uid: 'paul_graham',
   },
   data: {
-    algoliaApiKey: '48206d80d2db24aebaac596ea87ae4db',
     firebase: '',
     first: 'Paul',
     last: 'Graham',
@@ -138,7 +133,7 @@ class Controller {
       console.log('NOT forcing user')
       const user = await this.Auth.getUser()
       if (!ExplaainSearch.searchCards && user)
-        Vue.use(ExplaainSearch, algoliaParams, user) // Bit of hack - shouldn't be using Vue at all!
+        Vue.use(ExplaainSearch, user) // Bit of hack - shouldn't be using Vue at all!
       return user
     }
   }
@@ -154,7 +149,7 @@ class Controller {
     console.log('❇️ CONTROLLER ❇️ - saveCard', data)
     const user = await this.getUser()
     const idToken = await this.getAccessToken()
-    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken, organisationID: user.data.organisationID }
+    data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
     const result = await this.Author.saveCard(data)
     return result
   }
@@ -162,7 +157,7 @@ class Controller {
     console.log('❇️ CONTROLLER ❇️ - deleteCard', data)
     const user = await this.getUser()
     const idToken = await this.getAccessToken()
-    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken, organisationID: user.data.organisationID }
+    data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
     data.organisationID = user.data.organisationID
     const result = await this.Author.deleteCard(data)
     return result
@@ -171,7 +166,7 @@ class Controller {
     console.log('❇️ CONTROLLER ❇️ - verifyCard', data)
     const user = await this.getUser()
     const idToken = await this.getAccessToken()
-    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken, organisationID: user.data.organisationID }
+    data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
     data.organisationID = user.data.organisationID
     const result = await this.Author.verifyCard(data)
     return result
@@ -181,7 +176,7 @@ class Controller {
     const user = await this.getUser()
     const idToken = await this.getAccessToken()
     data.includeNlp = true
-    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken, organisationID: user.data.organisationID }
+    data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
     data.organisationID = user.data.organisationID
     console.log('data', data)
     console.log('ExplaainSearch', ExplaainSearch)
@@ -194,7 +189,7 @@ class Controller {
     const user = await this.getUser()
     const idToken = await this.getAccessToken()
     data.includeNlp = true
-    data.sender = { uid: user.uid, role: user.data.role, algoliaApiKey: user.data.algoliaApiKey, idToken: idToken, organisationID: user.data.organisationID }
+    data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
     data.organisationID = user.data.organisationID
     console.log('data', data)
     console.log('ExplaainSearch', ExplaainSearch)

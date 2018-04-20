@@ -1,41 +1,12 @@
 import log from 'loglevel'
 import Q from 'q'
 import axios from 'axios'
-import Algolia from 'algoliasearch'
 
 log.setLevel('debug')
 
 const Search = {
-  install(Vue, algoliaParams, userAuth) {
-    console.log('Installing ExplaainSearch', algoliaParams, userAuth)
-    const AlgoliaClient = Algolia(algoliaParams.appID, userAuth.data.algoliaApiKey, {
-      protocol: 'https:'
-    })
-    const AlgoliaIndex = AlgoliaClient.initIndex(algoliaParams.index)
-    const AlgoliaCardsIndex = AlgoliaClient.initIndex(userAuth.data.organisationID + '__Cards')
-    var AlgoliaFileIndex
-    if (!algoliaParams.noFiles)
-      AlgoliaFileIndex = AlgoliaClient.initIndex(userAuth.data.organisationID + '__Files')
-
-    // Need to sort this out - only for Explaain currently and probably shouldn't be here!
-    const saveCard = card => new Promise(function(resolve, reject) {
-      console.log('saveCard', card)
-      const cardToSave = JSON.parse(JSON.stringify(card))
-      const keys = ['description', 'title', 'listCards']
-      keys.forEach(key => {
-        if (cardToSave.content[key] && !cardToSave[key]) cardToSave[key] = cardToSave.content[key]
-      })
-      delete cardToSave.content
-      AlgoliaCardsIndex.addObject(cardToSave, function(err, content) {
-        if (err) {
-          console.log('Error - Card Not Saved!', err)
-          reject(err)
-        } else {
-          console.log('Card Saved:', content)
-          resolve(content)
-        }
-      })
-    })
+  install(Vue, userAuth) {
+    console.log('Installing ExplaainSearch', userAuth)
 
     const calculateUniqueID = card => {
       const splitBySlash = card.sameAs[0].split('/')
@@ -73,8 +44,8 @@ const Search = {
           card.objectID = retrievedCard.objectID
         else
           card.objectID = calculateUniqueID(card)
-        const savedCard = await saveCard(card)
-        if (!card.objectID) card.objectID = savedCard.objectID
+        // const savedCard = await saveCard(card)
+        // if (!card.objectID) card.objectID = savedCard.objectID
       } else {
         // Otherwise, set card to retrieved data
         card = retrievedCard
@@ -232,37 +203,6 @@ const Search = {
       }
     }
 
-    const advancedSearch = function(params) {
-      console.log('advancedSearch')
-      const d = Q.defer()
-      AlgoliaIndex.clearCache()
-      AlgoliaIndex.search(params, function(e, content) {
-        if (e) {
-          log.trace(e)
-          d.reject(e)
-        } else {
-          const cards = content.hits.map(async card => {
-            const correctedCard = await correctCard(card)
-            return correctedCard
-          })
-          AlgoliaFileIndex.search()
-          fetchListItemCards(cards)
-          .then(function(results) {
-            console.log('results', results)
-            var allHits
-            try {
-              allHits = cards.concat(results)
-            } catch (e) {
-              console.log(e)
-            }
-            console.log('allHits', allHits)
-            d.resolve(allHits)
-          })
-        }
-      })
-      return d.promise
-    }
-
     const advancedChunkSearch = async params => {
       console.log('advancedChunkSearch')
       var cards = []
@@ -280,8 +220,8 @@ const Search = {
       // }
       const content = await axios({
         method: 'post',
-        // url: 'http://localhost:5000/api/memories/',
-        url: 'https://savvy-api--live.herokuapp.com/api/memories/',
+        url: 'http://localhost:5000/api/memories/',
+        // url: 'https://savvy-api--live.herokuapp.com/api/memories/',
         timeout: 10000,
         data: {
           sender: params.sender,
@@ -300,59 +240,9 @@ const Search = {
       })
       var fileIDs = cards.map(card => card.fileID)
       fileIDs = fileIDs.filter((item, pos) => item && fileIDs.indexOf(item) === pos) // Remove blanks and duplicates
-      // if (fileIDs.length) {
-        // const files = await new Promise((resolve, reject) => {
-        //   AlgoliaFileIndex.getObjects(fileIDs, (err, content) => {
-        //     if (err)
-        //       reject(err)
-        //     else {
-        //       resolve(content)
-        //     }
-        //   })
-        // })
-      // }
-      // cards = cards.map(card => {
-        // card.files = files.results.filter(file => file && file.objectID === card.fileID)
-        // card.files.forEach(file => {
-        //   if (!file.title) file.title = card.fileTitle
-        // })
-        // return card
-      // })
       cards = combineDuplicateContents(cards)
       return cards
     }
-
-    // const chunkGet = (objectID) => new Promise(function(resolve, reject) {
-    //   console.log('chunkGet', objectID)
-    //   AlgoliaCardsIndex.getObject(objectID, async (e, content) => {
-    //     if (e) {
-    //       log.trace(e)
-    //       reject(e)
-    //     } else {
-    //       const card = await correctCard(content)
-    //       const filePromise = new Promise((resolve, reject) => {
-    //         if (card.fileID) {
-    //           AlgoliaFileIndex.getObject(card.fileID, (err, content) => {
-    //             if (err)
-    //               reject(err)
-    //             else
-    //               resolve(content)
-    //           })
-    //         } else {
-    //           resolve()
-    //         }
-    //       })
-    //       filePromise
-    //       .then(function(file) {
-    //         if (file)
-    //           card.file = file
-    //         resolve(card)
-    //       }).catch(err => {
-    //         reject(err)
-    //       })
-    //     }
-    //   })
-    // })
 
     const searchCards = function(user, searchText, hitsPerPage, extraParams) {
       console.log('searchCards')
@@ -374,43 +264,14 @@ const Search = {
       return d.promise
     }
 
-    const fetchListItemCards = function(cards) {
-      console.log('fetchListItemCards')
-      const d = Q.defer()
-      const promises = []
-      cards.forEach(function(card) {
-        card.content.listCards = []
-        if (!card.content.listItems) card.content.listItems = []
-        card.content.listItems.forEach(function(key) {
-          // const p = Q.defer()
-          promises.push(getCard(key)) // Do we need to notify the card or provide callbacks etc here?
-          // promises.push(p.promise)
-        })
-      })
-      log.trace(promises)
-      Q.allSettled(promises)
-      .then(function(results) {
-        console.log('fetchListItemCards results', results)
-        const cards = results.map(result => result.value)
-        cards.forEach(card => {
-          card.fetched = true
-        })
-        d.resolve(cards)
-      }).catch(function(e) {
-        log.trace(e)
-        d.reject(e)
-      })
-      return d.promise
-    }
-
     const getCard = async (objectID, data) => {
       console.log('getCard', objectID, data)
       const getData = data || {}
       getData.objectID = objectID
       const result = await axios({
         method: 'post',
-        // url: 'http://localhost:5000/api/get-card/',
-        url: 'https://savvy-api--live.herokuapp.com/api/get-card/',
+        url: 'http://localhost:5000/api/get-card/',
+        // url: 'https://savvy-api--live.herokuapp.com/api/get-card/',
         timeout: 10000,
         data: getData
       })
@@ -418,21 +279,6 @@ const Search = {
       console.log('gotCard:', card)
       return card
     }
-    //
-    // const getCard = objectID => new Promise((resolve, reject) => {
-    //   console.log('getCard', objectID)
-    //   // @TODO: Remove Algolia
-    //   AlgoliaCardsIndex.getObject(objectID, async (e, content) => {
-    //     if (e) {
-    //       log.trace(e)
-    //       reject(e)
-    //     } else {
-    //       const card = await correctCard(content)
-    //       console.log('gotCard:', card)
-    //       resolve(card)
-    //     }
-    //   })
-    // })
 
     const correctCard = async function(card) {
       console.log('correctCard', card)
@@ -588,11 +434,9 @@ const Search = {
     // }
 
     this.getCard = getCard
-    this.advancedSearch = advancedSearch
     this.searchCards = searchCards
     this.compoundSearch = compoundSearch
     this.removeDuplicates = removeDuplicates
-    this.saveCard = saveCard
     this.correctCard = correctCard
     this.yieldCard = yieldCard
   }
