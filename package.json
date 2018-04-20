@@ -14,7 +14,6 @@
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs",
-    "firebase-test": "node functions/test.js",
     "dev-explaain": "BACKEND_URL='localhost:3000' node buildExplaain/dev-server.js",
     "build-explaain": "node buildExplaain/build.js"
   },
