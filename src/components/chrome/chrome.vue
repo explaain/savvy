@@ -356,16 +356,6 @@
     padding: 180px 0;
     background: rgba(255,255,255,0.5);
   }
-  .sidebar-true {
-    section.chooseOrg {
-      width: 50%;
-      position: absolute;
-      right: 0
-    }
-    .div-spinner {
-      left: 50%;
-    }
-  }
 
   .popup-panel-container {
     position: fixed;
@@ -394,6 +384,25 @@
       display: inline-block;
       width: auto;
       padding: 40px;
+    }
+  }
+
+  .sidebar-true {
+    section.chooseOrg {
+      width: 50%;
+      position: absolute;
+      right: 0
+    }
+    .div-spinner {
+      left: 50%;
+    }
+    > .popup-panel-container {
+      left: 50%;
+      padding: 10px;
+
+      > .panel {
+        padding: 40px 20px;
+      }
     }
   }
 

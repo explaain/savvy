@@ -375,4 +375,10 @@ function getParameterByName(name, url) {
     }
   }
 }
+
+.sidebar-true {
+  .panel .services a.service {
+    width: 110px;
+  }
+}
 </style>

@@ -128,6 +128,8 @@ class Controller {
     console.log('❇️ CONTROLLER ❇️ - getUser')
     if (userForcedFromUrl) {
       console.log('forcing user from url')
+      if (!ExplaainSearch.searchCards && userForcedFromUrl)
+        Vue.use(ExplaainSearch, userForcedFromUrl)
       return userForcedFromUrl
     } else {
       console.log('NOT forcing user')

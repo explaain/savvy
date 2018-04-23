@@ -140,7 +140,7 @@
           'press the TAB key once to move the cursor to this search box',
           'to see recent updated cards, don\'t type anything, just press Enter',
         ][Math.floor(Math.random() * 1)], // Update this number with the number of hints!
-        searchStrategy: 'algolia',
+        searchStrategy: 'elasticsearch',
         searchStrategyOptions: [
           { text: 'Algolia', value: 'algolia' },
           { text: 'ElasticSearch', value: 'elasticsearch' }
@@ -851,7 +851,7 @@
       }
       &.search-results {
         .search {
-          margin-top: 10px;
+          margin-top: 20px;
           max-width: 400px;
 
           .greeting {
