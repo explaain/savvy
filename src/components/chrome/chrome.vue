@@ -18,6 +18,7 @@
             <img :src="profileImage" :class="user && user.data && user.data.role">
           </template>
           <b-dropdown-item @click="showConnectPanel = true">🔌 Connect Services</b-dropdown-item>
+          <b-dropdown-item @click="infoPanel = true">❓ Help</b-dropdown-item>
           <!-- <b-dropdown-item @click="forceUser('toggle')">🐞 Switch to {{user.data.role === 'admin' ? 'Member' : 'Admin'}}</b-dropdown-item> -->
           <b-dropdown-item href="https://heysavvy.drift.com/matt" target="_blank">👋 Contact Us</b-dropdown-item>
           <!-- <b-dropdown-item @click="signOut">⚓️ Log Out</b-dropdown-item> -->
@@ -31,7 +32,7 @@
     <div class="popup-panel-container" v-if="showConnectPanel" @click.self="showConnectPanel = false">
       <connect :services="services" :organisationID="user.data.organisationID"></connect>
     </div>
-    <div class="popup-panel-container demo-info" v-if="demoInfoPanel" @click.self="demoInfoPanel = false">
+    <div class="popup-panel-container info demo-info" v-if="demoInfoPanel" @click.self="demoInfoPanel = false">
       <popup-panel title="👋🏼 Hello Y Combinator">
         <div>
           <p style="margin-top: 30px;">We've added a mixture of spreadsheets, docs and images to a fictional Google Drive.</p>
@@ -40,6 +41,21 @@
           <ul>
             <li>🔍 <b>Search</b> - files, content within files, paragraphs and sentences, records in a spreadsheet</li>
             <li>🖊 <b>Edit</b> - spreadsheets only on this version but watch how it automatically syncs with the master copy (e.g. <a href="https://docs.google.com/spreadsheets/d/1v7uDscxKm8aXmbCv13wLB9q1na_zXqA1VxRMTHW1wVg" target="_blank">here</a> and <a href="https://docs.google.com/spreadsheets/d/1YZWZl7y2cmPi33lBgVwejTl61L3EP1G3V8u9kdndxrc/" target="_blank">here</a>)</li>
+            <li>🗂 <b>Create</b> - a new plain text card and assign tags etc.</li>
+          </ul>
+          <ibutton text="Have a play" class="primary action" icon="arrow-right" :click="hideDemoInfoPanel"></ibutton>
+        </div>
+      </popup-panel>
+    </div>
+    <div class="popup-panel-container info" v-if="infoPanel" @click.self="infoPanel = false">
+      <popup-panel title="👋🏼 Welcome to Savvy">
+        <div>
+          <p style="margin-top: 30px;">You're almost ready to start accessing your cloud apps in a whole new way. All that's left to do is connect them up!</p>
+          <ibutton text="Connect your cloud apps now" image="/static/images/icons/gdrive.png" :click="fromInfoToConnect"></ibutton>
+          <p>On this version of Savvy you can:</p>
+          <ul>
+            <li>🔍 <b>Search</b> - files, content within files, paragraphs and sentences, records in a spreadsheet</li>
+            <li>🖊 <b>Edit</b> - spreadsheets only on this version but watch how it automatically syncs with the master copy</li>
             <li>🗂 <b>Create</b> - a new plain text card and assign tags etc.</li>
           </ul>
           <ibutton text="Have a play" class="primary action" icon="arrow-right" :click="hideDemoInfoPanel"></ibutton>
@@ -92,6 +108,7 @@
         justClicked: false,
         showConnectPanel: false,
         demoInfoPanel: this.mode === 'demo',
+        infoPanel: false,
         services: [
           {
             title: 'Google Drive',
@@ -151,6 +168,9 @@
     watch: {
       authState: function (val) {
         if (val === 'loggedIn') {
+          if (this.user && this.user.data && this.user.data.created && this.user.data.created - parseInt(new Date().getTime() / 1000) < (60 * 1000))
+            if (this.mode !== 'demo')
+              this.infoPanel = true
           this.airship.identify({
             type: 'User',
             id: this.user.uid,
@@ -264,6 +284,10 @@
       },
       hideDemoInfoPanel: function () {
         this.demoInfoPanel = false
+      },
+      fromInfoToConnect: function () {
+        this.infoPanel = false
+        this.showConnectPanel = true
       }
     }
   }
@@ -371,7 +395,7 @@
     overflow: scroll;
     -webkit-overflow-scrolling: touch;
 
-    &.demo-info > .panel {
+    &.info > .panel {
       max-width: 500px;
 
       ul {
