@@ -58,7 +58,7 @@
             <li>🖊 <b>Edit</b> - spreadsheets only on this version but watch how it automatically syncs with the master copy</li>
             <li>🗂 <b>Create</b> - a new plain text card and assign tags etc.</li>
           </ul>
-          <ibutton text="Have a play" class="primary action" icon="arrow-right" :click="hideDemoInfoPanel"></ibutton>
+          <ibutton text="Have a play" class="primary action" icon="arrow-right" :click="hideInfoPanel"></ibutton>
         </div>
       </popup-panel>
     </div>
@@ -284,6 +284,9 @@
       },
       hideDemoInfoPanel: function () {
         this.demoInfoPanel = false
+      },
+      hideInfoPanel: function () {
+        this.infoPanel = false
       },
       fromInfoToConnect: function () {
         this.infoPanel = false

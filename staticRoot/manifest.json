@@ -2,7 +2,7 @@
   "name": "Savvy",
   "short_name": "Savvy",
   "description": "Smart team knowledge management",
-  "version": "1.1.5",
+  "version": "1.1.7",
   "manifest_version": 2,
   "icons": {
     "16": "static/chrome/images/icon16.png",

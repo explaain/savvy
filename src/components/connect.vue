@@ -8,6 +8,7 @@
       </div>
     </a>
     <h3>Connect to all your work apps here</h3>
+    <p class="subheading">We'll index your 50 most recent files/boards/emails for each service you connect. <a href="https://heysavvy.drift.com/matt" target="_blank">Get&nbsp;in&nbsp;touch</a> to request more.</p>
     <section class="services">
       <a class="service" :class="{'coming-soon': service.comingSoon}" v-for="service in services" @click="connectSource(service)">
         <div class="logo">
@@ -322,9 +323,14 @@ function getParameterByName(name, url) {
     }
   }
 
+  p.subheading, .services {
+    max-width: 640px;
+  }
+  p.subheading {
+    margin: 20px 0;
+  }
   .services {
     text-align: center;
-    max-width: 640px;
     margin: auto;
 
     a.service {
