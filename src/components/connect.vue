@@ -25,15 +25,15 @@
 </template>
 
 <script>
-/* global Kloudless, window, gapi */
-// /* global Kloudless, window */
+// /* global Kloudless, window, gapi */
+/* global Kloudless, window */
 import LogRocket from 'logrocket'
 import Raven from 'raven-js'
 import axios from 'axios'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon.vue'
 import '../scripts/jquery.js'
-import '../scripts/google.js'
+// import '../scripts/google.js'
 import '../scripts/kloudless.authenticator.js'
 import '../scripts/trello.js'
 import Spinner from './spinner.vue'
@@ -60,23 +60,23 @@ export default {
     Spinner,
   },
   created: function () {
-    console.log('gapi')
-    console.log(gapi)
-    console.log('gapi.load')
-    console.log(gapi.load)
-    gapi.load('auth2', function() {
-      console.log('gapi.auth2')
-      console.log(gapi.auth2)
-      console.log('gapi.auth2.init')
-      console.log(gapi.auth2.init)
-      googleAuth2 = gapi.auth2.init({ // eslint-disable-line
-        client_id: '704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com',
-        // Scopes to request in addition to 'profile' and 'email'
-        // scope: 'https://www.googleapis.com/auth/gmail.readonly'
-      })
-      console.log('googleAuth2')
-      console.log(googleAuth2)
-    })
+    // console.log('gapi')
+    // console.log(gapi)
+    // console.log('gapi.load')
+    // console.log(gapi.load)
+    // gapi.load('auth2', function() {
+    //   console.log('gapi.auth2')
+    //   console.log(gapi.auth2)
+    //   console.log('gapi.auth2.init')
+    //   console.log(gapi.auth2.init)
+    //   googleAuth2 = gapi.auth2.init({ // eslint-disable-line
+    //     client_id: '704974264220-lmbsg98tj0f3q09lv4tk6ha46flit4f0.apps.googleusercontent.com',
+    //     // Scopes to request in addition to 'profile' and 'email'
+    //     // scope: 'https://www.googleapis.com/auth/gmail.readonly'
+    //   })
+    //   console.log('googleAuth2')
+    //   console.log(googleAuth2)
+    // })
   },
   methods: {
     connectSource: function(service) {
