@@ -7,7 +7,7 @@ const props = {
   // env: 'production',
   // plugin: false,
   sidebar: false,
-  mode: 'live',
+  mode: 'chrome',
   // demo: true // @TODO: Set this back to false when we're not doing demo!
 }
 

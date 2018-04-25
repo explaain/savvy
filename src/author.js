@@ -89,6 +89,8 @@ class Author {
         timeout: 10000,
         params: data
       }).then(response => {
+        if (!response.data.success && response.data.error)
+          throw new Error(response.error)
         console.log('Card Deleted!', response)
         resolve(response.data)
       }).catch(err => {

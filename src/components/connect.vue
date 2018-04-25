@@ -186,16 +186,16 @@ export default {
       self.message = null
       if (!self.loading) {
         self.loading = true
-        setTimeout(function () {
-          console.log('5 second timeout')
-          if (self.loading) {
-            console.log('hi')
-            self.loading = false
-            self.message = {
-              text: 'Thanks for connecting up your ' + source.title + ' account! We\'re indexing your content right now and it\'ll be ready for you within a few minutes. ☕️'
-            }
-          }
-        }, 5000)
+        // setTimeout(function () {
+        //   console.log('5 second timeout')
+        //   if (self.loading) {
+        //     console.log('hi')
+        //     self.loading = false
+        //     self.message = {
+        //       text: 'Thanks for connecting up your ' + source.title + ' account! We\'re indexing your content right now and it\'ll be ready for you within a few minutes. ☕️'
+        //     }
+        //   }
+        // }, 5000)
         axios({
           method: 'post',
           // url: 'http://localhost:5050/add-source',
@@ -210,8 +210,12 @@ export default {
           }
           self.loading = false
           self.message = {
-            text: 'Great news - your files are now indexed and ready to search!'
+            text: 'Thanks for connecting up your ' + source.title + ' account! We\'re indexing your content right now and it\'ll be ready for you within a few minutes. ☕️'
           }
+          // @NOTE: Temporarily removed this until we figure out a way of making sure this is actually true
+          // self.message = {
+          //   text: 'Great news - your files are now indexed and ready to search!'
+          // }
         }).catch(err => {
           self.loading = false
           console.error('Error Adding Source', err)
