@@ -17,7 +17,8 @@
           <template slot="button-content">
             <img :src="profileImage" :class="user && user.data && user.data.role">
           </template>
-          <b-dropdown-item @click="showConnectPanel = true">🔌 Connect Services</b-dropdown-item>
+          <b-dropdown-item @click="showingConnectPanel = true">🔌 Connect Services</b-dropdown-item>
+          <b-dropdown-item @click="showFilesPanel" v-if="filePicker">🗂 My Files</b-dropdown-item>
           <b-dropdown-item @click="infoPanel = true">❓ Help</b-dropdown-item>
           <!-- <b-dropdown-item @click="forceUser('toggle')">🐞 Switch to {{user.data.role === 'admin' ? 'Member' : 'Admin'}}</b-dropdown-item> -->
           <b-dropdown-item href="https://heysavvy.drift.com/matt" target="_blank">👋 Contact Us</b-dropdown-item>
@@ -29,8 +30,11 @@
       </div>
       <!-- <ibutton slot="buttons" icon="search-plus" text="Page" :click="fromPage" v-if="sidebar"></ibutton> -->
     </explorer>
-    <div class="popup-panel-container" v-if="showConnectPanel" @click.self="showConnectPanel = false">
+    <div class="popup-panel-container" v-if="showingConnectPanel" @click.self="showingConnectPanel = false">
       <connect :services="services" :organisationID="user.data.organisationID"></connect>
+    </div>
+    <div class="popup-panel-container" v-if="filesPanel" @click.self="hideFilesPanel">
+      <files :files="files" :organisationID="user.data.organisationID"></files>
     </div>
     <div class="popup-panel-container info demo-info" v-if="demoInfoPanel" @click.self="demoInfoPanel = false">
       <popup-panel title="👋🏼 Hello Y Combinator">
@@ -76,6 +80,7 @@
   import Explorer from '../explorer/explorer.vue'
   import Spinner from '../spinner.vue'
   import PopupPanel from '../popup-panel.vue'
+  import Files from '../files.vue'
   import Connect from '../connect.vue'
   import IconButton from '../explorer/ibutton.vue'
 
@@ -94,6 +99,17 @@
       'mode',
       'parentError',
     ],
+    components: {
+      BootstrapVue,
+      Icon,
+      ibutton: IconButton,
+      Explorer,
+      PopupPanel,
+      Spinner,
+      Connect,
+      Files,
+      // Connect: () => import('../connect.vue'),
+    },
     data() {
       return {
         organisation: {},
@@ -106,9 +122,12 @@
         cards: [], // ???
         // sidebar: true,
         justClicked: false,
-        showConnectPanel: false,
+        showingConnectPanel: false,
+        files: [],
+        filesPanel: false,
         demoInfoPanel: this.mode === 'demo',
         infoPanel: false,
+        filePicker: false,
         services: [
           {
             title: 'Google Drive',
@@ -183,6 +202,7 @@
               id: this.user.data ? this.user.data.organisationID : '0',
             }
           }).then(() => {
+            this.filePicker = this.airship.isEnabled('files-panel')
             this.services.forEach(service => {
               console.log('integration-' + service.id)
               console.log(this.airship.isEnabled('integration-' + service.id))
@@ -191,16 +211,6 @@
           })
         }
       }
-    },
-    components: {
-      BootstrapVue,
-      Icon,
-      ibutton: IconButton,
-      Explorer,
-      PopupPanel,
-      Spinner,
-      Connect,
-      // Connect: () => import('../connect.vue'),
     },
     created: function(a) {
       const self = this
@@ -288,9 +298,16 @@
       hideInfoPanel: function () {
         this.infoPanel = false
       },
+      showFilesPanel: async function () {
+        this.filesPanel = true
+        this.files = await this.Controller.getUserFiles()
+      },
+      hideFilesPanel: function () {
+        this.filesPanel = false
+      },
       fromInfoToConnect: function () {
         this.infoPanel = false
-        this.showConnectPanel = true
+        this.showingConnectPanel = true
       }
     }
   }

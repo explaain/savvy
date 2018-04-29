@@ -31,6 +31,12 @@ class ChromeControllerInterface {
       chrome.runtime.sendMessage({ action: 'getUser' }, resolve)
     })
   }
+  getUserFiles() {
+    return new Promise((resolve, reject) => {
+      console.log('getUserFiles (chrome-controller-interface.js)')
+      chrome.runtime.sendMessage({ action: 'getUserFiles' }, resolve)
+    })
+  }
   getAccessToken() {
     return new Promise((resolve, reject) => {
       console.log('getAccessToken (chrome-controller-interface.js)')

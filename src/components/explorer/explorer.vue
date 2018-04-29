@@ -484,6 +484,7 @@
           numberOfResults: 12,
           searchStrategy: self.searchStrategy,
         }
+        const startTime = new Date().getTime() / 1000
         self.Controller.searchCards(searchParams).then(function(hits) {
           console.log('hits')
           console.log(hits)
@@ -492,6 +493,7 @@
             userID: self.user.uid,
             searchQuery: query,
             noOfResults: hits.length,
+            duration: (new Date().getTime() / 1000) - startTime,
             results: hits.map(hit => { return { objectID: hit.objectID, description: hit.description } })
           })
           self.loading = false

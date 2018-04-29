@@ -27,6 +27,9 @@ class ControllerInterface {
   getUser() {
     return this.Controller.getUser()
   }
+  getUserFiles() {
+    return this.Controller.getUserFiles()
+  }
   getAccessToken() {
     return this.Controller.getAccessToken()
   }

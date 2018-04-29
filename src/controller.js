@@ -124,20 +124,27 @@ class Controller {
     console.log('❇️ CONTROLLER ❇️ - signedIn')
     return this.Auth.signedIn()
   }
+  setUpUser() {
+    if (!ExplaainSearch.searchCards) {
+      Vue.use(ExplaainSearch)
+      console.log('ExplaainSearch Installed!')
+    }
+  }
   async getUser() {
     console.log('❇️ CONTROLLER ❇️ - getUser')
+    this.setUpUser()
     if (userForcedFromUrl) {
       console.log('forcing user from url')
-      if (!ExplaainSearch.searchCards && userForcedFromUrl)
-        Vue.use(ExplaainSearch, userForcedFromUrl)
       return userForcedFromUrl
     } else {
       console.log('NOT forcing user')
       const user = await this.Auth.getUser()
-      if (!ExplaainSearch.searchCards && user)
-        Vue.use(ExplaainSearch, user) // Bit of hack - shouldn't be using Vue at all!
       return user
     }
+  }
+  getUserFiles() {
+    console.log('❇️ CONTROLLER ❇️ - getUserFiles')
+    return this.Auth.getUserFiles()
   }
   getAccessToken() {
     console.log('❇️ CONTROLLER ❇️ - getAccessToken')
@@ -175,15 +182,18 @@ class Controller {
   }
   async searchCards(data) {
     console.log('❇️ CONTROLLER ❇️ - searchCards', data)
-    const user = await this.getUser()
+    // const user = await this.getUser()
+    this.setUpUser()
     const idToken = await this.getAccessToken()
+    const uid = await this.Auth.getUid()
     data.includeNlp = true
-    data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
-    data.organisationID = user.data.organisationID
+    // data.sender = { uid: user.uid, role: user.data.role, idToken: idToken, organisationID: user.data.organisationID }
+    data.sender = { uid: uid, idToken: idToken }
+    // data.organisationID = user.data.organisationID
     console.log('data', data)
     console.log('ExplaainSearch', ExplaainSearch)
     console.log('ExplaainSearch.searchCards', ExplaainSearch.searchCards)
-    const result = await ExplaainSearch.searchCards(data.user, data.query, data.numberOfResults, data)
+    const result = await ExplaainSearch.searchCards({}, data.query, data.numberOfResults, data)
     return result
   }
   async getCard(data) {

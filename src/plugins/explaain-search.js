@@ -5,8 +5,8 @@ import axios from 'axios'
 log.setLevel('debug')
 
 const Search = {
-  install(Vue, userAuth) {
-    console.log('Installing ExplaainSearch', userAuth)
+  install(Vue) {
+    console.log('Installing ExplaainSearch')
 
     const calculateUniqueID = card => {
       const splitBySlash = card.sameAs[0].split('/')
@@ -104,7 +104,7 @@ const Search = {
     const getFromSameAs = sameAs => new Promise(function(resolve, reject) {
       console.log('getFromSameAs', sameAs)
       const filters = 'sameAs: "' + sameAs.join('" OR sameAs: "') + '"'
-      searchCards(userAuth, '', null, { filters: filters })
+      searchCards({}, '', null, { filters: filters })
       .then(hits => {
         if (hits && hits.length) {
           console.log('Found from sameAs:', hits[0])
@@ -218,6 +218,7 @@ const Search = {
       // } catch (e) {
       //
       // }
+      const startTime = new Date().getTime() / 1000
       const content = await axios({
         method: 'post',
         // url: 'http://localhost:5000/api/memories/',
@@ -231,6 +232,7 @@ const Search = {
           organisationID: params.organisationID
         }
       })
+      console.log('⏳ DURATION (search): ', (new Date().getTime() / 1000) - startTime)
       console.log('content')
       console.log(content)
       const hits = content.hits || (content.data && content.data.memories) || [] // Accounts for the fact that we are often now using savvy-api for this

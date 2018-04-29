@@ -225,6 +225,15 @@ class Auth {
         return null
       }
     }
+    self.getUid = async () => {
+      console.log('🔑 Auth 🔑 - getUid')
+      if (self.user) {
+        console.log(self.user.uid)
+        return self.user.uid
+      } else {
+        return null
+      }
+    }
     self.refreshUserToken = async () => {
       console.log('🔑 Auth 🔑 - refreshUserToken')
       const token = await self.getAccessToken(true)
@@ -240,6 +249,7 @@ class Auth {
         var response
         const dataToSend = { idToken: idToken }
         try {
+          const startTime = new Date().getTime() / 1000
           response = await axios({
             method: 'post',
             // url: 'http://localhost:5050/get-user',
@@ -247,6 +257,7 @@ class Auth {
             timeout: 10000,
             data: dataToSend
           })
+          console.log('⏳ DURATION (get-user): ', (new Date().getTime() / 1000) - startTime)
           console.log('📪  The response data!', response.data)
           return response.data.results
         } catch (err) {
@@ -318,6 +329,20 @@ class Auth {
       self.user = user
       console.log('🔑 Auth 🔑 - sending user back (async):', randomID, user)
       return user
+    }
+    self.getUserFiles = async () => {
+      console.log('🔑 Auth 🔑 - getUserFiles')
+      const idToken = await self.refreshUserToken()
+      const response = await axios({
+        method: 'post',
+        // url: 'http://localhost:5050/get-user-files',
+        url: 'https://savvy-nlp--staging.herokuapp.com/get-user-files',
+        timeout: 10000,
+        data: { idToken: idToken }
+      })
+      console.log('response')
+      console.log(response)
+      return response.data.results
     }
     self.joinOrg = organisationID => {
       console.log('🔑 Auth 🔑 - joinOrg', organisationID)
